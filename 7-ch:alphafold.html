@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="" />
+  <title>AlphaFold: Architecture and Mathematics</title>
+  <link rel="stylesheet" href="tufte.css" />
+  <link rel="stylesheet" href="site.css" />
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<article>
+<section>
+<h1 data-number="7" id="ch:alphafold">AlphaFold: Architecture and
+Mathematics</h1>
+<p>On November 30, 2020, John Moult presented the results of the
+fourteenth Critical Assessment of protein Structure Prediction to a
+virtual audience. CASP competitions had run biannually since 1994, each
+time inviting computational groups worldwide to predict the
+three-dimensional structures of proteins whose experimental structures
+had been solved but not yet released <span class="citation"
+data-cites="moult1995">(Moult et al. 1995)</span>. The results of CASP14
+were unlike any that had come before.</p>
+<p>A single group, registered as number 427, had achieved a median
+GDT-TS of 92.4 across all targets <span class="citation"
+data-cites="jumper2021">(Jumper et al. 2021)</span>. GDT-TS is scored
+from 0 to 100; a score above 90 generally indicates a prediction
+accurate enough to rival the experimental structure itself. The
+second-best group scored around 75. The gap between first and second
+place in CASP14 was larger than any gap in the competition’s
+twenty-six-year history.<span
+class="sidenote-wrapper"><label for="sn-82" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-82" class="margin-toggle"/><span
+class="sidenote">Previous CASP competitions had seen winning margins of
+5–10 GDT-TS points. AlphaFold2’s margin was roughly 17 points.<br />
+<br />
+</span></span></p>
+<p>Group 427 was DeepMind’s AlphaFold, running a completely new
+architecture that the team had developed over the preceding year and a
+half. For a community that had watched decades of slow, grinding
+progress on the protein folding problem, the result was a rupture.
+Structure prediction for single domains was solved in practice.</p>
+<p>This chapter is a complete technical account of how AlphaFold2 works.
+We trace the path from a protein’s amino acid sequence to a predicted
+three-dimensional structure, covering every major component of the
+architecture and the mathematics behind it. We begin with the problem
+itself.</p>
+<h2 data-number="7.1" id="sec:af2-folding-problem">The Protein Folding
+Problem and CASP</h2>
+<p><span class="newthought">The protein folding problem</span> asks a
+deceptively simple question: given the linear sequence of amino acids in
+a protein, what three-dimensional structure will it adopt? Christian
+Anfinsen demonstrated in the 1960s and 1970s that the amino acid
+sequence alone determines the native fold <span class="citation"
+data-cites="anfinsen1973">(Anfinsen 1973)</span>. He denatured
+ribonuclease A, destroying its three-dimensional structure, and watched
+it refold spontaneously into the correct shape. The thermodynamic
+hypothesis that emerged from this work states that the native structure
+is the global minimum of the free energy landscape.</p>
+<p>But knowing that a unique answer exists is very different from
+computing it. Cyrus Levinthal pointed out the combinatorial explosion
+that makes brute-force search hopeless <span class="citation"
+data-cites="levinthal1969">(Levinthal 1969)</span>. A protein of 100
+residues has roughly 99 backbone <span
+class="math inline">\(\phi\)</span>/<span
+class="math inline">\(\psi\)</span> angle pairs. If each angle can take
+just three discrete values, the total number of conformations is <span
+class="math inline">\(3^{198} \approx 10^{94}\)</span>. Even sampling
+one conformation per picosecond, it would take longer than the age of
+the universe to enumerate them all.<span
+class="sidenote-wrapper"><label for="sn-83" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-83" class="margin-toggle"/><span
+class="sidenote">This argument is known as Levinthal’s paradox. We
+introduced it briefly in Chapter <a
+href="1-ch:foundations.html#ch:foundations" data-reference-type="ref"
+data-reference="ch:foundations">1</a>. The paradox is not that proteins
+fold, but that they fold so quickly: most small proteins reach their
+native state in milliseconds to seconds.<br />
+<br />
+</span></span> Proteins must fold by following kinetic pathways that
+avoid this exhaustive search. The folding problem, then, is not merely a
+search problem. It is the problem of discovering the physical and
+statistical principles that make the search tractable.</p>
+<p><span class="newthought">CASP was founded in 1994</span> by John
+Moult and colleagues at the University of Maryland as a way to
+objectively assess progress on this problem <span class="citation"
+data-cites="moult1995">(Moult et al. 1995)</span>. The setup is
+straightforward. Experimental groups that have recently solved protein
+structures deposit their coordinates with CASP before public release.
+Prediction groups receive only the amino acid sequences and submit their
+best structural models. Assessors then compare predictions to the
+withheld experimental structures.</p>
+<p>The first competition, CASP1, attracted 35 prediction groups and
+tested them on 33 targets. Results were sobering. Only proteins with
+close homologs of known structure could be predicted with any accuracy.
+<em>Ab initio</em> methods, which attempted to fold proteins from
+physics alone, performed little better than chance on targets without
+templates.</p>
+<p>Progress over the next two decades was real but slow.
+Fragment-assembly methods like Rosetta improved <em>ab initio</em>
+prediction for small proteins. Co-evolutionary analysis of multiple
+sequence alignments began providing useful residue-residue contact
+predictions in the early 2010s. By CASP11 (2014), contact-based methods
+were the dominant approach.</p>
+<p><span class="newthought">The first discontinuity came at
+CASP13</span> in December 2018. DeepMind entered a system called
+AlphaFold (now retroactively called AlphaFold1) that predicted
+inter-residue distance distributions using a deep neural network, then
+performed gradient-based optimization to find structures consistent with
+those predictions <span class="citation" data-cites="senior2020">(Senior
+et al. 2020)</span>. AlphaFold1 won CASP13 decisively, achieving a
+median GDT-TS of 68.5 on the hardest free-modeling targets, compared to
+roughly 47 for the next-best group.<span
+class="sidenote-wrapper"><label for="sn-84" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-84" class="margin-toggle"/><span
+class="sidenote">AlphaFold1 used a convolutional neural network (not a
+transformer) to predict distance distributions from MSA covariance
+features. A separate module predicted backbone torsion angles. The final
+structure was generated by minimizing a potential that matched the
+predicted distributions, using the Rosetta energy function as a
+regularizer.<br />
+<br />
+</span></span> The Baker group’s trRosetta <span class="citation"
+data-cites="yang2020">(Yang et al. 2020)</span>, which also predicted
+inter-residue geometries using a deep network, achieved similar accuracy
+in subsequent blind tests.</p>
+<p>But AlphaFold1 was still a two-stage pipeline: predict distances,
+then fold. Information flowed from the sequence to the distance
+predictions and then to the structure, with no feedback loop.
+AlphaFold2, revealed at CASP14 two years later, replaced this pipeline
+with an end-to-end architecture that predicts structure directly.</p>
+<h3 class="unnumbered" id="sec:af2-gdtts">Measuring prediction quality:
+GDT-TS</h3>
+<p>We need a metric before we can discuss results. The Global Distance
+Test Total Score (GDT-TS) is the standard metric used in CASP <span
+class="citation" data-cites="zemla2003">(Zemla 2003)</span>. Given a
+predicted structure and the true experimental structure, both with <span
+class="math inline">\(N\)</span> residues, GDT-TS is defined as <span
+class="math display">\[\label{eq:gdtts}
+\text{GDT-TS} = \frac{1}{4}\bigl(P_1 + P_2 + P_4 + P_8\bigr),\]</span>
+where <span class="math inline">\(P_d\)</span> is the percentage of
+C<span class="math inline">\(\alpha\)</span> atoms in the predicted
+structure that can be placed within <span
+class="math inline">\(d\)</span> Å of the corresponding C<span
+class="math inline">\(\alpha\)</span> atom in the true structure, after
+the superposition that maximizes <span
+class="math inline">\(P_d\)</span>.<span
+class="sidenote-wrapper"><label for="sn-85" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-85" class="margin-toggle"/><span
+class="sidenote">Each threshold <span class="math inline">\(d\)</span>
+uses its own optimal superposition, so <span
+class="math inline">\(P_1\)</span> and <span
+class="math inline">\(P_8\)</span> are computed from different
+alignments. The LGA (Local-Global Alignment) algorithm <span
+class="citation" data-cites="zemla2003">(Zemla 2003)</span> efficiently
+finds these superpositions.<br />
+<br />
+</span></span> The score ranges from 0 to 100. A GDT-TS above 90
+indicates that most atoms are within 1–2 Å of their experimental
+positions. Scores below 50 indicate that the overall fold has not been
+captured.</p>
+<h2 data-number="7.2" id="sec:af2-inputs">Input Representations</h2>
+<div class="figure*">
+<p><img src="figures/ch07_alphafold_pipeline.png" alt="image" /></p>
+</div>
+<p>AlphaFold2 takes three types of input for a query protein of <span
+class="math inline">\(N_\text{res}\)</span> residues: a multiple
+sequence alignment, a set of pairwise residue features, and structural
+templates. These are encoded as two tensors that flow through the
+network: the <em>MSA representation</em> and the <em>pair
+representation</em>.</p>
+<p><span class="newthought">The multiple sequence alignment</span>
+captures evolutionary information. Given a query sequence, AlphaFold2
+searches genetic databases to find homologous sequences using iterative
+profile-based tools: jackhmmer <span class="citation"
+data-cites="eddy2011">(Eddy 2011)</span> against UniRef90 <span
+class="citation" data-cites="suzek2015">(Suzek et al. 2015)</span> and
+MGnify <span class="citation" data-cites="mitchell2020">(Mitchell et al.
+2020)</span>, and HHblits <span class="citation"
+data-cites="remmert2012">(Remmert et al. 2012)</span> against the BFD
+(Big Fantastic Database).<span
+class="sidenote-wrapper"><label for="sn-86" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-86" class="margin-toggle"/><span
+class="sidenote">The BFD contains over 2.5 billion protein sequences
+assembled from metagenomic data. UniRef90 clusters UniProt sequences at
+90% identity and contains roughly 150 million cluster representatives.
+MGnify provides metagenomic sequences from environmental samples.<br />
+<br />
+</span></span> The search results are combined and deduplicated. For
+well-studied protein families, the resulting MSA can contain hundreds of
+thousands of sequences; for orphan proteins with few detectable
+homologs, the MSA may have only a handful.</p>
+<p>The raw MSA is a matrix of amino acid identities with dimensions
+<span class="math inline">\(N_\text{seq} \times N_\text{res}\)</span>,
+where <span class="math inline">\(N_\text{seq}\)</span> is the number of
+sequences (including the query) and <span
+class="math inline">\(N_\text{res}\)</span> is the number of residue
+positions in the query. AlphaFold2 embeds each amino acid (plus a gap
+token) into a <span class="math inline">\(c_m\)</span>-dimensional
+vector, producing the initial MSA representation <span
+class="math display">\[\label{eq:msa-rep}
+\bm{m} \in \R^{N_\text{seq} \times N_\text{res} \times c_m},\]</span>
+with <span class="math inline">\(c_m = 256\)</span> in the published
+model.<span
+class="sidenote-wrapper"><label for="sn-87" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-87" class="margin-toggle"/><span
+class="sidenote">During training, the MSA is randomly subsampled to
+<span class="math inline">\(N_\text{seq} = 512\)</span> sequences and a
+crop of <span class="math inline">\(N_\text{res} = 256\)</span> residues
+is selected. At inference, the full MSA and full protein length are
+used, which requires substantial memory for large proteins.<br />
+<br />
+</span></span> The first row of this tensor (<span
+class="math inline">\(s = 1\)</span>) always corresponds to the query
+sequence and receives special treatment in parts of the network.</p>
+<p><span class="newthought">The pair representation</span> encodes
+pairwise relationships between residue positions. It is a tensor <span
+class="math display">\[\label{eq:pair-rep}
+\bm{z} \in \R^{N_\text{res} \times N_\text{res} \times c_z},\]</span>
+with <span class="math inline">\(c_z = 128\)</span>. The initial pair
+representation is constructed from two sources. First, AlphaFold2
+computes a per-residue feature vector <span
+class="math inline">\(\bm{f}_i \in \R^{c_z}\)</span> from the query
+sequence (one-hot amino acid encoding projected through a linear layer)
+and forms the outer sum <span
+class="math display">\[\label{eq:pair-init}
+z_{ij}^{(0)} = \bm{f}_i^{\text{left}} +
+\bm{f}_j^{\text{right}},\]</span> where <span
+class="math inline">\(\bm{f}^{\text{left}}\)</span> and <span
+class="math inline">\(\bm{f}^{\text{right}}\)</span> are two separate
+linear projections of the same residue features. Second, a relative
+positional encoding is added. The signed distance <span
+class="math inline">\(i - j\)</span> is clipped to the range <span
+class="math inline">\([-32, 32]\)</span> and embedded through a learned
+lookup table, producing a <span
+class="math inline">\(c_z\)</span>-dimensional vector that is added to
+<span class="math inline">\(z_{ij}^{(0)}\)</span>. This gives each entry
+in the pair representation knowledge of how far apart positions <span
+class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> are in the primary sequence.</p>
+<p><span class="newthought">Template features</span> provide structural
+priors from known homologs. AlphaFold2 searches the PDB for structures
+that match the query by sequence, aligns them to the query, and extracts
+pairwise distance and orientation features. For each template, the
+C<span class="math inline">\(\beta\)</span> distance between aligned
+positions <span class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> is encoded, along with backbone torsion
+angles and a binary mask indicating which positions are present in the
+template. These template features are processed by a small neural
+network and added to the initial pair representation. When good
+templates exist, they provide a strong starting point. When they do not,
+the network relies entirely on the MSA.</p>
+<p>We now have two tensors: <span class="math inline">\(\bm{m}\)</span>
+of shape <span class="math inline">\(N_\text{seq} \times N_\text{res}
+\times c_m\)</span> and <span class="math inline">\(\bm{z}\)</span> of
+shape <span class="math inline">\(N_\text{res} \times N_\text{res}
+\times c_z\)</span>. The job of the Evoformer is to refine both of them,
+jointly, through 48 blocks of interleaved attention and update
+operations.</p>
+<h2 data-number="7.3" id="sec:af2-evoformer">The Evoformer</h2>
+<p>The Evoformer is the core of AlphaFold2. It takes the MSA
+representation and pair representation as input and produces refined
+versions of both through 48 identical blocks, each consisting of several
+attention and update operations. Information flows in both directions:
+from the MSA to the pair representation (through outer product means)
+and from the pair representation back to the MSA (through attention
+biases). This bidirectional coupling is what allows AlphaFold2 to
+jointly reason about evolutionary patterns and spatial
+relationships.</p>
+<p>Before we write down the full equations, we build intuition through a
+small example.</p>
+<h3 class="unnumbered" id="sec:af2-attention-example">Attention with
+pair bias: a worked example</h3>
+<p>Consider three residues at positions 1, 2, and 3. For simplicity, use
+a single attention head with key dimension <span
+class="math inline">\(d_k = 1\)</span>, so that each residue’s query and
+key are just scalars. Suppose the queries are <span
+class="math inline">\(q = (1,\, 0,\, {-1})\)</span> and the keys are
+<span class="math inline">\(k = (1,\, 0,\, {-1})\)</span>.</p>
+<p>The attention logit between positions <span
+class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> is <span class="math inline">\(q_i k_j
+/ \sqrt{d_k} = q_i k_j\)</span>. Arranging these into a matrix:<span
+class="sidenote-wrapper"><label for="sn-88" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-88" class="margin-toggle"/><span
+class="sidenote">In standard transformer attention <span
+class="citation" data-cites="vaswani2017">(Vaswani et al. 2017)</span>,
+the attention weights are simply <span
+class="math inline">\(\softmax(\bm{Q}\bm{K}^\top / \sqrt{d_k})\)</span>.
+AlphaFold2’s innovation is the addition of the pair bias <span
+class="math inline">\(b_{ij}\)</span>.<br />
+<br />
+</span></span> <span class="math display">\[\label{eq:logit-example}
+L = \begin{pmatrix} 1 &amp; 0 &amp; -1 \\ 0 &amp; 0 &amp; 0 \\ -1 &amp;
+0 &amp; 1 \end{pmatrix}.\]</span> Applying the softmax row-wise gives
+attention weights <span
+class="math display">\[\label{eq:attn-example-nobias}
+A = \begin{pmatrix} 0.67 &amp; 0.24 &amp; 0.09 \\ 0.33 &amp; 0.33 &amp;
+0.33 \\ 0.09 &amp; 0.24 &amp; 0.67 \end{pmatrix}.\]</span> Residue 1
+attends mostly to itself, residue 3 attends mostly to itself, and
+residue 2 distributes its attention uniformly.</p>
+<p>Now suppose the pair representation tells us that position 2 is a
+conserved catalytic residue that is structurally coupled to all other
+positions. We encode this as a bias matrix <span
+class="math display">\[\label{eq:pair-bias-example}
+B = \begin{pmatrix} 0 &amp; 2 &amp; 0 \\ 0 &amp; 2 &amp; 0 \\ 0 &amp; 2
+&amp; 0 \end{pmatrix}.\]</span> Adding this bias to the logits gives
+<span class="math inline">\(L&#39; = L + B\)</span>, and the new
+attention weights become <span
+class="math display">\[\label{eq:attn-example-bias}
+A&#39; = \begin{pmatrix} 0.21 &amp; 0.58 &amp; 0.07 \\ 0.11 &amp; 0.79
+&amp; 0.11 \\ 0.04 &amp; 0.58 &amp; 0.21 \end{pmatrix}.\]</span> Every
+residue now attends strongly to position 2. The pair representation has
+redirected the flow of information in the MSA, steering each residue to
+incorporate features from the conserved catalytic site. This is the
+essential mechanism by which structural knowledge (encoded in <span
+class="math inline">\(\bm{z}\)</span>) shapes the processing of
+evolutionary information (encoded in <span
+class="math inline">\(\bm{m}\)</span>).</p>
+<h3 class="unnumbered" id="sec:af2-row-attn">MSA row-wise gated
+self-attention with pair bias</h3>
+<p>We now write the general equations. Each Evoformer block begins by
+updating the MSA representation through self-attention across residue
+positions, independently for each sequence <span
+class="math inline">\(s\)</span> in the MSA.<span
+class="sidenote-wrapper"><label for="sn-89" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-89" class="margin-toggle"/><span
+class="sidenote">“Row-wise” means that we attend along the residue
+dimension (columns of the MSA matrix), separately for each sequence
+(row). The attention is “gated” because a sigmoid gate modulates the
+output.<br />
+<br />
+</span></span> This is the operation illustrated by the worked example
+above, generalized to multiple heads and with gating.</p>
+<p>Let <span class="math inline">\(\bm{m}_{si} \in \R^{c_m}\)</span>
+denote the MSA representation for sequence <span
+class="math inline">\(s\)</span> at position <span
+class="math inline">\(i\)</span>, and let <span
+class="math inline">\(\bm{z}_{ij} \in \R^{c_z}\)</span> denote the pair
+representation for the position pair <span class="math inline">\((i,
+j)\)</span>. For each attention head <span class="math inline">\(h = 1,
+\ldots, H\)</span>, we compute queries, keys, values, a pair bias, and a
+gate: <span class="math display">\[\begin{aligned}
+\bm{q}_{si}^h &amp;= \bm{W}_Q^h\, \bm{m}_{si} \in \R^{d_k},
+\label{eq:row-q} \\
+\bm{k}_{si}^h &amp;= \bm{W}_K^h\, \bm{m}_{si} \in \R^{d_k},
+\label{eq:row-k} \\
+\bm{v}_{si}^h &amp;= \bm{W}_V^h\, \bm{m}_{si} \in \R^{d_v},
+\label{eq:row-v} \\
+b_{ij}^h &amp;= \text{Linear}^h(\bm{z}_{ij}) \in \R, \label{eq:row-bias}
+\\
+\bm{g}_{si}^h &amp;= \sigma\!\bigl(\text{Linear}_g^h(\bm{m}_{si})\bigr)
+\in \R^{d_v}, \label{eq:row-gate}
+\end{aligned}\]</span> where <span class="math inline">\(\sigma\)</span>
+is the sigmoid function and all Linear operations are learned affine
+maps (we omit bias terms for clarity).</p>
+<p>The attention weights for head <span class="math inline">\(h\)</span>
+are <span class="math display">\[\label{eq:row-attn-weights}
+\alpha_{sij}^h = \softmax_j \left( \frac{(\bm{q}_{si}^h)^\top
+\bm{k}_{sj}^h}{\sqrt{d_k}} + b_{ij}^h \right).\]</span> The pair bias
+<span class="math inline">\(b_{ij}^h\)</span> is the same for every
+sequence <span class="math inline">\(s\)</span>. It is the channel
+through which the pair representation injects structural information
+into the MSA processing. The weighted values are modulated by the gate:
+<span class="math display">\[\label{eq:row-output}
+\bm{o}_{si}^h = \bm{g}_{si}^h \odot \sum_j \alpha_{sij}^h\,
+\bm{v}_{sj}^h,\]</span> where <span class="math inline">\(\odot\)</span>
+denotes element-wise multiplication. The outputs from all heads are
+concatenated and projected: <span
+class="math display">\[\label{eq:row-final}
+\bm{m}_{si} \leftarrow \bm{m}_{si} + \bm{W}_O
+\,\text{concat}(\bm{o}_{si}^1, \ldots, \bm{o}_{si}^H).\]</span> The
+gating mechanism in <a href="#eq:row-gate,eq:row-output"
+data-reference-type="ref"
+data-reference="eq:row-gate,eq:row-output">[eq:row-gate,eq:row-output]</a>
+allows the network to learn which value components should pass through
+and which should be suppressed. Standard transformers do not have this
+gate; AlphaFold2 found it essential for training stability.</p>
+<h3 class="unnumbered" id="sec:af2-col-attn">MSA column-wise gated
+self-attention</h3>
+<p><span class="newthought">The column-wise attention</span> operates in
+the orthogonal direction. Instead of attending across residue positions
+for a fixed sequence, we attend across sequences at a fixed position.
+For each residue position <span class="math inline">\(i\)</span>, the
+representations <span class="math inline">\(\{\bm{m}_{1i}, \bm{m}_{2i},
+\ldots, \bm{m}_{N_\text{seq},i}\}\)</span> attend to one another: <span
+class="math display">\[\begin{aligned}
+\bm{q}_{si}^h &amp;= \bm{W}_Q^h\, \bm{m}_{si}, \quad
+\bm{k}_{si}^h = \bm{W}_K^h\, \bm{m}_{si}, \quad
+\bm{v}_{si}^h = \bm{W}_V^h\, \bm{m}_{si}, \label{eq:col-qkv} \\
+\bm{g}_{si}^h &amp;= \sigma\!\bigl(\text{Linear}_g^h(\bm{m}_{si})\bigr),
+\label{eq:col-gate} \\
+\alpha_{ss&#39;i}^h &amp;= \softmax_{s&#39;} \left(
+\frac{(\bm{q}_{si}^h)^\top \bm{k}_{s&#39;i}^h}{\sqrt{d_k}} \right),
+\label{eq:col-attn-weights}
+\end{aligned}\]</span> with the same gated aggregation and residual
+connection as before. There is no pair bias in this attention: the pair
+representation encodes relationships between positions, not between
+sequences.</p>
+<p>What does column-wise attention accomplish? It allows information to
+flow between homologous sequences at the same alignment column. If
+position <span class="math inline">\(i\)</span> is a leucine in the
+query but a valine in sequence <span
+class="math inline">\(s&#39;\)</span>, the column-wise attention lets
+the network learn what this substitution pattern implies about the
+structural context of position <span class="math inline">\(i\)</span>.
+In effect, it reads covariation patterns directly from the alignment,
+column by column.<span
+class="sidenote-wrapper"><label for="sn-90" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-90" class="margin-toggle"/><span
+class="sidenote">Together, row-wise and column-wise attention give the
+Evoformer a factored form of full attention over the <span
+class="math inline">\(N_\text{seq} \times N_\text{res}\)</span> MSA
+matrix. Full attention would have <span
+class="math inline">\(O(N_\text{seq}^2 N_\text{res}^2)\)</span> cost;
+the factored form costs <span class="math inline">\(O(N_\text{seq}
+N_\text{res}^2 + N_\text{seq}^2 N_\text{res})\)</span>.<br />
+<br />
+</span></span></p>
+<h3 class="unnumbered" id="sec:af2-opm">From sequences to pairs: the
+outer product mean</h3>
+<p><span class="newthought">The outer product mean</span> is the primary
+mechanism by which information flows from the MSA representation to the
+pair representation. It converts column-wise covariation patterns in the
+MSA into pairwise features.</p>
+<p>For each sequence <span class="math inline">\(s\)</span> and position
+<span class="math inline">\(i\)</span>, we project the MSA
+representation to a lower-dimensional space: <span
+class="math display">\[\label{eq:opm-proj}
+\bm{a}_{si} = \text{Linear}^a(\bm{m}_{si}) \in \R^c, \quad
+\bm{b}_{si} = \text{Linear}^b(\bm{m}_{si}) \in \R^c.\]</span> We then
+compute the outer product of <span
+class="math inline">\(\bm{a}_{si}\)</span> and <span
+class="math inline">\(\bm{b}_{sj}\)</span> for each position pair <span
+class="math inline">\((i,j)\)</span> and average over all sequences:
+<span class="math display">\[\label{eq:opm}
+\bm{o}_{ij} = \frac{1}{N_\text{seq}} \sum_{s=1}^{N_\text{seq}}
+\bm{a}_{si} \otimes \bm{b}_{sj} \in \R^{c \times c},\]</span> where
+<span class="math inline">\(\otimes\)</span> denotes the outer product
+(producing a <span class="math inline">\(c \times c\)</span> matrix for
+each pair). This matrix is flattened to a vector of dimension <span
+class="math inline">\(c^2\)</span> and projected to update the pair
+representation: <span class="math display">\[\label{eq:opm-update}
+\bm{z}_{ij} \leftarrow \bm{z}_{ij} +
+\text{Linear}^O\!\bigl(\text{flatten}(\bm{o}_{ij})\bigr).\]</span></p>
+<p>Why does this work? Consider what the outer product <span
+class="math inline">\(\bm{a}_{si} \otimes \bm{b}_{sj}\)</span> captures.
+If positions <span class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> co-evolve (i.e., mutations at <span
+class="math inline">\(i\)</span> are correlated with mutations at <span
+class="math inline">\(j\)</span> across the alignment), then the average
+outer product will have systematic structure that reflects this
+correlation. Positions that are in contact in the 3D structure tend to
+co-evolve because a mutation at one position must be compensated by a
+compatible mutation at the other to maintain the interaction.<span
+class="sidenote-wrapper"><label for="sn-91" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-91" class="margin-toggle"/><span
+class="sidenote">This is the same principle behind direct coupling
+analysis (DCA) and related co-evolutionary methods that were the state
+of the art before deep learning approaches. The outer product mean can
+be seen as a learned, nonlinear generalization of the covariance matrix
+used in DCA.<br />
+<br />
+</span></span> The outer product mean distills this signal from the full
+MSA and injects it into the pair representation, one Evoformer block at
+a time.</p>
+<h3 class="unnumbered" id="sec:af2-tri-mult">Triangular multiplicative
+updates</h3>
+<p><span class="newthought">The pair representation <span
+class="math inline">\(\bm{z}\)</span></span> is an <span
+class="math inline">\(N_\text{res} \times N_\text{res}\)</span> matrix
+(with a channel dimension), and we can think of it as encoding
+information about edges in a graph over residue positions. The entry
+<span class="math inline">\(\bm{z}_{ij}\)</span> describes the
+relationship between positions <span class="math inline">\(i\)</span>
+and <span class="math inline">\(j\)</span>. For this representation to
+be self-consistent, it should respect a basic geometric constraint: for
+any three residues <span class="math inline">\(i\)</span>, <span
+class="math inline">\(j\)</span>, and <span
+class="math inline">\(k\)</span>, the information in <span
+class="math inline">\(\bm{z}_{ij}\)</span> should be consistent with the
+information in <span class="math inline">\(\bm{z}_{ik}\)</span> and
+<span class="math inline">\(\bm{z}_{kj}\)</span>. In terms of distances,
+this is the triangle inequality: <span class="math inline">\(d(i,j) \leq
+d(i,k) + d(k,j)\)</span>.</p>
+<p>The triangular multiplicative updates enforce this consistency. There
+are two variants, distinguished by whether the shared index <span
+class="math inline">\(k\)</span> appears as the starting node or the
+ending node of the two edges being combined.</p>
+<p><span class="newthought">The outgoing update</span> computes, for
+each pair <span class="math inline">\((i,j)\)</span>, a sum over all
+intermediate positions <span class="math inline">\(k\)</span> that
+combines outgoing edges from <span class="math inline">\(i\)</span> and
+from <span class="math inline">\(j\)</span>: <span
+class="math display">\[\begin{aligned}
+\bm{a}_{ik} &amp;= \sigma\!\bigl(\text{Linear}^{a_g}(\bm{z}_{ik})\bigr)
+\odot \text{Linear}^a(\bm{z}_{ik}), \label{eq:tri-out-a} \\
+\bm{b}_{jk} &amp;= \sigma\!\bigl(\text{Linear}^{b_g}(\bm{z}_{jk})\bigr)
+\odot \text{Linear}^b(\bm{z}_{jk}), \label{eq:tri-out-b} \\
+\bm{g}_{ij} &amp;= \sigma\!\bigl(\text{Linear}^g(\bm{z}_{ij})\bigr),
+\label{eq:tri-out-gate} \\
+\bm{z}_{ij} &amp;\leftarrow \bm{z}_{ij} + \bm{g}_{ij} \odot
+\text{Linear}^O\!\left(\sum_k \bm{a}_{ik} \odot \bm{b}_{jk}\right).
+\label{eq:tri-out-update}
+\end{aligned}\]</span> Each projection in <a
+href="#eq:tri-out-a,eq:tri-out-b" data-reference-type="ref"
+data-reference="eq:tri-out-a,eq:tri-out-b">[eq:tri-out-a,eq:tri-out-b]</a>
+has two components: a sigmoid gate and a linear projection. The gate
+controls which channels of the edge representation contribute to the
+update. The sum over <span class="math inline">\(k\)</span> in <a
+href="#eq:tri-out-update" data-reference-type="ref"
+data-reference="eq:tri-out-update">[eq:tri-out-update]</a> aggregates
+information from all triangles <span class="math inline">\((i, j,
+k)\)</span> where we combine the edges <span class="math inline">\(i \to
+k\)</span> and <span class="math inline">\(j \to k\)</span>.</p>
+<p>To see why this helps, consider a case where <span
+class="math inline">\(\bm{z}_{ik}\)</span> has learned that positions
+<span class="math inline">\(i\)</span> and <span
+class="math inline">\(k\)</span> are close in space, and <span
+class="math inline">\(\bm{z}_{jk}\)</span> has learned that <span
+class="math inline">\(j\)</span> and <span
+class="math inline">\(k\)</span> are close. The product <span
+class="math inline">\(\bm{a}_{ik} \odot \bm{b}_{jk}\)</span> will be
+large, and this signal propagates into <span
+class="math inline">\(\bm{z}_{ij}\)</span>, encouraging the network to
+also predict that <span class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> are close. This is exactly the triangle
+inequality at work.</p>
+<p><span class="newthought">The incoming update</span> has the same
+structure but transposes the role of the shared index: <span
+class="math display">\[\begin{aligned}
+\bm{a}_{ki} &amp;= \sigma\!\bigl(\text{Linear}^{a_g}(\bm{z}_{ki})\bigr)
+\odot \text{Linear}^a(\bm{z}_{ki}), \label{eq:tri-in-a} \\
+\bm{b}_{kj} &amp;= \sigma\!\bigl(\text{Linear}^{b_g}(\bm{z}_{kj})\bigr)
+\odot \text{Linear}^b(\bm{z}_{kj}), \label{eq:tri-in-b} \\
+\bm{z}_{ij} &amp;\leftarrow \bm{z}_{ij} + \bm{g}_{ij} \odot
+\text{Linear}^O\!\left(\sum_k \bm{a}_{ki} \odot \bm{b}_{kj}\right).
+\label{eq:tri-in-update}
+\end{aligned}\]</span> Here we combine edges incoming to <span
+class="math inline">\(i\)</span> (from <span
+class="math inline">\(k\)</span>) and incoming to <span
+class="math inline">\(j\)</span> (from <span
+class="math inline">\(k\)</span>), aggregating over all possible sources
+<span class="math inline">\(k\)</span>. Between the two variants, every
+triangle <span class="math inline">\((i, j, k)\)</span> is covered
+regardless of edge direction.<span
+class="sidenote-wrapper"><label for="sn-92" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-92" class="margin-toggle"/><span
+class="sidenote">In matrix notation, the outgoing update computes
+something like <span class="math inline">\(\bm{Z} \leftarrow \bm{Z} +
+(\bm{A} \bm{B}^\top) \odot \bm{G}\)</span> and the incoming update
+computes <span class="math inline">\(\bm{Z} \leftarrow \bm{Z} +
+(\bm{A}^\top \bm{B}) \odot \bm{G}\)</span>, where <span
+class="math inline">\(\bm{A}\)</span> and <span
+class="math inline">\(\bm{B}\)</span> are gated projections of <span
+class="math inline">\(\bm{Z}\)</span>. The computational cost is <span
+class="math inline">\(O(N_\text{res}^2 \cdot c_z)\)</span> per update,
+which is the same as a matrix multiplication over the residue
+dimension.<br />
+<br />
+</span></span></p>
+<h3 class="unnumbered" id="sec:af2-tri-attn">Triangular
+self-attention</h3>
+<p><span class="newthought">In addition to the multiplicative
+updates</span>, the Evoformer applies self-attention directly on the
+pair representation. There are two variants: attention around the
+<em>starting node</em> and attention around the <em>ending
+node</em>.</p>
+<p>For attention around the starting node, we fix the first index <span
+class="math inline">\(i\)</span> and apply self-attention across the
+second index. In other words, for each row <span
+class="math inline">\(i\)</span> of the pair matrix, positions <span
+class="math inline">\(j\)</span> attend to positions <span
+class="math inline">\(k\)</span> using queries and keys derived from
+<span class="math inline">\(\bm{z}_{ij}\)</span> and <span
+class="math inline">\(\bm{z}_{ik}\)</span>, with a bias derived from
+<span class="math inline">\(\bm{z}_{jk}\)</span>: <span
+class="math display">\[\begin{aligned}
+\bm{q}_{ij}^h &amp;= \bm{W}_Q^h\, \bm{z}_{ij}, \quad
+\bm{k}_{ik}^h = \bm{W}_K^h\, \bm{z}_{ik}, \quad
+\bm{v}_{ik}^h = \bm{W}_V^h\, \bm{z}_{ik}, \label{eq:tri-attn-start-qkv}
+\\
+b_{jk}^h &amp;= \text{Linear}^h(\bm{z}_{jk}),
+\label{eq:tri-attn-start-bias} \\
+\alpha_{ijk}^h &amp;= \softmax_k \left( \frac{(\bm{q}_{ij}^h)^\top
+\bm{k}_{ik}^h}{\sqrt{d_k}} + b_{jk}^h \right),
+\label{eq:tri-attn-start-weights} \\
+\bm{z}_{ij} &amp;\leftarrow \bm{z}_{ij} + \bm{W}_O \, \text{concat}_h
+\!\left(\bm{g}_{ij}^h \odot \sum_k \alpha_{ijk}^h\,
+\bm{v}_{ik}^h\right). \label{eq:tri-attn-start-out}
+\end{aligned}\]</span> The bias <span
+class="math inline">\(b_{jk}^h\)</span> from <span
+class="math inline">\(\bm{z}_{jk}\)</span> means that when deciding how
+much <span class="math inline">\(\bm{z}_{ij}\)</span> should attend to
+<span class="math inline">\(\bm{z}_{ik}\)</span>, the network consults
+the relationship between <span class="math inline">\(j\)</span> and
+<span class="math inline">\(k\)</span>. This is another form of triangle
+reasoning: the update to edge <span class="math inline">\((i,j)\)</span>
+depends on the third edge <span class="math inline">\((j,k)\)</span> of
+the triangle.</p>
+<p>Attention around the ending node is identical but with transposed
+indices: we fix <span class="math inline">\(j\)</span> and attend across
+the first index, using <span class="math inline">\(\bm{z}_{ij}\)</span>
+and <span class="math inline">\(\bm{z}_{kj}\)</span> as queries and
+keys, with bias from <span
+class="math inline">\(\bm{z}_{ik}\)</span>.</p>
+<p><span class="newthought">Each Evoformer block</span> chains all of
+these operations together with layer normalization and residual
+connections.<span
+class="sidenote-wrapper"><label for="sn-93" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-93" class="margin-toggle"/><span
+class="sidenote">The full sequence within one Evoformer block is: (1)
+MSA row-wise gated self-attention with pair bias, (2) MSA column-wise
+gated self-attention, (3) MSA feedforward transition, (4) outer product
+mean, (5) triangular multiplicative update (outgoing), (6) triangular
+multiplicative update (incoming), (7) triangular self-attention
+(starting node), (8) triangular self-attention (ending node), (9) pair
+feedforward transition. Each sub-operation uses pre-layer normalization
+and a residual connection.<br />
+<br />
+</span></span> After 48 such blocks, the refined MSA representation and
+pair representation are passed to the structure module. The first row of
+the MSA representation (corresponding to the query sequence) is
+extracted as the <em>single representation</em> <span
+class="math inline">\(\bm{s}_i \in \R^{c_s}\)</span> for each residue
+<span class="math inline">\(i\)</span>, with <span
+class="math inline">\(c_s = c_m = 256\)</span>.</p>
+<h2 data-number="7.4" id="sec:af2-structure">The Structure Module</h2>
+<p>The structure module converts the abstract representations from the
+Evoformer into a concrete three-dimensional structure. Its central
+innovation is Invariant Point Attention (IPA), an attention mechanism
+that operates on 3D points while respecting the symmetries of Euclidean
+space.</p>
+<h3 class="unnumbered" id="sec:af2-frames">Representing protein
+backbones as rigid frames</h3>
+<p>Each residue <span class="math inline">\(i\)</span> in a protein has
+a backbone consisting of three heavy atoms: N, C<span
+class="math inline">\(\alpha\)</span>, and C. These three atoms define a
+local coordinate frame. AlphaFold2 represents each residue’s frame as a
+rigid-body transformation <span class="math inline">\(T_i = (\mR_i,
+\vt_i) \in \SE(3)\)</span>, where <span class="math inline">\(\mR_i \in
+\SO(3)\)</span> is a rotation matrix and <span
+class="math inline">\(\vt_i \in \R^3\)</span> is a translation vector.
+The transformation <span class="math inline">\(T_i\)</span> maps points
+from the local frame of residue <span class="math inline">\(i\)</span>
+to the global coordinate system: <span
+class="math display">\[\label{eq:frame-transform}
+T_i \circ \vx = \mR_i \vx + \vt_i.\]</span> The inverse transformation
+maps global coordinates back to the local frame: <span
+class="math display">\[\label{eq:frame-inverse}
+T_i^{-1} \circ \vx = \mR_i^\top (\vx - \vt_i).\]</span></p>
+<p>The structure module maintains a set of frames <span
+class="math inline">\(\{T_i\}_{i=1}^{N_\text{res}}\)</span>, initialized
+to the identity (all residues at the origin with the same orientation).
+Through eight iterations of IPA followed by backbone updates, these
+frames are iteratively refined until they describe the predicted protein
+structure.</p>
+<h3 class="unnumbered" id="sec:af2-ipa">Invariant Point Attention</h3>
+<p>The key requirement for IPA is that its output must not change when
+the entire protein is rotated or translated.<span
+class="sidenote-wrapper"><label for="sn-94" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-94" class="margin-toggle"/><span
+class="sidenote">This property is called <span
+class="math inline">\(\SE(3)\)</span>-invariance. It means that if we
+apply a global rigid transformation <span
+class="math inline">\(T_g\)</span> to all frames simultaneously, the
+scalar outputs of IPA remain identical. This is a physical constraint:
+the structure of a protein does not depend on its orientation in
+space.<br />
+<br />
+</span></span> Standard attention mechanisms operate on abstract feature
+vectors and have no notion of geometry. IPA achieves geometric
+invariance by incorporating 3D points into the attention computation and
+carefully transforming them between local and global frames.</p>
+<p>Each residue <span class="math inline">\(i\)</span> has a single
+representation <span class="math inline">\(\bm{s}_i \in
+\R^{c_s}\)</span>, a pair representation <span
+class="math inline">\(\bm{z}_{ij} \in \R^{c_z}\)</span> (shared with
+residue <span class="math inline">\(j\)</span>), and a current backbone
+frame <span class="math inline">\(T_i\)</span>. For each of <span
+class="math inline">\(H\)</span> attention heads, IPA computes three
+types of interactions.</p>
+<p><span class="newthought">Scalar attention</span> is standard. For
+head <span class="math inline">\(h\)</span>: <span
+class="math display">\[\label{eq:ipa-scalar-qkv}
+\bm{q}_i^h = \bm{W}_Q^h \bm{s}_i, \quad
+\bm{k}_j^h = \bm{W}_K^h \bm{s}_j, \quad
+\bm{v}_j^h = \bm{W}_V^h \bm{s}_j.\]</span></p>
+<p><span class="newthought">Point attention</span> operates on 3D
+coordinates. For each head <span class="math inline">\(h\)</span> and
+each of <span class="math inline">\(N_p\)</span> query/key point slots,
+the network generates 3D point vectors in the local frame of each
+residue and then transforms them to the global frame:<span
+class="sidenote-wrapper"><label for="sn-95" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-95" class="margin-toggle"/><span
+class="sidenote">The published AlphaFold2 model uses <span
+class="math inline">\(H = 12\)</span> heads, <span
+class="math inline">\(N_p = 8\)</span> query/key points, and <span
+class="math inline">\(N_{pv} = 12\)</span> value points per head.<br />
+<br />
+</span></span> <span class="math display">\[\begin{aligned}
+\hat{\bm{q}}_{i}^{h,p} &amp;= T_i \circ \bigl(\bm{W}_{Qp}^{h,p}
+\bm{s}_i\bigr) = \mR_i \bm{W}_{Qp}^{h,p} \bm{s}_i + \vt_i,
+\label{eq:ipa-point-q} \\
+\hat{\bm{k}}_{j}^{h,p} &amp;= T_j \circ \bigl(\bm{W}_{Kp}^{h,p}
+\bm{s}_j\bigr) = \mR_j \bm{W}_{Kp}^{h,p} \bm{s}_j + \vt_j,
+\label{eq:ipa-point-k}
+\end{aligned}\]</span> where <span
+class="math inline">\(\bm{W}_{Qp}^{h,p}\)</span> and <span
+class="math inline">\(\bm{W}_{Kp}^{h,p}\)</span> are learned linear maps
+from <span class="math inline">\(\R^{c_s}\)</span> to <span
+class="math inline">\(\R^3\)</span>. Each query point <span
+class="math inline">\(\hat{\bm{q}}_{i}^{h,p}\)</span> lives in global 3D
+space: it is a point generated in residue <span
+class="math inline">\(i\)</span>’s local frame and then rotated and
+translated to match <span class="math inline">\(i\)</span>’s current
+position and orientation. The value points <span
+class="math inline">\(\hat{\bm{v}}_{j}^{h,p}\)</span> are constructed
+analogously using <span class="math inline">\(N_{pv}\)</span> point
+slots.</p>
+<p><span class="newthought">Pair bias</span> extracts a scalar from the
+pair representation: <span
+class="math display">\[\label{eq:ipa-pair-bias}
+b_{ij}^h = \text{Linear}^h(\bm{z}_{ij}).\]</span></p>
+<p>The attention logits combine all three components: <span
+class="math display">\[\label{eq:ipa-logits}
+a_{ij}^h = \underbrace{\frac{w_L}{\sqrt{d_k}} (\bm{q}_i^h)^\top
+\bm{k}_j^h}_{\text{scalar}} \;+\; \underbrace{b_{ij}^h}_{\text{pair}}
+\;+\; \underbrace{w_P \gamma^h \sum_{p=1}^{N_p}
+\!\left(-\frac{1}{2}\right) \bigl\|\hat{\bm{q}}_i^{h,p} -
+\hat{\bm{k}}_j^{h,p}\bigr\|^2}_{\text{point}},\]</span> where <span
+class="math inline">\(w_L\)</span> and <span
+class="math inline">\(w_P\)</span> are constant scaling factors that
+balance the three terms, <span class="math inline">\(\gamma^h\)</span>
+is a learned per-head weight (passed through a softplus to ensure
+positivity), and the point term penalizes large distances between query
+and key points.<span
+class="sidenote-wrapper"><label for="sn-96" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-96" class="margin-toggle"/><span
+class="sidenote">The scaling factors are <span class="math inline">\(w_L
+= \sqrt{1/3}\)</span> and <span class="math inline">\(w_P = \sqrt{2/(9
+N_p)}\)</span>, chosen so that each of the three attention components
+contributes roughly equally at initialization.<br />
+<br />
+</span></span> The attention weights are <span
+class="math display">\[\label{eq:ipa-weights}
+\alpha_{ij}^h = \softmax_j(a_{ij}^h).\]</span></p>
+<p>The output of IPA for residue <span class="math inline">\(i\)</span>
+and head <span class="math inline">\(h\)</span> has three parts. The
+scalar output is <span class="math display">\[\label{eq:ipa-out-scalar}
+\bm{o}_i^{h,\text{scal}} = \sum_j \alpha_{ij}^h \,\bm{v}_j^h.\]</span>
+The pair output is <span class="math display">\[\label{eq:ipa-out-pair}
+\bm{o}_i^{h,\text{pair}} = \sum_j \alpha_{ij}^h
+\,\text{Linear}^h(\bm{z}_{ij}).\]</span> The point output aggregates
+value points in global coordinates, then transforms the result back to
+the local frame of residue <span class="math inline">\(i\)</span>: <span
+class="math display">\[\label{eq:ipa-out-point}
+\bm{o}_i^{h,p} = T_i^{-1} \circ \left(\sum_j \alpha_{ij}^h
+\,\hat{\bm{v}}_j^{h,p}\right) = \mR_i^\top \left(\sum_j \alpha_{ij}^h
+\,\hat{\bm{v}}_j^{h,p} - \vt_i\right).\]</span> The transformation back
+to the local frame in <a href="#eq:ipa-out-point"
+data-reference-type="ref"
+data-reference="eq:ipa-out-point">[eq:ipa-out-point]</a> is what gives
+IPA its invariance.</p>
+<p><span class="newthought">We can prove that IPA is <span
+class="math inline">\(\SE(3)\)</span>-invariant.</span> Suppose we apply
+a global rigid transformation <span class="math inline">\(T_g = (\mR_g,
+\vt_g)\)</span> to every frame, replacing <span
+class="math inline">\(T_i\)</span> with <span class="math inline">\(T_g
+\circ T_i\)</span> for all <span class="math inline">\(i\)</span>. Each
+query point transforms as <span
+class="math display">\[\label{eq:ipa-invariance-q}
+\hat{\bm{q}}_i^{h,p} \;\to\; \mR_g \hat{\bm{q}}_i^{h,p} +
+\vt_g,\]</span> and similarly for key points. The squared distance in
+the point attention term becomes <span
+class="math display">\[\label{eq:ipa-invariance-dist}
+\bigl\|(\mR_g \hat{\bm{q}}_i^{h,p} + \vt_g) - (\mR_g
+\hat{\bm{k}}_j^{h,p} + \vt_g)\bigr\|^2
+= \bigl\|\mR_g (\hat{\bm{q}}_i^{h,p} - \hat{\bm{k}}_j^{h,p})\bigr\|^2
+= \bigl\|\hat{\bm{q}}_i^{h,p} - \hat{\bm{k}}_j^{h,p}\bigr\|^2,\]</span>
+because rotation matrices preserve norms: <span
+class="math inline">\(\|\mR_g \vx\|^2 = \vx^\top \mR_g^\top \mR_g \vx =
+\|\vx\|^2\)</span>. The attention weights <span
+class="math inline">\(\alpha_{ij}^h\)</span> are therefore
+unchanged.</p>
+<p>For the point output, the aggregated value point in the transformed
+system is <span class="math inline">\(\mR_g (\sum_j \alpha_{ij}^h
+\hat{\bm{v}}_j^{h,p}) + \vt_g\)</span>. Applying the inverse of the
+transformed frame <span class="math inline">\((T_g \circ T_i)^{-1} =
+T_i^{-1} \circ T_g^{-1}\)</span>: <span
+class="math display">\[\label{eq:ipa-invariance-output}
+T_i^{-1} \!\circ\! T_g^{-1} \!\circ\! \bigl(\mR_g \textstyle\sum_j
+\alpha_{ij}^h \hat{\bm{v}}_j^{h,p} + \vt_g\bigr)
+= T_i^{-1} \!\circ\! \bigl(\textstyle\sum_j \alpha_{ij}^h
+\hat{\bm{v}}_j^{h,p}\bigr),\]</span> which is exactly the original point
+output. The scalar and pair outputs do not involve frames at all and are
+trivially invariant. The entire IPA operation is therefore <span
+class="math inline">\(\SE(3)\)</span>-invariant: rotating the protein in
+space does not change the updated representations.</p>
+<p>The final single representation update concatenates all head outputs:
+<span class="math display">\[\label{eq:ipa-final}
+\bm{s}_i \leftarrow \bm{s}_i + \text{Linear}^O\!\left(
+\text{concat}_{h}\!\bigl[
+\bm{o}_i^{h,\text{scal}},\;
+\bm{o}_i^{h,\text{pair}},\;
+\text{flatten}(\bm{o}_i^{h,1}, \ldots, \bm{o}_i^{h,N_{pv}}),\;
+\bigl\|\bm{o}_i^{h,1}\bigr\|, \ldots, \bigl\|\bm{o}_i^{h,N_{pv}}\bigr\|
+\bigr]
+\right).\]</span> The point norms <span
+class="math inline">\(\|\bm{o}_i^{h,p}\|\)</span> are included because
+they are rotationally invariant scalars that encode distance
+information.</p>
+<h3 class="unnumbered" id="sec:af2-backbone-update">Backbone frame
+updates</h3>
+<p>After each IPA layer, the backbone frames are updated. A linear layer
+maps the updated single representation <span
+class="math inline">\(\bm{s}_i\)</span> to a 6-dimensional vector
+encoding a small rigid-body correction: <span
+class="math display">\[\label{eq:frame-update}
+T_i \leftarrow T_i \circ \Delta T_i, \quad \text{where } \Delta T_i =
+(\Delta\mR_i, \Delta\vt_i) = f_\text{update}(\bm{s}_i).\]</span> The
+rotation update <span class="math inline">\(\Delta\mR_i\)</span> is
+parameterized through a representation that ensures orthogonality (a
+quaternion normalized to unit length, or a Gram-Schmidt procedure
+applied to two predicted 3-vectors). The translation update <span
+class="math inline">\(\Delta\vt_i \in \R^3\)</span> shifts the residue’s
+position in its current local frame. Composing the update with the
+current frame means that the correction is applied <em>relative to the
+current pose</em>, allowing the structure to be refined incrementally
+over eight iterations of the structure module.</p>
+<p>After the final iteration, the backbone atom positions (N, C<span
+class="math inline">\(\alpha\)</span>, C) for each residue are computed
+from the frames using ideal bond lengths and angles. The C<span
+class="math inline">\(\alpha\)</span> position is simply the translation
+component <span class="math inline">\(\vt_i\)</span> of the final frame
+<span class="math inline">\(T_i\)</span>.</p>
+<h3 class="unnumbered" id="sec:af2-sidechain">Side-chain prediction</h3>
+<p><span class="newthought">Side-chain conformations</span> are
+predicted by a separate small network operating on the final single
+representations. Each amino acid type has up to four torsion angles
+(<span class="math inline">\(\chi_1, \chi_2, \chi_3, \chi_4\)</span>)
+that determine side-chain geometry. A shared ResNet takes <span
+class="math inline">\(\bm{s}_i\)</span> and the initial single
+representation as input and predicts each <span
+class="math inline">\(\chi\)</span> angle as a pair <span
+class="math inline">\((\sin\chi, \cos\chi)\)</span> to avoid
+discontinuities at <span class="math inline">\(\pm
+180^\circ\)</span>.<span
+class="sidenote-wrapper"><label for="sn-97" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-97" class="margin-toggle"/><span
+class="sidenote">The angle representation <span
+class="math inline">\((\sin\chi, \cos\chi)\)</span> is preferred over
+predicting the angle directly because angles wrap around: <span
+class="math inline">\(179^\circ\)</span> and <span
+class="math inline">\(-179^\circ\)</span> are close geometrically but
+far apart numerically. The sine-cosine representation is continuous
+everywhere.<br />
+<br />
+</span></span> Full atomic coordinates for all side-chain atoms are then
+computed from the predicted torsion angles using ideal bond
+geometries.</p>
+<h2 data-number="7.5" id="sec:af2-losses">Training the Network</h2>
+<p>AlphaFold2 is trained end-to-end with a composite loss function. Each
+component addresses a different aspect of structural accuracy or
+provides an auxiliary training signal. We describe the five main
+losses.</p>
+<h3 class="unnumbered" id="sec:af2-fape">Frame Aligned Point Error
+(FAPE)</h3>
+<p>The primary structural loss is the Frame Aligned Point Error <span
+class="citation" data-cites="jumper2021">(Jumper et al. 2021)</span>.
+FAPE measures the accuracy of predicted atom positions by comparing them
+to the true positions <em>in the local coordinate frame of each
+residue</em>.</p>
+<p>Let <span class="math inline">\(\{\vx_j^\text{pred}\}\)</span> and
+<span class="math inline">\(\{\vx_j^\text{true}\}\)</span> be the
+predicted and true positions of all backbone atoms, and let <span
+class="math inline">\(\{T_i^\text{pred}\}\)</span> and <span
+class="math inline">\(\{T_i^\text{true}\}\)</span> be the predicted and
+true backbone frames. FAPE is defined as <span
+class="math display">\[\label{eq:fape}
+\mathcal{L}_\text{FAPE} = \frac{1}{N_\text{frames}}
+\sum_{i=1}^{N_\text{frames}} \frac{1}{N_\text{atoms}}
+\sum_{j=1}^{N_\text{atoms}} \left\| (T_i^\text{pred})^{-1} \!\circ\,
+\vx_j^\text{pred} \;-\; (T_i^\text{true})^{-1} \!\circ\,
+\vx_j^\text{true} \right\|_d,\]</span> where <span
+class="math inline">\(\|\cdot\|_d = \min(\|\cdot\|, d)\)</span> is a
+clamped norm with cutoff <span class="math inline">\(d = 10\)</span> Å
+that reduces the influence of large outlier errors.</p>
+<p>The intuition is best seen through an example. <span
+class="newthought">Consider two residues</span> with identity rotation
+matrices placed along the <span class="math inline">\(x\)</span>-axis.
+In the true structure, residue 1 sits at the origin and residue 2 sits
+at <span class="math inline">\((3.8, 0, 0)\)</span> Å. In the predicted
+structure, residue 1 is at the origin but residue 2 is at <span
+class="math inline">\((4.1, 0, 0)\)</span> Å, a small error of 0.3 Å in
+the inter-residue distance.</p>
+<p>We compute four terms (two frames, two atoms each).<span
+class="sidenote-wrapper"><label for="sn-98" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-98" class="margin-toggle"/><span
+class="sidenote">For a real protein with <span
+class="math inline">\(N\)</span> residues, FAPE sums over all <span
+class="math inline">\(N\)</span> frames and all backbone atoms. The
+all-atom variant also includes side-chain atoms with a lower
+weight.<br />
+<br />
+</span></span> In frame 1 (centered at the origin): <span
+class="math display">\[\begin{aligned}
+(T_1^\text{true})^{-1}\!\circ\,\vx_1^\text{true} &amp;= (0, 0, 0), \quad
+(T_1^\text{pred})^{-1}\!\circ\,\vx_1^\text{pred} = (0, 0, 0), \quad
+\text{error} = 0, \\
+(T_1^\text{true})^{-1}\!\circ\,\vx_2^\text{true} &amp;= (3.8, 0, 0),
+\quad (T_1^\text{pred})^{-1}\!\circ\,\vx_2^\text{pred} = (4.1, 0, 0),
+\quad \text{error} = 0.3.
+\end{aligned}\]</span> In frame 2 (centered at residue 2): <span
+class="math display">\[\begin{aligned}
+(T_2^\text{true})^{-1}\!\circ\,\vx_1^\text{true} &amp;= (-3.8, 0, 0),
+\quad (T_2^\text{pred})^{-1}\!\circ\,\vx_1^\text{pred} = (-4.1, 0, 0),
+\quad \text{error} = 0.3, \\
+(T_2^\text{true})^{-1}\!\circ\,\vx_2^\text{true} &amp;= (0, 0, 0), \quad
+(T_2^\text{pred})^{-1}\!\circ\,\vx_2^\text{pred} = (0, 0, 0), \quad
+\text{error} = 0.
+\end{aligned}\]</span> The FAPE loss is <span
+class="math inline">\(\frac{1}{2} \cdot \frac{1}{2}(0 + 0.3 + 0.3 + 0) =
+0.15\)</span> Å.</p>
+<p>FAPE differs from RMSD in an important way. RMSD requires a single
+global superposition, which means that a multi-domain protein with
+well-predicted individual domains but a slightly wrong inter-domain
+angle receives a harsh penalty. FAPE evaluates accuracy
+<em>locally</em>, through each residue’s own frame. If the domains are
+individually correct, the per-frame errors within each domain will be
+small regardless of the inter-domain geometry. This makes FAPE a natural
+loss for a model that predicts local frames.</p>
+<h3 class="unnumbered" id="sec:af2-distogram">Distogram loss</h3>
+<p>The Evoformer’s pair representation is also trained to predict
+pairwise C<span class="math inline">\(\beta\)</span> distances.<span
+class="sidenote-wrapper"><label for="sn-99" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-99" class="margin-toggle"/><span
+class="sidenote">C<span class="math inline">\(\beta\)</span> is the
+first side-chain carbon, present in all amino acids except glycine. For
+glycine, C<span class="math inline">\(\alpha\)</span> is used
+instead.<br />
+<br />
+</span></span> The true C<span
+class="math inline">\(\beta\)</span>–C<span
+class="math inline">\(\beta\)</span> distance between residues <span
+class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> is discretized into 64 bins spanning
+2.3125 Å to 21.6875 Å (with an extra bin for distances beyond 22 Å), and
+the network predicts a probability distribution over these bins.</p>
+<p>A linear layer maps <span class="math inline">\(\bm{z}_{ij}\)</span>
+to logits <span class="math inline">\(\bm{l}_{ij} \in \R^{64}\)</span>.
+The loss is the cross-entropy between the predicted distribution and the
+one-hot encoding of the true distance bin: <span
+class="math display">\[\label{eq:distogram-loss}
+\mathcal{L}_\text{dist} = -\frac{1}{N_\text{res}^2} \sum_{i,j}
+\sum_{b=1}^{64} y_{ij}^b \log \softmax(\bm{l}_{ij})_b,\]</span> where
+<span class="math inline">\(y_{ij}^b = 1\)</span> if the true distance
+falls in bin <span class="math inline">\(b\)</span> and 0 otherwise.</p>
+<p>This loss serves two purposes. It provides a direct training signal
+to the pair representation, encouraging it to encode distance
+information. It also produces a predicted distance distribution
+(distogram) as a byproduct, which can be useful for downstream
+analysis.</p>
+<h3 class="unnumbered" id="sec:af2-plddt-loss">Predicted lDDT (pLDDT)
+loss</h3>
+<p>AlphaFold2 trains a per-residue confidence predictor alongside the
+structure. The target is the local Distance Difference Test (lDDT) <span
+class="citation" data-cites="mariani2013">(Mariani et al. 2013)</span>,
+a metric that evaluates how well the predicted structure preserves local
+distance patterns.</p>
+<p>For a given residue <span class="math inline">\(i\)</span>, lDDT
+considers all other residues <span class="math inline">\(j\)</span>
+whose C<span class="math inline">\(\alpha\)</span> atoms are within 15 Å
+in the <em>true</em> structure. For each such pair, we check whether the
+predicted C<span class="math inline">\(\alpha\)</span>–C<span
+class="math inline">\(\alpha\)</span> distance is within a tolerance
+<span class="math inline">\(t\)</span> of the true distance: <span
+class="math display">\[\label{eq:lddt-preserved}
+P_t(i,j) = \begin{cases} 1 &amp; \text{if } \bigl|d^\text{pred}(i,j) -
+d^\text{true}(i,j)\bigr| &lt; t, \\ 0 &amp; \text{otherwise}.
+\end{cases}\]</span> The lDDT score for residue <span
+class="math inline">\(i\)</span> is the average preservation rate across
+four distance thresholds: <span
+class="math display">\[\label{eq:lddt-per-residue}
+\text{lDDT}(i) = \frac{1}{4 \,|\mathcal{N}_i|} \sum_{t \in \{0.5, 1, 2,
+4\}} \sum_{j \in \mathcal{N}_i} P_t(i,j),\]</span> where <span
+class="math inline">\(\mathcal{N}_i\)</span> is the set of residues
+within 15 Å of residue <span class="math inline">\(i\)</span> in the
+true structure.</p>
+<p>During training, the true lDDT is computed from the predicted and
+true structures, binned into 50 equal intervals from 0 to 1, and a
+linear head on the single representation <span
+class="math inline">\(\bm{s}_i\)</span> is trained to predict this bin
+using a cross-entropy loss: <span
+class="math display">\[\label{eq:plddt-loss}
+\mathcal{L}_\text{pLDDT} = -\frac{1}{N_\text{res}} \sum_i
+\sum_{b=1}^{50} y_i^b \log \softmax(\bm{l}_i)_b.\]</span> At inference,
+this head produces the predicted lDDT (pLDDT) confidence score.</p>
+<h3 class="unnumbered" id="sec:af2-masked-msa">Masked MSA loss</h3>
+<p>Following the masked language modeling approach of BERT <span
+class="citation" data-cites="devlin2019">(Devlin et al. 2019)</span>,
+AlphaFold2 randomly masks 15% of the amino acids in the MSA input and
+trains the network to predict the masked identities from the context.
+This is an auxiliary loss applied to the final MSA representation: <span
+class="math display">\[\label{eq:masked-msa-loss}
+\mathcal{L}_\text{MSA} = -\frac{1}{|\mathcal{M}|} \sum_{(s,i) \in
+\mathcal{M}} \log p\bigl(a_{si}^\text{true} \mid
+\bm{m}_{si}\bigr),\]</span> where <span
+class="math inline">\(\mathcal{M}\)</span> is the set of masked
+positions and <span class="math inline">\(p(a_{si}^\text{true} \mid
+\bm{m}_{si})\)</span> is the probability assigned to the true amino acid
+by a linear layer followed by softmax applied to the MSA representation
+<span class="math inline">\(\bm{m}_{si}\)</span>.</p>
+<p>The masked MSA loss forces the network to maintain a rich
+representation of evolutionary information throughout the Evoformer.
+Without it, the MSA representation could collapse to a form that is
+useful for pair updates but discards the sequence identity information
+that co-evolutionary analysis depends on.</p>
+<h3 class="unnumbered" id="sec:af2-pae-loss">Predicted Aligned Error
+(PAE) loss</h3>
+<p>The Predicted Aligned Error head learns to predict the positional
+error of residue <span class="math inline">\(j\)</span> when the
+predicted and true structures are superimposed on residue <span
+class="math inline">\(i\)</span>. The true aligned error is <span
+class="math display">\[\label{eq:aligned-error}
+e_{ij} = \bigl\| T_i^{-1} \circ \vx_j^\text{pred} - T_i^{-1} \circ
+\vx_j^\text{true} \bigr\|,\]</span> which is simply the distance between
+the predicted and true positions of <span
+class="math inline">\(j\)</span>’s C<span
+class="math inline">\(\alpha\)</span> after alignment in <span
+class="math inline">\(i\)</span>’s frame. This quantity is binned into
+64 intervals of 0.5 Å width (covering 0 to 32 Å), and a linear head on
+<span class="math inline">\((\bm{z}_{ij} + \bm{z}_{ji})/2\)</span> is
+trained with cross-entropy: <span
+class="math display">\[\label{eq:pae-loss}
+\mathcal{L}_\text{PAE} = -\frac{1}{N_\text{res}^2} \sum_{i,j}
+\sum_{b=1}^{64} y_{ij}^b \log \softmax(\bm{l}_{ij})_b.\]</span> The PAE
+loss trains the network to know not just whether its predictions are
+good, but <em>where</em> they are good and where they are uncertain.</p>
+<p><span class="newthought">The total loss</span> is a weighted sum of
+all components: <span class="math display">\[\label{eq:total-loss}
+\mathcal{L} = \mathcal{L}_\text{FAPE}^\text{backbone} +
+0.5\,\mathcal{L}_\text{FAPE}^\text{all-atom} +
+0.3\,\mathcal{L}_\text{dist} + 0.01\,\mathcal{L}_\text{pLDDT} +
+2.0\,\mathcal{L}_\text{MSA} + 0.1\,\mathcal{L}_\text{PAE},\]</span>
+where <span
+class="math inline">\(\mathcal{L}_\text{FAPE}^\text{all-atom}\)</span>
+includes side-chain atoms and uses a smaller clamping distance.<span
+class="sidenote-wrapper"><label for="sn-100" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-100" class="margin-toggle"/><span
+class="sidenote">The loss weights were chosen empirically through
+hyperparameter sweeps. The backbone FAPE dominates because getting the
+backbone right is the most important objective; the all-atom FAPE and
+distogram losses provide complementary signals.<br />
+<br />
+</span></span> The loss is computed only on the output of the final
+recycling iteration (described next), and gradients do not flow through
+the recycling boundary.</p>
+<h2 data-number="7.6" id="sec:af2-recycling">Recycling</h2>
+<p>A single pass through the Evoformer and structure module produces a
+structure, but it is not the best structure the network can produce.
+AlphaFold2 uses <em>recycling</em>: the output of one forward pass is
+fed back as additional input to the next.</p>
+<p>Concretely, after each pass, the final pair representation <span
+class="math inline">\(\bm{z}\)</span> and the C<span
+class="math inline">\(\alpha\)</span> positions predicted by the
+structure module are retained. For the next pass, the pair
+representation from the previous iteration is added to the freshly
+initialized pair representation before it enters the Evoformer. The
+C<span class="math inline">\(\alpha\)</span> positions from the previous
+iteration are used to compute a pairwise distance matrix, which is
+passed through a set of distance bins and projected to a <span
+class="math inline">\(c_z\)</span>-dimensional vector, then added to the
+pair representation. The first-row single representation from the
+previous Evoformer output is similarly recycled.</p>
+<p>The default configuration uses three recycling iterations.<span
+class="sidenote-wrapper"><label for="sn-101" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-101" class="margin-toggle"/><span
+class="sidenote">During training, the number of recycling iterations is
+sampled uniformly from <span class="math inline">\(\{1, 2, 3,
+4\}\)</span>. At inference, three iterations are used. The gradient is
+stopped at the boundary between recycling iterations, so backpropagation
+occurs only through the final pass.<br />
+<br />
+</span></span> Each iteration refines the structure. The first iteration
+operates without any prior structural information and produces a rough
+fold. The second and third iterations benefit from the structure
+predicted in the previous round, allowing the Evoformer to correct
+errors and refine details. Empirically, most of the accuracy gain comes
+from the first recycling step; the third iteration provides modest but
+consistent improvements.</p>
+<h2 data-number="7.7" id="sec:af2-confidence">Confidence Metrics</h2>
+<p>A prediction is only as useful as the confidence we can place in it.
+AlphaFold2 produces two complementary confidence metrics that together
+give a detailed picture of prediction reliability.</p>
+<h3 class="unnumbered" id="sec:af2-plddt">Predicted lDDT (pLDDT)</h3>
+<div class="marginfigure">
+<p><img src="figures/ch07_plddt_structure.png" alt="image" /></p>
+<blockquote>
+<p>AlphaFold model colored by pLDDT: blue (high confidence) core, orange
+(low confidence) disordered regions.</p>
+</blockquote>
+</div>
+<p><span class="newthought">The pLDDT score</span> is a per-residue
+measure of local confidence. It predicts, for each residue, how well the
+local distance environment is reproduced in the predicted structure. As
+described in <a href="7-ch:alphafold.html#sec:af2-plddt-loss"
+data-reference-type="ref"
+data-reference="sec:af2-plddt-loss">[sec:af2-plddt-loss]</a>, the pLDDT
+head is trained to predict the true lDDT score, and at inference the
+predicted value is the confidence metric.</p>
+<p>The structural biology community has adopted the following rough
+calibration:</p>
+<div class="center">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">pLDDT range</th>
+<th style="text-align: left;">Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><span class="math inline">\(&gt;
+90\)</span></td>
+<td style="text-align: left;">Very high confidence; backbone and side
+chains likely correct</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(70\)</span>–<span
+class="math inline">\(90\)</span></td>
+<td style="text-align: left;">High confidence; backbone correct, some
+side-chain uncertainty</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(50\)</span>–<span
+class="math inline">\(70\)</span></td>
+<td style="text-align: left;">Low confidence; fold may be approximately
+right</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\(&lt;
+50\)</span></td>
+<td style="text-align: left;">Very low confidence; region is likely
+disordered or incorrectly predicted</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Regions with pLDDT below 50 are frequently intrinsically disordered
+regions (IDRs) that do not adopt a fixed structure in isolation.
+AlphaFold2 was not trained on disordered regions, but the pLDDT score
+has proven to be a remarkably effective disorder predictor. Low pLDDT
+correlates strongly with experimentally validated disorder
+annotations.</p>
+<p><span class="newthought">Interpreting pLDDT in practice</span>
+requires awareness of two subtleties. First, multi-domain proteins often
+show high pLDDT within each globular domain but low scores for
+inter-domain linkers, because linkers are typically flexible and poorly
+conserved. A low-pLDDT linker does not mean the flanking domains are
+wrong; it means the linker conformation is uncertain. Second, there are
+uncommon cases where an intrinsically disordered region adopts a
+well-defined fold upon binding a partner. AlphaFold2 sometimes predicts
+the bound conformation with high confidence, even though the unbound
+protein is disordered. The eukaryotic translation initiation factor
+4E-binding protein 2 (4E-BP2, UniProt Q13542) illustrates this:
+AlphaFold2 predicts a helical structure with high pLDDT that closely
+matches the experimentally determined bound state (PDB 3AM7), though the
+free protein is disordered <span class="citation"
+data-cites="alderson2023 piovesan2022">(Alderson et al. 2023; Piovesan,
+Monzon, and Tosatto 2022)</span>.<span
+class="sidenote-wrapper"><label for="sn-102" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-102" class="margin-toggle"/><span
+class="sidenote">This behavior arises because the bound conformation was
+present in the training set. A similar tendency is observed for IDRs
+that fold upon post-translational modification. The user should
+cross-check high-pLDDT disordered regions against experimental disorder
+annotations in databases such as DisProt <span class="citation"
+data-cites="hatos2020">(Hatos et al. 2020)</span>.<br />
+<br />
+</span></span></p>
+<h3 class="unnumbered" id="sec:af2-pae">Predicted Aligned Error
+(PAE)</h3>
+<div class="figure*">
+<p><img src="figures/ch07_plddt_pae.png" alt="image" /></p>
+</div>
+<p><span class="newthought">The PAE matrix</span> provides confidence
+about the <em>relative positions</em> of residue pairs. Entry <span
+class="math inline">\((i,j)\)</span> of the PAE matrix reports the
+expected positional error (in Å) of residue <span
+class="math inline">\(j\)</span>’s C<span
+class="math inline">\(\alpha\)</span> atom when the predicted structure
+is superimposed on the true structure using residue <span
+class="math inline">\(i\)</span> as the alignment anchor.</p>
+<p>PAE is asymmetric: the error of <span
+class="math inline">\(j\)</span> given alignment on <span
+class="math inline">\(i\)</span> can differ from the error of <span
+class="math inline">\(i\)</span> given alignment on <span
+class="math inline">\(j\)</span>. A low PAE for a pair <span
+class="math inline">\((i,j)\)</span> means that the predicted relative
+position and orientation of residues <span
+class="math inline">\(i\)</span> and <span
+class="math inline">\(j\)</span> is reliable. A high PAE means the
+relative placement is uncertain.</p>
+<div class="marginfigure">
+<p><img src="figures/ch07_pae_matrix.png" alt="image" /></p>
+<blockquote>
+<p>PAE matrix showing domain structure: dark blocks indicate
+well-predicted intra-domain geometry.</p>
+</blockquote>
+</div>
+<p>PAE is most valuable for multi-domain proteins and protein complexes.
+Two domains may each have high pLDDT scores (indicating well-predicted
+internal structures) but high inter-domain PAE (indicating uncertainty
+in their relative arrangement). This situation is common when the two
+domains are connected by a flexible linker and their relative
+orientation is not fixed.</p>
+<p>The PAE matrix is visualized as a heatmap with residue indices on
+both axes. Well-predicted structures show dark blocks along the diagonal
+(low intra-domain error) and potentially lighter off-diagonal blocks
+(higher inter-domain error).</p>
+<figure id="fig:confidence-interpretation">
+<img src="figures/ch07_confidence_interpretation.png" />
+<figcaption>Interpreting AlphaFold confidence: pLDDT coloring with PAE
+matrix and ipTM/pTM scores for a multi-domain prediction.</figcaption>
+</figure>
+<p><span class="newthought">In practice, reading a PAE heatmap</span>
+follows a simple rule. Dark, low-error squares on the diagonal
+correspond to structurally well-defined domains or chains. If the
+off-diagonal block connecting two domains is also dark, their relative
+orientation is predicted with confidence. If the off-diagonal block is
+light (high error), the domains may each be individually correct but
+their spatial relationship is uncertain, a common outcome when a
+flexible linker separates them. For protein complexes, the same logic
+applies to inter-chain blocks: a dark inter-chain block indicates a
+reliably predicted interface, while a light block suggests the chains
+may not form a stable contact or that AlphaFold lacks the
+co-evolutionary signal to position them.</p>
+<h2 data-number="7.8" id="sec:af2-multimer">AlphaFold-Multimer</h2>
+<p>The original AlphaFold2 predicts the structure of single protein
+chains. AlphaFold-Multimer <span class="citation"
+data-cites="evans2022">(Evans et al. 2022)</span> extends the
+architecture to predict the structures of protein complexes, including
+homo-oligomers and hetero-oligomers.</p>
+<p><span class="newthought">The most significant change</span> is in MSA
+construction. For a complex of chains A and B, we need an MSA that
+captures co-evolutionary information <em>between</em> the chains, not
+just within each chain individually. AlphaFold-Multimer constructs a
+<em>paired MSA</em> by searching genetic databases for each chain
+separately, then pairing sequences from the same organism. If an
+organism has a homolog of chain A and a homolog of chain B in the
+database, the two sequences are concatenated to form a single row of the
+paired MSA. This inter-chain pairing provides the co-evolutionary signal
+needed to predict the interface between chains.</p>
+<p>The Evoformer and structure module operate on the concatenated
+sequence as if it were a single long chain, with a few modifications.
+Residue indices encode which chain each position belongs to. The
+relative positional encoding is set to a fixed large value for
+cross-chain pairs, signaling that positions on different chains have no
+meaningful sequence separation. The pair representation is initialized
+to allow inter-chain features, and template features can include
+inter-chain contacts from known complex structures.</p>
+<p><span class="newthought">The loss function is modified</span> to
+account for chain permutation symmetry. If a complex contains two
+identical copies of chain A (a homodimer), then swapping the two chains
+produces an equally valid prediction. The FAPE loss must evaluate both
+possible chain assignments and use the one that gives the lower error:
+<span class="math display">\[\label{eq:multimer-fape}
+\mathcal{L}_\text{FAPE}^\text{multi} = \min_{\pi \in \mathcal{P}}
+\mathcal{L}_\text{FAPE}\!\left(\vx^\text{pred},
+\pi(\vx^\text{true})\right),\]</span> where <span
+class="math inline">\(\mathcal{P}\)</span> is the set of valid chain
+permutations and <span
+class="math inline">\(\pi(\vx^\text{true})\)</span> applies permutation
+<span class="math inline">\(\pi\)</span> to the true atom
+positions.<span
+class="sidenote-wrapper"><label for="sn-103" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-103" class="margin-toggle"/><span
+class="sidenote">For a homodimer, <span
+class="math inline">\(\mathcal{P}\)</span> has two elements: the
+identity and the swap. For a homotrimer, there are six permutations. For
+heteromeric complexes with no identical chains, only the identity
+permutation is valid.<br />
+<br />
+</span></span></p>
+<figure id="fig:ranked-pae">
+<img src="figures/ch07_ranked_pae.png" />
+<figcaption>PAE matrices for five ranked AlphaFold-Multimer models of a
+dimer, showing variation in inter-chain confidence.</figcaption>
+</figure>
+<p>Inter-chain confidence is assessed through the PAE matrix. Low PAE
+values between residues on different chains indicate that the predicted
+interface geometry is reliable. High inter-chain PAE suggests that the
+chains may be individually well-folded but their relative placement is
+uncertain. In practice, AlphaFold-Multimer produces reliable predictions
+for stable complexes with strong inter-chain contacts and struggles with
+transient or flexible interactions.</p>
+<h2 data-number="7.9" id="sec:af2-colabfold">ColabFold</h2>
+<p>Running AlphaFold2 requires substantial computational resources. The
+MSA generation step alone, using jackhmmer and HHblits against databases
+totaling several terabytes, takes hours on a single CPU and requires
+hundreds of gigabytes of disk space. ColabFold <span class="citation"
+data-cites="mirdita2022">(Mirdita et al. 2022)</span> makes AlphaFold2
+accessible by replacing the sequence search pipeline with MMseqs2 <span
+class="citation" data-cites="steinegger2017">(Steinegger and Söding
+2017)</span>, a fast sequence search tool based on <span
+class="math inline">\(k\)</span>-mer prefiltering.</p>
+<p><span class="newthought">The speed gain comes from</span> how MMseqs2
+finds sequence matches. Traditional profile-based tools like jackhmmer
+iterate: they build a profile from initial hits, search the database
+again with the profile, update the profile, and repeat. Each iteration
+scans the entire database. MMseqs2 instead uses a prefiltering step that
+indexes the database by short <span
+class="math inline">\(k\)</span>-mers (typically <span
+class="math inline">\(k = 7\)</span>). Given a query, it looks up
+matching <span class="math inline">\(k\)</span>-mers in the index and
+only performs full alignment against the subset of database sequences
+that share enough <span class="math inline">\(k\)</span>-mers with the
+query. This prefilter eliminates the vast majority of the database in
+milliseconds.</p>
+<p>The tradeoff is sensitivity. Iterative profile methods can detect
+remote homologs that share less than 20% sequence identity with the
+query. MMseqs2’s single-pass <span class="math inline">\(k\)</span>-mer
+approach occasionally misses these distant relatives, especially for
+fast-evolving families. In practice, ColabFold achieves accuracy within
+1–2 GDT-TS points of the full AlphaFold2 pipeline on most targets <span
+class="citation" data-cites="mirdita2022">(Mirdita et al. 2022)</span>.
+The MSA generation time drops from hours to minutes.</p>
+<p>ColabFold also searches environmental sequence databases (derived
+from metagenomics) that the original AlphaFold2 pipeline does not
+include by default. For some protein families, the environmental
+sequences improve prediction accuracy by providing more diverse
+evolutionary information. ColabFold is freely available as a Google
+Colab notebook and as a locally installable package, and it has become
+the most widely used interface to AlphaFold2 for the broader biology
+community.</p>
+<h2 data-number="7.10" id="sec:af2-strengths-limitations">Strengths and
+Limitations</h2>
+<p>AlphaFold2 has transformed structural biology, but responsible use
+requires knowing what it can and cannot do.</p>
+<div class="figure*">
+<p><img src="figures/ch07_alphafold_vs_experiment.png"
+alt="image" /></p>
+</div>
+<p><span class="newthought">AlphaFold2 excels at</span> predicting the
+structures of single protein domains that belong to well-characterized
+families with deep MSAs. For such targets, prediction accuracy routinely
+rivals experimental structures. AlphaFold2 also captures the
+conformations of structured binding sites, often predicting the holo
+(ligand-bound) form of a protein even without explicit ligand
+information, because bound conformations dominate the PDB training set.
+The pLDDT confidence score is a reliable indicator of local accuracy
+and, as a side effect, an effective predictor of intrinsic disorder.</p>
+<p><span class="newthought">AlphaFold2 has well-documented
+limitations</span> in several areas:</p>
+<ul>
+<li><p><strong>Conformational ensembles.</strong> AlphaFold2 produces a
+single structure per prediction. Proteins that exist in multiple
+conformational states (e.g., active vs. inactive kinases) are typically
+predicted in whichever conformation dominates the training data. It does
+not model conformational dynamics.</p></li>
+<li><p><strong>Effects of mutations.</strong> AlphaFold2 often predicts
+nearly identical structures for wild-type and mutant sequences, even
+when the mutation causes significant structural or functional changes.
+The model was not trained to capture mutational effects.</p></li>
+<li><p><strong>Ligands, ions, and post-translational
+modifications.</strong> AlphaFold2 predicts only protein atoms. It does
+not model bound ligands, metal ions, or covalent modifications, though
+tools like AlphaFill can add these post hoc. AlphaFold3 addresses this
+limitation directly.</p></li>
+<li><p><strong>Orphan proteins.</strong> Proteins with few or no
+detectable homologs yield shallow MSAs, and prediction accuracy drops
+substantially. The Evoformer depends on co-evolutionary signal; without
+it, the network has limited information to infer contacts.</p></li>
+<li><p><strong>Membrane proteins.</strong> AlphaFold2 has no notion of
+the membrane plane and cannot predict how a protein sits within a lipid
+bilayer, though the protein’s fold itself is often well
+predicted.</p></li>
+<li><p><strong>Multi-domain relative orientations.</strong> Individual
+domains may each be predicted with high accuracy, but the relative
+arrangement of domains connected by flexible linkers is often uncertain.
+The PAE matrix is the essential diagnostic for this situation.</p></li>
+</ul>
+<p>Understanding these boundaries is critical for interpreting
+predictions. A predicted structure should always be examined alongside
+its confidence metrics, validated against available experimental data,
+and treated as a computational model rather than an experimental
+determination.</p>
+<h2 data-number="7.11" id="sec:af2-notes">Chapter Notes</h2>
+<p>The AlphaFold2 architecture was published by Jumper et al. in
+2021 <span class="citation" data-cites="jumper2021">(Jumper et al.
+2021)</span>, accompanied by an unusually detailed supplementary
+information document that specifies every hyperparameter, every loss
+weight, and pseudocode for every algorithm. Much of the mathematical
+content in this chapter follows that supplement closely. The
+AlphaFold-Multimer extensions are described in Evans et al. <span
+class="citation" data-cites="evans2022">(Evans et al. 2022)</span>, and
+ColabFold is presented in Mirdita et al. <span class="citation"
+data-cites="mirdita2022">(Mirdita et al. 2022)</span>.</p>
+<p>The Evoformer’s triangle operations have connections to
+message-passing on graphs and to the axial attention mechanism proposed
+for image generation. The triangular multiplicative updates can be
+understood as learned matrix multiplications over the residue dimension,
+where the “matrices” are gated projections of the pair representation.
+Jumper et al. motivated them through the triangle inequality on
+distances, but they can also be seen as a form of constraint propagation
+on a pairwise graphical model.</p>
+<p>Invariant Point Attention was not the first SE(3)-equivariant
+attention mechanism, but it was the first to be applied at scale.
+Earlier work by Thomas et al. (2018) and Fuchs et al. (2020) developed
+SE(3)-equivariant transformers using spherical harmonics, which are
+mathematically elegant but computationally expensive. IPA achieves
+invariance through the simpler mechanism of working in local coordinate
+frames, which turned out to be sufficient for the protein structure
+prediction task and much cheaper to compute.</p>
+<p>The recycling strategy has parallels to iterative refinement in
+classical optimization and to the “unrolled optimization” technique in
+deep learning, where a fixed number of optimization steps are
+differentiable. AlphaFold2’s recycling is <em>not</em> differentiable
+through the recycling boundary (the gradient is stopped), so it is
+closer to an expectation-maximization algorithm where each iteration
+uses the output of the previous one as a fixed input.</p>
+<p>Since CASP14, the protein structure prediction field has continued to
+evolve rapidly. AlphaFold3 <span class="citation"
+data-cites="abramson2024">(Abramson et al. 2024)</span> (2024) replaced
+the Evoformer with a simpler <em>Pairformer</em> module that retains
+triangular attention on the pair representation but processes the MSA
+through a smaller, cheaper embedding block. The most significant
+architectural change is in the structure module, which uses a
+<em>diffusion model</em>: during training, true atomic coordinates are
+corrupted with varying levels of Gaussian noise, and the network learns
+to denoise them conditioned on the pair representation and sequence
+features. At inference, the model starts from random noise and
+iteratively refines atom positions through learned denoising steps,
+sampling multiple structures from different random seeds.</p>
+<p>AlphaFold3 also introduces a more general <em>tokenisation</em>
+scheme. AlphaFold2 used one token per amino acid residue. AlphaFold3
+assigns one token per standard amino acid or nucleotide, but represents
+ligands, ions, and non-standard residues at single-atom resolution. A
+complex of 100 amino acids and a 20-atom ligand uses <span
+class="math inline">\(100 + 20 = 120\)</span> tokens. This flexibility
+allows AlphaFold3 to predict the structures of protein–nucleic acid
+complexes, protein–ligand complexes, and assemblies containing ions and
+small molecules, all targets that AlphaFold2 could not address. The
+confidence metrics (pLDDT, PAE) now operate over tokens rather than
+residues, and AlphaFold3 additionally reports per-chain pTM and
+per-chain-pair ipTM scores for complexes.</p>
+<p>However, AlphaFold3’s diffusion-based structure module introduces
+stochasticity: different random seeds produce different predictions.
+Achieving the highest accuracy for difficult targets (e.g.,
+antigen–antibody complexes) may require sampling tens or hundreds of
+seeds and ranking by confidence. AlphaFold3 also struggles with the same
+categories of problems as AlphaFold2 (conformational ensembles, effects
+of mutations, and intrinsically disordered regions), though its reduced
+dependence on MSA signal improves performance on rapidly evolving
+protein families such as antibodies.<span
+class="sidenote-wrapper"><label for="sn-104" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-104" class="margin-toggle"/><span
+class="sidenote">AlphaFold3 is available through the AlphaFold Server
+(<a href="https://alphafoldserver.com"
+class="uri">https://alphafoldserver.com</a>) and as open-source code.
+The server provides a web interface for submitting jobs and supports
+JSON-based batch submission for computational screening.<br />
+<br />
+</span></span> RoseTTAFold <span class="citation"
+data-cites="yang2020">(Yang et al. 2020)</span> and ESMFold
+independently developed related architectures, with ESMFold replacing
+the MSA input entirely with a protein language model. OpenFold
+re-implemented AlphaFold2 in PyTorch, enabling the community to train
+variants from scratch and study the architecture’s behavior in
+detail.</p>
+<p>The release of AlphaFold2’s source code and the AlphaFold Protein
+Structure Database (AFDB, which provides predicted structures for over
+200 million proteins) has had a broad impact on biology. Drug discovery
+pipelines now routinely use AlphaFold2 predictions as starting points.
+Structural biologists use predictions to design experiments, interpret
+cryo-EM maps, and solve crystal structures by molecular replacement. The
+2024 Nobel Prize in Chemistry was awarded in part for this work.</p>
+<p><span class="newthought">The AlphaFold Database</span> has grown into
+an ecosystem of tools for exploring protein structure space.
+Sequence-based clustering (using MMseqs2 <span class="citation"
+data-cites="steinegger2017">(Steinegger and Söding 2017)</span>) groups
+the 214 million predictions by sequence similarity, and structure-based
+clustering (using Foldseek <span class="citation"
+data-cites="vankempen2023">(Kempen et al. 2023)</span>) further refines
+these groups by 3D shape. Foldseek encodes each backbone as a
+one-dimensional string over a learned “3Di alphabet” that captures local
+structural context, enabling structure searches at speeds comparable to
+sequence searches. This integration lets users start from a single
+predicted structure and discover structurally similar proteins across
+the entire database, including remote homologs undetectable by sequence
+alone.</p>
+<p><span class="newthought">Several community tools extend</span> the
+utility of AlphaFold predictions beyond what the core model provides.
+AlphaFill <span class="citation" data-cites="hekkelman2022">(Hekkelman
+et al. 2022)</span> transplants missing ligands and cofactors into
+predicted structures by finding experimental structures of close
+homologs that contain these molecules and transferring them based on
+structural alignment. AlphaPulldown <span class="citation"
+data-cites="stahl2023">(Stahl et al. 2023)</span> streamlines
+large-scale protein–protein interaction screening with
+AlphaFold-Multimer, adding an analysis pipeline for scoring predicted
+interfaces, support for custom templates, and crosslink-based modelling
+through the AlphaLink integration. AlphaMissense <span class="citation"
+data-cites="cheng2023">(Cheng et al. 2023)</span> repurposes the
+AlphaFold2 architecture to classify the pathogenicity of all possible
+single amino acid substitutions in the human proteome. It assigns a
+pathogenicity score between 0 (benign) and 1 (pathogenic) by fine-tuning
+on a combination of evolutionary conservation and structural context
+learned during AlphaFold2 training. These pathogenicity predictions are
+integrated into the AFDB, where users can view per-residue AlphaMissense
+scores alongside the predicted structure and pLDDT confidence.<span
+class="sidenote-wrapper"><label for="sn-105" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-105" class="margin-toggle"/><span
+class="sidenote">Antibody-specific variants of AlphaFold2 (e.g.,
+ImmuneBuilder <span class="citation" data-cites="abanades2023">(Abanades
+et al. 2023)</span>) and T-cell receptor modeling pipelines have also
+been developed by adapting the MSA and training strategy to handle the
+rapid evolution characteristic of immune system proteins.<br />
+<br />
+</span></span></p>
+</section>
+</article>
+</body>
+</html>

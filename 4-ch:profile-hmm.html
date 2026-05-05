@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="" />
+  <title>Sequence Profiles and Hidden Markov Models</title>
+  <link rel="stylesheet" href="tufte.css" />
+  <link rel="stylesheet" href="site.css" />
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<article>
+<section>
+<h1 data-number="4" id="ch:profile-hmm">Sequence Profiles and Hidden
+Markov Models</h1>
+<p>In 1994, Anders Krogh, Michael Brown, I. Saira Mian, Kimmen
+Sjölander, and David Haussler published a paper in the <em>Journal of
+Molecular Biology</em> that changed the way bioinformaticians think
+about protein families.<span
+class="sidenote-wrapper"><label for="sn-46" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-46" class="margin-toggle"/><span
+class="sidenote">A. Krogh, M. Brown, I. S. Mian, K. Sjölander, and
+D. Haussler. Hidden Markov models in computational biology: Applications
+to protein modeling. <em>J. Mol. Biol.</em>, 235(5):1501–1531,
+1994.<br />
+<br />
+</span></span> They took a formalism that had been developed two decades
+earlier for speech recognition and applied it to protein sequences.
+Their argument was that a protein family is not a single sequence but a
+statistical process, one that generates sequences according to
+position-specific rules. Some positions are nearly invariant across all
+family members, perhaps because they form the catalytic site; other
+positions accept almost any amino acid. Insertions and deletions are
+tolerated at some positions and forbidden at others. A hidden Markov
+model captures all of this in a single probabilistic architecture.</p>
+<p>What made the Krogh et al. paper so striking was not just the
+formalism but the results. On the globin family and on the kinase
+family, their HMMs detected remote homologs that pairwise methods missed
+entirely. Four years later, Sean Eddy built HMMER, a software package
+that made profile HMMs practical for database searches at genome
+scale <span class="citation" data-cites="eddy2011">(Eddy 2011)</span>.
+Eddy’s key insight was that the Forward algorithm, which sums over all
+possible alignments rather than picking a single best one, gives a more
+sensitive measure of homology than any single-alignment score. The
+machinery we develop in this chapter leads directly to HMMER and its
+descendants, which today underpin Pfam, InterPro, and most large-scale
+protein annotation pipelines.<span
+class="sidenote-wrapper"><label for="sn-47" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-47" class="margin-toggle"/><span
+class="sidenote">The Pfam database, now in its 36th release, contains
+over 20<span>,</span>000 profile HMM families. Every protein in UniProt
+is annotated against Pfam using HMMER.<br />
+<br />
+</span></span></p>
+<p>We will build toward profile HMMs in layers. We begin with multiple
+sequence alignment, the data from which profiles are constructed. We
+then develop position-specific scoring matrices, the simplest form of a
+sequence profile. With that foundation, we introduce hidden Markov
+models as a general framework, develop the three canonical algorithms on
+a concrete biological example, and finally specialize the framework to
+the profile HMM architecture used in practice.</p>
+<h2 data-number="4.1" id="sec:msa">Multiple Sequence Alignment</h2>
+<p><span class="newthought">Pairwise alignment, the subject of the
+previous chapter,</span> compares two sequences at a time. But proteins
+evolve in families, and a collection of related sequences contains far
+more information than any single pair. A multiple sequence alignment
+(MSA) arranges three or more sequences in a matrix where each column
+represents a putatively homologous position. Gaps are inserted so that
+residues believed to share common ancestry line up vertically.</p>
+<figure id="fig:msa-result">
+<img src="figures/ch04_msa_result.png" />
+<figcaption>Clustal Omega alignment of three Parkin orthologs
+(<em>Drosophila</em>, human, mouse). Conserved positions are
+highlighted; dashes indicate gaps.</figcaption>
+</figure>
+<p>The difficulty is computational. For two sequences of lengths <span
+class="math inline">\(m\)</span> and <span
+class="math inline">\(n\)</span>, the Needleman–Wunsch algorithm runs in
+<span class="math inline">\(O(mn)\)</span> time. For <span
+class="math inline">\(k\)</span> sequences, exact dynamic programming
+requires a <span class="math inline">\(k\)</span>-dimensional table,
+giving <span class="math inline">\(O(L^k)\)</span> time and space where
+<span class="math inline">\(L\)</span> is a typical sequence length.
+This is NP-hard in general <span class="citation"
+data-cites="durbin1998">(Durbin et al. 1998)</span>.<span
+class="sidenote-wrapper"><label for="sn-48" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-48" class="margin-toggle"/><span
+class="sidenote">The NP-hardness of MSA was proven by L. Wang and
+T. Jiang in 1994 for the sum-of-pairs objective.<br />
+<br />
+</span></span> No one aligns more than a handful of sequences
+exactly.</p>
+<h3 data-number="4.1.1" id="sec:progressive-alignment">Progressive
+Alignment</h3>
+<p>The workhorse approximation is progressive alignment, the strategy
+behind CLUSTAL W and its successor CLUSTAL <span
+class="math inline">\(\Omega\)</span>. The idea is straightforward.
+First, compute all <span class="math inline">\(\binom{k}{2}\)</span>
+pairwise alignments and extract a distance matrix from the pairwise
+scores. Second, build a guide tree from the distance matrix, typically
+by neighbor-joining or UPGMA. Third, align the sequences following the
+guide tree from leaves to root: align the two closest sequences first,
+then successively align each next-closest sequence or group to the
+growing alignment.<span
+class="sidenote-wrapper"><label for="sn-49" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-49" class="margin-toggle"/><span
+class="sidenote">J. D. Thompson, D. G. Higgins, and T. J. Gibson.
+CLUSTAL W: improving the sensitivity of progressive multiple sequence
+alignment through sequence weighting, position-specific gap penalties,
+and weight matrix choice. <em>Nucleic Acids Res.</em>, 22(22):4673–4680,
+1994.<br />
+<br />
+</span></span></p>
+<p>Progressive alignment is fast, <span class="math inline">\(O(k^2
+L^2)\)</span> in practice, but it has a well-known flaw: errors made at
+early stages propagate upward and are never corrected. If the guide tree
+is wrong, or if two sequences are misaligned at the first merge, every
+subsequent addition inherits that error.</p>
+<h3 data-number="4.1.2" id="sec:consistency">Consistency-Based
+Methods</h3>
+<p>T-Coffee addresses the error-propagation problem by incorporating
+information from all pairwise alignments into each progressive
+step <span class="citation" data-cites="notredame2000">(Notredame,
+Higgins, and Heringa 2000)</span>. The key idea is <em>consistency</em>,
+which holds that if residue <span class="math inline">\(x_i\)</span>
+aligns with <span class="math inline">\(z_k\)</span>, and <span
+class="math inline">\(z_k\)</span> aligns with <span
+class="math inline">\(y_j\)</span>, then <span
+class="math inline">\(x_i\)</span> and <span
+class="math inline">\(y_j\)</span> should also align. T-Coffee builds a
+library of pairwise alignments and uses this three-way consistency to
+re-weight alignment scores before running progressive alignment.</p>
+<p>In practice, T-Coffee and its extension 3D-Coffee (which incorporates
+structural information) produce more accurate alignments than CLUSTAL W
+on benchmarks like BAliBASE, especially in the “twilight zone” below 25%
+sequence identity where progressive methods struggle most. The tradeoff
+is speed: T-Coffee is considerably slower than CLUSTAL <span
+class="math inline">\(\Omega\)</span> and does not scale well beyond a
+few hundred sequences. For building profile HMMs from large families,
+CLUSTAL <span class="math inline">\(\Omega\)</span> or MAFFT are the
+more common choices.<span
+class="sidenote-wrapper"><label for="sn-50" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-50" class="margin-toggle"/><span
+class="sidenote">MAFFT uses a fast Fourier transform to identify
+homologous segments, achieving accuracy comparable to T-Coffee at a
+fraction of the cost.<br />
+<br />
+</span></span></p>
+<h2 data-number="4.2" id="sec:pssm">Position-Specific Scoring
+Matrices</h2>
+<p><span class="newthought">Given a multiple sequence alignment, the
+simplest summary</span> of a protein family is a position-specific
+scoring matrix (PSSM), also called a sequence profile. Each column of
+the MSA becomes a column of the PSSM. The matrix has <span
+class="math inline">\(L\)</span> columns (one per alignment position)
+and 20 rows (one per amino acid).</p>
+<h3 data-number="4.2.1" id="sec:pssm-construction">Construction from MSA
+Columns</h3>
+<p>Consider column <span class="math inline">\(j\)</span> of the MSA.
+Let <span class="math inline">\(n_{ja}\)</span> denote the number of
+times amino acid <span class="math inline">\(a\)</span> appears in that
+column, and let <span class="math inline">\(N_j = \sum_a n_{ja}\)</span>
+be the total number of (non-gap) residues. The observed frequency is
+<span class="math inline">\(f_{ja} = n_{ja}/N_j\)</span>. We compare
+this to a background frequency <span class="math inline">\(p_a\)</span>
+representing the expected frequency of amino acid <span
+class="math inline">\(a\)</span> in random protein sequence. The PSSM
+entry is the log-odds score: <span
+class="math display">\[\label{eq:pssm-entry}
+  S(j, a) = \log_2 \frac{f_{ja}}{p_a}.\]</span> A positive score means
+amino acid <span class="math inline">\(a\)</span> is enriched at
+position <span class="math inline">\(j\)</span> relative to background;
+a negative score means it is depleted. To score a new sequence <span
+class="math inline">\(x_1 x_2 \cdots x_L\)</span> against the PSSM, we
+simply sum the entries: <span
+class="math display">\[\label{eq:pssm-score}
+  \text{Score}(x) = \sum_{j=1}^{L} S(j, x_j).\]</span> This is
+equivalent to computing the log-likelihood ratio between a model in
+which each position is drawn independently from the column frequencies
+and a null model in which each position is drawn from the background
+distribution.<span
+class="sidenote-wrapper"><label for="sn-51" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-51" class="margin-toggle"/><span
+class="sidenote">The independence assumption across positions is a
+simplification. Real proteins have correlated positions, a fact that
+direct coupling analysis (DCA) and related methods attempt to capture.
+We discuss these in Chapter <a href="7-ch:alphafold.html#ch:alphafold"
+data-reference-type="ref" data-reference="ch:alphafold">7</a>.<br />
+<br />
+</span></span></p>
+<h3 data-number="4.2.2" id="sec:pseudocounts">Pseudocounts and Dirichlet
+Priors</h3>
+<p>Raw frequency estimates fail when data is limited. If an MSA has only
+10 sequences and tryptophan never appears at position <span
+class="math inline">\(j\)</span>, the raw estimate gives <span
+class="math inline">\(f_{jW} = 0\)</span>, which produces <span
+class="math inline">\(S(j, W) = -\infty\)</span>. This is absurd: a
+single tryptophan at that position should not make the score infinitely
+bad. The problem is that we are estimating a 20-dimensional probability
+distribution from a small sample.</p>
+<p>The standard fix is to add pseudocounts.<span
+class="sidenote-wrapper"><label for="sn-52" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-52" class="margin-toggle"/><span
+class="sidenote">Pseudocounts are the frequentist analog of a Bayesian
+prior. The distinction is mostly philosophical for our purposes; the
+formulas are identical.<br />
+<br />
+</span></span> The simplest approach replaces <span
+class="math inline">\(n_{ja}\)</span> with <span
+class="math inline">\(n_{ja} + \alpha_a\)</span>, where <span
+class="math inline">\(\alpha_a &gt; 0\)</span> is a pseudocount for
+amino acid <span class="math inline">\(a\)</span>. The estimated
+probability becomes: <span
+class="math display">\[\label{eq:pseudocounts}
+  \hat{p}_{ja} = \frac{n_{ja} + \alpha_a}{N_j + \sum_{a&#39;}
+\alpha_{a&#39;}}.\]</span> If we set <span
+class="math inline">\(\alpha_a = p_a\)</span> (the background
+frequencies) and choose the total pseudocount weight to be small
+compared to <span class="math inline">\(N_j\)</span>, we get a gentle
+regularization: unobserved amino acids receive a small positive
+probability proportional to their background frequency, while the
+estimates for well-sampled amino acids are barely changed.</p>
+<p>The Bayesian interpretation makes this more principled. We place a
+Dirichlet prior on the probability vector <span
+class="math inline">\(\bm{\theta}_j = (\theta_{j1}, \ldots,
+\theta_{j,20})\)</span> for column <span
+class="math inline">\(j\)</span>: <span
+class="math display">\[\label{eq:dirichlet-prior}
+  p(\bm{\theta}_j) = \text{Dir}(\bm{\theta}_j \mid \bm{\alpha}) =
+\frac{\Gamma(\sum_a \alpha_a)}{\prod_a \Gamma(\alpha_a)}
+\prod_{a=1}^{20} \theta_{ja}^{\alpha_a - 1}.\]</span> The Dirichlet is
+conjugate to the multinomial, so after observing counts <span
+class="math inline">\(\{n_{ja}\}\)</span>, the posterior is also
+Dirichlet: <span class="math display">\[\label{eq:dirichlet-posterior}
+  p(\bm{\theta}_j \mid \{n_{ja}\}) = \text{Dir}(\bm{\theta}_j \mid
+\alpha_1 + n_{j1}, \ldots, \alpha_{20} + n_{j,20}).\]</span> The
+posterior mean gives exactly <a href="#eq:pseudocounts"
+data-reference-type="ref"
+data-reference="eq:pseudocounts">[eq:pseudocounts]</a>. The art lies in
+choosing <span class="math inline">\(\bm{\alpha}\)</span>. Durbin et
+al. describe mixtures of Dirichlet distributions, where each component
+captures a different “type” of amino acid distribution (hydrophobic core
+positions, surface positions, conserved catalytic sites, etc.) <span
+class="citation" data-cites="durbin1998">(Durbin et al. 1998)</span>.
+The software HMMER uses a nine-component Dirichlet mixture trained on
+Blocks, a curated database of ungapped alignments.<span
+class="sidenote-wrapper"><label for="sn-53" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-53" class="margin-toggle"/><span
+class="sidenote">The Dirichlet mixture parameters are estimated by
+maximum likelihood from a large training set of alignment columns. This
+is a form of empirical Bayes.<br />
+<br />
+</span></span></p>
+<h3 data-number="4.2.3" id="sec:psi-blast">PSI-BLAST and Iterative
+Profile Construction</h3>
+<p>PSI-BLAST (Position-Specific Iterated BLAST) automates the
+construction and use of PSSMs for database searching <span
+class="citation" data-cites="altschul1997">(Altschul et al.
+1997)</span>. The procedure works as follows. Run a standard BLAST
+search with a query sequence. From the significant hits, construct an
+MSA and compute a PSSM. Use the PSSM to search the database again, this
+time scoring each target position by the profile rather than a fixed
+substitution matrix. From the expanded set of hits, build a new PSSM.
+Repeat until convergence or for a fixed number of iterations.</p>
+<p>Each iteration typically detects more distant homologs, because the
+profile captures family-specific patterns that a single query sequence
+cannot. But there is a danger: if a false positive enters the profile at
+iteration <span class="math inline">\(k\)</span>, it corrupts all
+subsequent iterations and the profile “drifts” away from the true
+family. In practice, PSI-BLAST works well for 3–5 iterations with a
+stringent inclusion threshold (e.g., <span class="math inline">\(E &lt;
+0.001\)</span>), but requires care and manual inspection of the growing
+hit list.</p>
+<h2 data-number="4.3" id="sec:hmm">Hidden Markov Models</h2>
+<p><span class="newthought">A PSSM treats each alignment column
+independently</span> and has no mechanism for insertions or deletions.
+If a new family member has an extra residue between positions 7 and 8 of
+the profile, the PSSM has no way to accommodate it: the insertion pushes
+all downstream residues out of register, and the score collapses. Hidden
+Markov models solve this problem by treating alignment as a
+probabilistic process that moves through a sequence of states, some of
+which emit residues and some of which do not.</p>
+<h3 data-number="4.3.1" id="sec:hmm-definition">Formal Definition</h3>
+<p>A hidden Markov model consists of the following components:</p>
+<ol>
+<li><p>A set of <span class="math inline">\(K\)</span> states <span
+class="math inline">\(Q = \{q_1, q_2, \ldots, q_K\}\)</span>.</p></li>
+<li><p>An observation alphabet <span
+class="math inline">\(\mathcal{O}\)</span>. For DNA, <span
+class="math inline">\(\mathcal{O} = \{A, C, G, T\}\)</span>; for
+proteins, <span class="math inline">\(|\mathcal{O}| =
+20\)</span>.</p></li>
+<li><p>Transition probabilities <span class="math inline">\(a_{ij} =
+P(s_t = q_j \mid s_{t-1} = q_i)\)</span> for all <span
+class="math inline">\(i, j \in \{1, \ldots, K\}\)</span>, where <span
+class="math inline">\(s_t\)</span> denotes the state at time <span
+class="math inline">\(t\)</span>. These satisfy <span
+class="math inline">\(\sum_j a_{ij} = 1\)</span> for each <span
+class="math inline">\(i\)</span>.</p></li>
+<li><p>Emission probabilities <span class="math inline">\(b_j(k) = P(o_t
+= k \mid s_t = q_j)\)</span> for each state <span
+class="math inline">\(q_j\)</span> and each symbol <span
+class="math inline">\(k \in \mathcal{O}\)</span>.</p></li>
+<li><p>Initial state probabilities <span class="math inline">\(\pi_j =
+P(s_1 = q_j)\)</span> for each state <span
+class="math inline">\(q_j\)</span>.</p></li>
+</ol>
+<p>We denote the full model by <span class="math inline">\(\lambda =
+(\bm{A}, \bm{B}, \bm{\pi})\)</span> where <span
+class="math inline">\(\bm{A} = [a_{ij}]\)</span>, <span
+class="math inline">\(\bm{B} = [b_j(k)]\)</span>, and <span
+class="math inline">\(\bm{\pi} = [\pi_j]\)</span>.</p>
+<p>The “hidden” in HMM refers to the fact that we observe the output
+sequence <span class="math inline">\(O = o_1, o_2, \ldots, o_T\)</span>
+but do not observe the state sequence <span class="math inline">\(S =
+s_1, s_2, \ldots, s_T\)</span>. The state sequence is a latent variable.
+The probability of a particular observation sequence given a particular
+state sequence factors as: <span
+class="math display">\[\label{eq:hmm-joint}
+  P(O, S \mid \lambda) = \pi_{s_1} \, b_{s_1}(o_1) \prod_{t=2}^{T}
+a_{s_{t-1}, s_t} \, b_{s_t}(o_t).\]</span> This factorization is the
+Markov property: the future state depends only on the current state, not
+on the full history.</p>
+<h3 data-number="4.3.2" id="sec:cpg-example">A Concrete Example: CpG
+Islands</h3>
+<p>Before working with abstract states and symbols, we ground the
+formalism in a biological example that appears in many computational
+biology courses.<span
+class="sidenote-wrapper"><label for="sn-54" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-54" class="margin-toggle"/><span
+class="sidenote">This example is adapted from the MIT course 7.91J /
+7.36J, Foundations of Computational and Systems Biology, taught by
+C. Burge, D. Gifford, and E. Fraenkel.<br />
+<br />
+</span></span> In vertebrate genomes, the dinucleotide CG (written CpG
+to distinguish it from the base pair C–G) is underrepresented because
+cytosines in CpG contexts are frequently methylated and subsequently
+deaminated to thymine. But certain regions near gene promoters, called
+CpG islands, escape this methylation and retain the expected CpG
+frequency. We want a model that, given a DNA sequence, labels each
+position as belonging to a CpG island (<span
+class="math inline">\(+\)</span>) or to normal genome (<span
+class="math inline">\(-\)</span>).</p>
+<p>We define a two-state HMM with states <span class="math inline">\(Q =
+\{I, G\}\)</span> (Island, Genome) and alphabet <span
+class="math inline">\(\mathcal{O} = \{A, C, G, T\}\)</span>. The
+transition matrix is: <span
+class="math display">\[\label{eq:cpg-transition}
+  \bm{A} = \begin{pmatrix} a_{II} &amp; a_{IG} \\ a_{GI} &amp; a_{GG}
+\end{pmatrix} = \begin{pmatrix} 0.95 &amp; 0.05 \\ 0.10 &amp; 0.90
+\end{pmatrix}.\]</span> The emission probabilities are: <span
+class="math display">\[\label{eq:cpg-emission}
+\begin{aligned}
+  b_I(A) &amp;= 0.15, &amp; b_I(C) &amp;= 0.35, &amp; b_I(G) &amp;=
+0.35, &amp; b_I(T) &amp;= 0.15, \\
+  b_G(A) &amp;= 0.30, &amp; b_G(C) &amp;= 0.20, &amp; b_G(G) &amp;=
+0.20, &amp; b_G(T) &amp;= 0.30.
+\end{aligned}\]</span> The island state emits C and G with higher
+probability (reflecting the high GC content of CpG islands), while the
+genome state favors A and T. The transition probabilities encode the
+fact that both islands and non-islands are extended regions: once you
+enter an island, you tend to stay for many positions (<span
+class="math inline">\(a_{II} = 0.95\)</span>), and similarly for the
+genome state (<span class="math inline">\(a_{GG} = 0.90\)</span>).</p>
+<p>We set initial probabilities <span class="math inline">\(\pi_I =
+0.5\)</span> and <span class="math inline">\(\pi_G = 0.5\)</span>,
+reflecting ignorance about whether the sequence starts in an island or
+not. This is our running example for the rest of the section.</p>
+<h2 data-number="4.4" id="sec:hmm-problems">The Three Canonical HMM
+Problems</h2>
+<p><span class="newthought">Three problems arise naturally for any
+HMM,</span> and their solutions constitute the algorithmic core of the
+field <span class="citation" data-cites="rabiner1989">(Rabiner
+1989)</span>. Rabiner’s 1989 tutorial, still one of the clearest
+expositions, called them the evaluation problem, the decoding problem,
+and the training problem. We treat each in turn.</p>
+<h3 data-number="4.4.1" id="sec:forward">Problem 1: Evaluation (The
+Forward Algorithm)</h3>
+<p>Given a model <span class="math inline">\(\lambda\)</span> and an
+observation sequence <span class="math inline">\(O = o_1, \ldots,
+o_T\)</span>, compute <span class="math inline">\(P(O \mid
+\lambda)\)</span>, the probability that the model generated the
+sequence.</p>
+<p>The naive approach sums over all possible state sequences: <span
+class="math display">\[\label{eq:naive-eval}
+  P(O \mid \lambda) = \sum_{S} P(O, S \mid \lambda) = \sum_{s_1, \ldots,
+s_T} \pi_{s_1} b_{s_1}(o_1) \prod_{t=2}^{T} a_{s_{t-1}, s_t}
+b_{s_t}(o_t).\]</span> There are <span
+class="math inline">\(K^T\)</span> possible state sequences, so this sum
+is intractable for any but the shortest sequences. The forward algorithm
+computes the same quantity in <span class="math inline">\(O(K^2
+T)\)</span> time by dynamic programming.</p>
+<p>Define the <em>forward variable</em>: <span
+class="math display">\[\label{eq:forward-def}
+  \alpha_t(i) = P(o_1, o_2, \ldots, o_t, s_t = q_i \mid
+\lambda).\]</span> This is the joint probability of having observed the
+first <span class="math inline">\(t\)</span> symbols <em>and</em> being
+in state <span class="math inline">\(q_i\)</span> at time <span
+class="math inline">\(t\)</span>. We compute it recursively.</p>
+<h5 data-number="4.4.1.0.1" id="initialization.">Initialization.</h5>
+<p>At <span class="math inline">\(t = 1\)</span>: <span
+class="math display">\[\label{eq:forward-init}
+  \alpha_1(i) = \pi_i \, b_i(o_1), \quad i = 1, \ldots, K.\]</span></p>
+<h5 data-number="4.4.1.0.2" id="recursion.">Recursion.</h5>
+<p>For <span class="math inline">\(t = 2, 3, \ldots, T\)</span>: <span
+class="math display">\[\label{eq:forward-recursion}
+  \alpha_t(j) = \left[ \sum_{i=1}^{K} \alpha_{t-1}(i) \, a_{ij} \right]
+b_j(o_t), \quad j = 1, \ldots, K.\]</span> The intuition is that to be
+in state <span class="math inline">\(q_j\)</span> at time <span
+class="math inline">\(t\)</span>, we could have arrived from any state
+<span class="math inline">\(q_i\)</span> at time <span
+class="math inline">\(t-1\)</span>. We sum over all such predecessors,
+weighting each by the transition probability <span
+class="math inline">\(a_{ij}\)</span>, and then multiply by the
+probability of emitting the observed symbol <span
+class="math inline">\(o_t\)</span> in state <span
+class="math inline">\(q_j\)</span>.</p>
+<h5 data-number="4.4.1.0.3" id="termination.">Termination.</h5>
+<p>The total probability of the observation sequence is: <span
+class="math display">\[\label{eq:forward-termination}
+  P(O \mid \lambda) = \sum_{i=1}^{K} \alpha_T(i).\]</span> This works
+because the events “observed <span class="math inline">\(O\)</span> and
+ended in state <span class="math inline">\(q_i\)</span>” for <span
+class="math inline">\(i = 1, \ldots, K\)</span> are mutually exclusive
+and exhaustive.</p>
+<p>The time complexity is <span class="math inline">\(O(K^2 T)\)</span>:
+at each of <span class="math inline">\(T\)</span> time steps, we compute
+<span class="math inline">\(K\)</span> forward variables, each requiring
+a sum over <span class="math inline">\(K\)</span> predecessors. The
+space complexity is <span class="math inline">\(O(KT)\)</span> if we
+store the full <span class="math inline">\(\alpha\)</span> table, or
+<span class="math inline">\(O(K)\)</span> if we only need the final
+probability and overwrite as we go.<span
+class="sidenote-wrapper"><label for="sn-55" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-55" class="margin-toggle"/><span
+class="sidenote">In practice we always store the full table, because we
+need it for the backward algorithm and for parameter estimation.<br />
+<br />
+</span></span></p>
+<h3 data-number="4.4.2" id="sec:viterbi">Problem 2: Decoding (The
+Viterbi Algorithm)</h3>
+<p>Given a model <span class="math inline">\(\lambda\)</span> and an
+observation sequence <span class="math inline">\(O\)</span>, find the
+state sequence <span class="math inline">\(S^* = s_1^*, \ldots,
+s_T^*\)</span> that maximizes <span class="math inline">\(P(S \mid O,
+\lambda)\)</span>. This is the most likely explanation of the observed
+data.</p>
+<p>The structure is almost identical to the forward algorithm, but with
+<span class="math inline">\(\max\)</span> replacing <span
+class="math inline">\(\sum\)</span>. Define: <span
+class="math display">\[\label{eq:viterbi-def}
+  \delta_t(i) = \max_{s_1, \ldots, s_{t-1}} P(s_1, \ldots, s_{t-1}, s_t
+= q_i, o_1, \ldots, o_t \mid \lambda).\]</span> This is the probability
+of the most probable path ending in state <span
+class="math inline">\(q_i\)</span> at time <span
+class="math inline">\(t\)</span>.</p>
+<h5 data-number="4.4.2.0.1" id="initialization.-1">Initialization.</h5>
+<p><span class="math display">\[\label{eq:viterbi-init}
+  \delta_1(i) = \pi_i \, b_i(o_1), \quad \psi_1(i) = 0.\]</span></p>
+<h5 data-number="4.4.2.0.2" id="recursion.-1">Recursion.</h5>
+<p>For <span class="math inline">\(t = 2, \ldots, T\)</span>: <span
+class="math display">\[\label{eq:viterbi-recursion}
+  \delta_t(j) = \max_{1 \le i \le K} \left[ \delta_{t-1}(i) \, a_{ij}
+\right] \cdot b_j(o_t),\]</span> <span
+class="math display">\[\label{eq:viterbi-backtrack}
+  \psi_t(j) = \argmax_{1 \le i \le K} \left[ \delta_{t-1}(i) \, a_{ij}
+\right].\]</span> The array <span
+class="math inline">\(\psi_t(j)\)</span> records which predecessor state
+achieved the maximum, enabling us to reconstruct the optimal path.</p>
+<h5 data-number="4.4.2.0.3" id="termination.-1">Termination.</h5>
+<p><span class="math display">\[\label{eq:viterbi-termination}
+  P^* = \max_{1 \le i \le K} \delta_T(i), \qquad s_T^* = \argmax_{1 \le
+i \le K} \delta_T(i).\]</span></p>
+<h5 data-number="4.4.2.0.4" id="backtracking.">Backtracking.</h5>
+<p>For <span class="math inline">\(t = T-1, T-2, \ldots, 1\)</span>:
+<span class="math display">\[\label{eq:viterbi-path}
+  s_t^* = \psi_{t+1}(s_{t+1}^*).\]</span></p>
+<p>In practice, we work in log space to avoid numerical underflow,
+replacing products with sums and <span
+class="math inline">\(\max\)</span> over sums.<span
+class="sidenote-wrapper"><label for="sn-56" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-56" class="margin-toggle"/><span
+class="sidenote">Working in log space converts <span
+class="math inline">\(\delta_t(j) = \max_i [\delta_{t-1}(i) \cdot
+a_{ij}] \cdot b_j(o_t)\)</span> into <span class="math inline">\(\log
+\delta_t(j) = \max_i [\log \delta_{t-1}(i) + \log a_{ij}] + \log
+b_j(o_t)\)</span>.<br />
+<br />
+</span></span></p>
+<h3 data-number="4.4.3" id="sec:viterbi-example">Worked Example: Viterbi
+on the CpG Model</h3>
+<p>We illustrate the Viterbi algorithm on a short sequence using the CpG
+island model from <a href="4-ch:profile-hmm.html#sec:cpg-example"
+data-reference-type="ref" data-reference="sec:cpg-example">4.3.2</a>.
+Consider the observed sequence <span class="math inline">\(O = C, G, C,
+G\)</span> (that is, <span class="math inline">\(o_1 = C\)</span>, <span
+class="math inline">\(o_2 = G\)</span>, <span class="math inline">\(o_3
+= C\)</span>, <span class="math inline">\(o_4 = G\)</span>). We work in
+log base 2 for readability.</p>
+<h5 data-number="4.4.3.0.1"
+id="initialization-t-1-o_1-c.">Initialization (<span
+class="math inline">\(t = 1\)</span>, <span class="math inline">\(o_1 =
+C\)</span>).</h5>
+<p><span class="math display">\[\begin{aligned}
+  \log_2 \delta_1(I) &amp;= \log_2 \pi_I + \log_2 b_I(C) = \log_2(0.5) +
+\log_2(0.35) = -1.00 + (-1.51) = -2.51, \notag \\
+  \log_2 \delta_1(G) &amp;= \log_2 \pi_G + \log_2 b_G(C) = \log_2(0.5) +
+\log_2(0.20) = -1.00 + (-2.32) = -3.32. \notag
+\end{aligned}\]</span> State <span class="math inline">\(I\)</span> is
+already more probable.</p>
+<h5 data-number="4.4.3.0.2" id="recursion-t-2-o_2-g.">Recursion (<span
+class="math inline">\(t = 2\)</span>, <span class="math inline">\(o_2 =
+G\)</span>).</h5>
+<p>For state <span class="math inline">\(I\)</span>: <span
+class="math display">\[\begin{aligned}
+  \text{from } I&amp;: \log_2 \delta_1(I) + \log_2 a_{II} = -2.51 +
+\log_2(0.95) = -2.51 + (-0.07) = -2.58, \notag \\
+  \text{from } G&amp;: \log_2 \delta_1(G) + \log_2 a_{GI} = -3.32 +
+\log_2(0.10) = -3.32 + (-3.32) = -6.64. \notag
+\end{aligned}\]</span> Maximum is <span
+class="math inline">\(-2.58\)</span> from <span
+class="math inline">\(I\)</span>, so <span
+class="math inline">\(\psi_2(I) = I\)</span>. Then <span
+class="math inline">\(\log_2 \delta_2(I) = -2.58 + \log_2(0.35) = -2.58
++ (-1.51) = -4.10\)</span>.</p>
+<p>For state <span class="math inline">\(G\)</span>: <span
+class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -2.51 + \log_2(0.05) = -2.51 + (-4.32) = -6.83,
+\notag \\
+  \text{from } G&amp;: -3.32 + \log_2(0.90) = -3.32 + (-0.15) = -3.47.
+\notag
+\end{aligned}\]</span> Maximum is <span
+class="math inline">\(-3.47\)</span> from <span
+class="math inline">\(G\)</span>, so <span
+class="math inline">\(\psi_2(G) = G\)</span>. Then <span
+class="math inline">\(\log_2 \delta_2(G) = -3.47 + \log_2(0.20) = -3.47
++ (-2.32) = -5.79\)</span>.</p>
+<h5 data-number="4.4.3.0.3" id="recursion-t-3-o_3-c.">Recursion (<span
+class="math inline">\(t = 3\)</span>, <span class="math inline">\(o_3 =
+C\)</span>).</h5>
+<p>For state <span class="math inline">\(I\)</span>: <span
+class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -4.10 + (-0.07) = -4.17, \notag \\
+  \text{from } G&amp;: -5.79 + (-3.32) = -9.11. \notag
+\end{aligned}\]</span> Maximum from <span
+class="math inline">\(I\)</span>, <span class="math inline">\(\psi_3(I)
+= I\)</span>. <span class="math inline">\(\log_2 \delta_3(I) = -4.17 +
+(-1.51) = -5.69\)</span>.</p>
+<p>For state <span class="math inline">\(G\)</span>: <span
+class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -4.10 + (-4.32) = -8.42, \notag \\
+  \text{from } G&amp;: -5.79 + (-0.15) = -5.94. \notag
+\end{aligned}\]</span> Maximum from <span
+class="math inline">\(G\)</span>, <span class="math inline">\(\psi_3(G)
+= G\)</span>. <span class="math inline">\(\log_2 \delta_3(G) = -5.94 +
+(-2.32) = -8.27\)</span>.</p>
+<h5 data-number="4.4.3.0.4" id="recursion-t-4-o_4-g.">Recursion (<span
+class="math inline">\(t = 4\)</span>, <span class="math inline">\(o_4 =
+G\)</span>).</h5>
+<p>For state <span class="math inline">\(I\)</span>: <span
+class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -5.69 + (-0.07) = -5.76, \notag \\
+  \text{from } G&amp;: -8.27 + (-3.32) = -11.59. \notag
+\end{aligned}\]</span> Maximum from <span
+class="math inline">\(I\)</span>, <span class="math inline">\(\psi_4(I)
+= I\)</span>. <span class="math inline">\(\log_2 \delta_4(I) = -5.76 +
+(-1.51) = -7.27\)</span>.</p>
+<p>For state <span class="math inline">\(G\)</span>: <span
+class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -5.69 + (-4.32) = -10.01, \notag \\
+  \text{from } G&amp;: -8.27 + (-0.15) = -8.42. \notag
+\end{aligned}\]</span> Maximum from <span
+class="math inline">\(G\)</span>, <span class="math inline">\(\psi_4(G)
+= G\)</span>. <span class="math inline">\(\log_2 \delta_4(G) = -8.42 +
+(-2.32) = -10.73\)</span>.</p>
+<h5 data-number="4.4.3.0.5"
+id="termination-and-backtracking.">Termination and backtracking.</h5>
+<p><span class="math inline">\(s_4^* = I\)</span> (since <span
+class="math inline">\(-7.27 &gt; -10.73\)</span>). Backtracking: <span
+class="math inline">\(s_3^* = \psi_4(I) = I\)</span>, <span
+class="math inline">\(s_2^* = \psi_3(I) = I\)</span>, <span
+class="math inline">\(s_1^* = \psi_2(I) = I\)</span>. The Viterbi path
+is <span class="math inline">\(I, I, I, I\)</span>. The model assigns
+the entire CGCG sequence to the CpG island state, which makes sense: the
+sequence is CG-rich, and switching to the genome state incurs transition
+penalties that outweigh any benefit.</p>
+<p>If we ran the same computation on a sequence like <span
+class="math inline">\(A, T, A, T\)</span>, we would find the Viterbi
+path is <span class="math inline">\(G, G, G, G\)</span>, assigning it to
+normal genome. Sequences with mixed composition would produce paths that
+switch between states, identifying island boundaries.<span
+class="sidenote-wrapper"><label for="sn-57" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-57" class="margin-toggle"/><span
+class="sidenote">In real applications, the two-state CpG model is too
+simple. More sophisticated models use duration states or semi-Markov
+structures to enforce minimum island lengths.<br />
+<br />
+</span></span></p>
+<h3 data-number="4.4.4" id="sec:baum-welch">Problem 3: Training (The
+Baum–Welch Algorithm)</h3>
+<p>Given observation sequences (but not state sequences), estimate the
+model parameters <span class="math inline">\(\lambda = (\bm{A}, \bm{B},
+\bm{\pi})\)</span> that maximize <span class="math inline">\(P(O \mid
+\lambda)\)</span>. This is the learning problem. If we could observe the
+state sequences directly, parameter estimation would be simple counting.
+We cannot, so we use expectation-maximization (EM), which in the HMM
+context is called the Baum–Welch algorithm.</p>
+<h5 data-number="4.4.4.0.1" id="the-backward-variable.">The backward
+variable.</h5>
+<p>We need a companion to the forward variable. Define: <span
+class="math display">\[\label{eq:backward-def}
+  \beta_t(i) = P(o_{t+1}, o_{t+2}, \ldots, o_T \mid s_t = q_i,
+\lambda).\]</span> This is the probability of the future observations
+given that we are in state <span class="math inline">\(q_i\)</span> at
+time <span class="math inline">\(t\)</span>.</p>
+<h5 data-number="4.4.4.0.2" id="initialization.-2">Initialization.</h5>
+<p><span class="math display">\[\label{eq:backward-init}
+  \beta_T(i) = 1, \quad i = 1, \ldots, K.\]</span></p>
+<h5 data-number="4.4.4.0.3" id="recursion.-2">Recursion.</h5>
+<p>For <span class="math inline">\(t = T-1, T-2, \ldots, 1\)</span>:
+<span class="math display">\[\label{eq:backward-recursion}
+  \beta_t(i) = \sum_{j=1}^{K} a_{ij} \, b_j(o_{t+1}) \,
+\beta_{t+1}(j).\]</span> The logic mirrors the forward algorithm but
+runs backward in time: to compute the probability of future observations
+from state <span class="math inline">\(q_i\)</span> at time <span
+class="math inline">\(t\)</span>, we consider all possible next states
+<span class="math inline">\(q_j\)</span>, weighted by the transition
+probability, the emission at <span class="math inline">\(t+1\)</span>,
+and the backward probability from <span
+class="math inline">\(q_j\)</span> at <span
+class="math inline">\(t+1\)</span>.</p>
+<h5 data-number="4.4.4.0.4"
+id="posterior-state-and-transition-probabilities.">Posterior state and
+transition probabilities.</h5>
+<p>With both <span class="math inline">\(\alpha\)</span> and <span
+class="math inline">\(\beta\)</span> in hand, we can compute the
+posterior probability of being in state <span
+class="math inline">\(q_i\)</span> at time <span
+class="math inline">\(t\)</span>: <span
+class="math display">\[\label{eq:gamma}
+  \gamma_t(i) = P(s_t = q_i \mid O, \lambda) = \frac{\alpha_t(i) \,
+\beta_t(i)}{P(O \mid \lambda)} = \frac{\alpha_t(i) \,
+\beta_t(i)}{\sum_{j=1}^{K} \alpha_t(j) \, \beta_t(j)}.\]</span> We can
+also compute the posterior probability of transitioning from <span
+class="math inline">\(q_i\)</span> to <span
+class="math inline">\(q_j\)</span> between times <span
+class="math inline">\(t\)</span> and <span
+class="math inline">\(t+1\)</span>: <span
+class="math display">\[\label{eq:xi}
+  \xi_t(i, j) = P(s_t = q_i, s_{t+1} = q_j \mid O, \lambda) =
+\frac{\alpha_t(i) \, a_{ij} \, b_j(o_{t+1}) \, \beta_{t+1}(j)}{P(O \mid
+\lambda)}.\]</span> These two quantities are related by <span
+class="math inline">\(\gamma_t(i) = \sum_j \xi_t(i, j)\)</span>.</p>
+<h5 data-number="4.4.4.0.5" id="re-estimation-formulas.">Re-estimation
+formulas.</h5>
+<p>The M-step of EM uses <span class="math inline">\(\gamma\)</span> and
+<span class="math inline">\(\xi\)</span> as soft counts to update the
+parameters. The new transition probabilities are: <span
+class="math display">\[\label{eq:reestimate-a}
+  \hat{a}_{ij} = \frac{\sum_{t=1}^{T-1} \xi_t(i, j)}{\sum_{t=1}^{T-1}
+\gamma_t(i)}.\]</span> The numerator is the expected number of
+transitions from <span class="math inline">\(q_i\)</span> to <span
+class="math inline">\(q_j\)</span>; the denominator is the expected
+number of times we are in state <span class="math inline">\(q_i\)</span>
+(excluding the last time step, since there is no transition from <span
+class="math inline">\(t = T\)</span>). The new emission probabilities
+are: <span class="math display">\[\label{eq:reestimate-b}
+  \hat{b}_j(k) = \frac{\sum_{t=1}^{T} \gamma_t(j) \, \mathbf{1}[o_t =
+k]}{\sum_{t=1}^{T} \gamma_t(j)}.\]</span> The numerator is the expected
+number of times we emit symbol <span class="math inline">\(k\)</span>
+from state <span class="math inline">\(q_j\)</span>; the denominator is
+the expected number of times we are in state <span
+class="math inline">\(q_j\)</span>. The new initial probabilities are:
+<span class="math display">\[\label{eq:reestimate-pi}
+  \hat{\pi}_i = \gamma_1(i).\]</span> Each iteration of Baum–Welch (one
+E-step computing <span class="math inline">\(\gamma\)</span> and <span
+class="math inline">\(\xi\)</span>, followed by one M-step applying the
+re-estimation formulas) is guaranteed to increase <span
+class="math inline">\(P(O \mid \lambda)\)</span>, or leave it unchanged
+if we are at a fixed point.<span
+class="sidenote-wrapper"><label for="sn-58" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-58" class="margin-toggle"/><span
+class="sidenote">This monotonicity follows from the general EM
+convergence theorem. Baum–Welch converges to a local maximum, not
+necessarily the global one, so initialization matters. In practice,
+multiple random restarts or informed initialization from a related model
+is standard.<br />
+<br />
+</span></span> The algorithm converges when the change in log-likelihood
+falls below a threshold.</p>
+<h2 data-number="4.5" id="sec:profile-hmm">Profile HMMs for Protein
+Families</h2>
+<p><span class="newthought">We now specialize the general HMM
+framework</span> to the problem that motivated this chapter: modeling
+protein families. A profile HMM is an HMM with a particular architecture
+designed to represent a multiple sequence alignment. The architecture
+was introduced by Krogh et al. in 1994 and refined by Eddy and others
+over the following decade.</p>
+<div class="figure*">
+<p><img src="figures/ch04_domain_architecture.png" alt="image" /></p>
+</div>
+<h3 data-number="4.5.1" id="sec:profile-architecture">Architecture</h3>
+<p>A profile HMM for a family with <span
+class="math inline">\(L\)</span> consensus positions has three types of
+states arranged in <span class="math inline">\(L\)</span> columns, plus
+flanking states for entry and exit.</p>
+<h5 data-number="4.5.1.0.1" id="match-states-m_1-m_2-ldots-m_l.">Match
+states <span class="math inline">\(M_1, M_2, \ldots, M_L\)</span>.</h5>
+<p>Each match state corresponds to a consensus column of the alignment.
+<span class="math inline">\(M_j\)</span> emits amino acids according to
+a position-specific distribution: <span
+class="math inline">\(b_{M_j}(a)\)</span> is the probability of amino
+acid <span class="math inline">\(a\)</span> at position <span
+class="math inline">\(j\)</span>. These emission distributions are the
+probabilistic analog of PSSM columns.</p>
+<h5 data-number="4.5.1.0.2" id="insert-states-i_0-i_1-ldots-i_l.">Insert
+states <span class="math inline">\(I_0, I_1, \ldots, I_L\)</span>.</h5>
+<p>Insert states model residues that appear between consensus positions.
+<span class="math inline">\(I_j\)</span> sits between match states <span
+class="math inline">\(M_j\)</span> and <span
+class="math inline">\(M_{j+1}\)</span> and emits amino acids with a
+distribution that is typically close to the background frequency.
+Self-transitions <span class="math inline">\(a_{I_j \to I_j}\)</span>
+allow multiple inserted residues at the same position.</p>
+<h5 data-number="4.5.1.0.3" id="delete-states-d_1-d_2-ldots-d_l.">Delete
+states <span class="math inline">\(D_1, D_2, \ldots, D_L\)</span>.</h5>
+<p>Delete states are <em>silent</em>: they emit nothing. <span
+class="math inline">\(D_j\)</span> represents the event that a sequence
+skips consensus position <span class="math inline">\(j\)</span>. Passing
+through <span class="math inline">\(D_j\)</span> instead of <span
+class="math inline">\(M_j\)</span> means the sequence has a deletion at
+position <span class="math inline">\(j\)</span> relative to the family
+consensus.</p>
+<p>The transitions between these states follow a specific pattern. From
+each column’s match state <span class="math inline">\(M_j\)</span>,
+transitions go to <span class="math inline">\(M_{j+1}\)</span>, <span
+class="math inline">\(I_j\)</span>, and <span
+class="math inline">\(D_{j+1}\)</span>. From insert state <span
+class="math inline">\(I_j\)</span>, transitions go to <span
+class="math inline">\(M_{j+1}\)</span>, <span
+class="math inline">\(I_j\)</span> (self-loop), and <span
+class="math inline">\(D_{j+1}\)</span>. From delete state <span
+class="math inline">\(D_j\)</span>, transitions go to <span
+class="math inline">\(M_{j+1}\)</span>, <span
+class="math inline">\(I_{j}\)</span>, and <span
+class="math inline">\(D_{j+1}\)</span>. This gives nine possible
+transitions per column, though some are rarely used in practice.<span
+class="sidenote-wrapper"><label for="sn-59" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-59" class="margin-toggle"/><span
+class="sidenote">The full profile HMM also has begin and end states.
+HMMER uses a “plan 7” architecture named for the seven types of
+transitions in its original design. The current HMMER3 model has evolved
+beyond this but retains the name.<br />
+<br />
+</span></span></p>
+<p>The total number of free parameters is considerable. Each of the
+<span class="math inline">\(L\)</span> match states has 19 free emission
+parameters (20 amino acid probabilities summing to 1). Each column has
+up to 9 transition parameters (also subject to sum-to-1 constraints).
+For a typical Pfam model with <span class="math inline">\(L =
+200\)</span> consensus positions, this means roughly <span
+class="math inline">\(200 \times 19 + 200 \times 7 \approx
+5{,}200\)</span> free parameters. This is far more than a PSSM, which
+has <span class="math inline">\(200 \times 19 = 3{,}800\)</span>
+parameters and cannot model insertions or deletions at all.</p>
+<h3 data-number="4.5.2" id="sec:profile-vs-pssm">Relationship to
+PSSMs</h3>
+<p>If we strip away the insert and delete states and keep only the match
+states with fixed transitions <span class="math inline">\(a_{M_j \to
+M_{j+1}} = 1\)</span>, the profile HMM reduces to a PSSM. Scoring a
+sequence against this reduced model gives exactly the PSSM score from <a
+href="#eq:pssm-score" data-reference-type="ref"
+data-reference="eq:pssm-score">[eq:pssm-score]</a>. The profile HMM
+generalizes the PSSM in two ways. First, it handles insertions and
+deletions probabilistically: the insert and delete states allow the
+model to align sequences of different lengths to the consensus without
+ad hoc gap penalties. Second, the Forward algorithm sums over all
+possible alignments of the sequence to the model, rather than committing
+to a single alignment. This is why profile HMMs are more sensitive than
+PSSMs for detecting remote homologs: two distantly related proteins
+might align to the family consensus in different ways, and the Forward
+score accounts for all of them.</p>
+<h3 data-number="4.5.3" id="sec:build-profile">Building a Profile HMM
+from an MSA</h3>
+<p>The construction proceeds in three steps.</p>
+<h5 data-number="4.5.3.0.1"
+id="step-1-assign-columns-to-match-or-insert.">Step 1: Assign columns to
+match or insert.</h5>
+<p>Not every column of the MSA becomes a match state. Columns with more
+than 50% gaps are typically designated as insert columns; the rest
+become match columns. The number of match columns becomes <span
+class="math inline">\(L\)</span>, the length of the model. HMMER uses a
+more sophisticated heuristic based on sequence weighting and entropy,
+but the principle is the same.<span
+class="sidenote-wrapper"><label for="sn-60" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-60" class="margin-toggle"/><span
+class="sidenote">A column full of gaps carries no information about the
+family consensus and would only add noise to the model. The 50%
+threshold is a common rule of thumb.<br />
+<br />
+</span></span></p>
+<h5 data-number="4.5.3.0.2"
+id="step-2-estimate-emission-probabilities.">Step 2: Estimate emission
+probabilities.</h5>
+<p>For each match state <span class="math inline">\(M_j\)</span>, count
+the amino acids in the corresponding MSA column (among the non-gap
+characters). Apply pseudocounts or Dirichlet mixture priors exactly as
+in <a href="4-ch:profile-hmm.html#sec:pseudocounts"
+data-reference-type="ref" data-reference="sec:pseudocounts">4.2.2</a> to
+obtain <span class="math inline">\(b_{M_j}(a)\)</span> for each amino
+acid <span class="math inline">\(a\)</span>. For insert states, emission
+probabilities are usually set to background frequencies <span
+class="math inline">\(p_a\)</span> or estimated from the residues that
+fall in insert columns.</p>
+<h5 data-number="4.5.3.0.3"
+id="step-3-estimate-transition-probabilities.">Step 3: Estimate
+transition probabilities.</h5>
+<p>Count the transitions observed in the MSA. For each sequence and each
+pair of adjacent model positions, determine whether the sequence passes
+through <span class="math inline">\(M_j \to M_{j+1}\)</span>, <span
+class="math inline">\(M_j \to I_j\)</span>, <span
+class="math inline">\(M_j \to D_{j+1}\)</span>, and so on. These counts,
+after adding pseudocounts, give the transition probability estimates.
+Sequences with many insertions at a position will contribute to <span
+class="math inline">\(a_{M_j \to I_j}\)</span>; sequences that skip a
+position will contribute to <span class="math inline">\(a_{M_j \to
+D_{j+1}}\)</span> or <span class="math inline">\(a_{D_j \to
+D_{j+1}}\)</span>.</p>
+<p>With emission and transition parameters in hand, the profile HMM is
+fully specified. We can use the Forward algorithm to score a new
+sequence against the model (evaluation), the Viterbi algorithm to find
+the best alignment of the sequence to the model (decoding), or
+Baum–Welch to iteratively refine parameters if given unaligned training
+sequences.</p>
+<h2 data-number="4.6" id="sec:hmmer3">The HMMER3 Acceleration
+Pipeline</h2>
+<p><span class="newthought">A profile HMM search against a protein
+database</span> requires computing the Forward probability for every
+sequence in the database. The Forward algorithm for a profile HMM of
+length <span class="math inline">\(L\)</span> on a target sequence of
+length <span class="math inline">\(N\)</span> runs in <span
+class="math inline">\(O(LN)\)</span> time. For Pfam’s
+20<span>,</span>000 models searched against UniProt’s 250 million
+sequences, this is on the order of <span
+class="math inline">\(10^{15}\)</span> operations per model. That is too
+slow, even on modern hardware.</p>
+<p>HMMER3 solves this with a multi-stage filter pipeline <span
+class="citation" data-cites="eddy2011">(Eddy 2011)</span>. The idea is
+to use fast, approximate filters to discard the vast majority of
+non-homologous sequences before running the expensive full Forward
+algorithm on the small fraction that survives.</p>
+<h3 data-number="4.6.1" id="sec:msv">Stage 1: The MSV Filter</h3>
+<p>The Multiple Segment Viterbi (MSV) filter is the first and fastest
+stage. It computes an ungapped, diagonal-only alignment score between
+the query profile and each target sequence. The model is stripped down
+to its match states only, with no insert or delete states and no
+transitions between non-adjacent match states. Scoring reduces to
+finding the highest-scoring set of ungapped segments that align
+subsequences of the target to contiguous blocks of match states.</p>
+<p>The critical implementation detail is SIMD vectorization.<span
+class="sidenote-wrapper"><label for="sn-61" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-61" class="margin-toggle"/><span
+class="sidenote">SIMD stands for Single Instruction, Multiple Data.
+Modern CPUs can perform the same operation on 16 or 32 bytes
+simultaneously using SSE or AVX instructions.<br />
+<br />
+</span></span> Farrar’s 2007 striped Smith–Waterman algorithm showed
+that dynamic programming over a scoring profile can be parallelized
+across multiple target residues using SIMD registers. HMMER3 adapts this
+approach, processing 16 target residues simultaneously on SSE hardware
+(or 32 on AVX). The MSV filter runs at approximately the speed of BLAST
+and retains only about 2% of database sequences for further
+analysis.</p>
+<h3 data-number="4.6.2" id="sec:viterbi-filter">Stage 2: The Viterbi
+Filter</h3>
+<p>Sequences passing the MSV filter are rescored with a full gapped
+Viterbi algorithm using the complete profile HMM (match, insert, and
+delete states). This is slower than MSV but still much cheaper than the
+Forward algorithm, because the Viterbi algorithm needs only the single
+best path rather than the sum over all paths. The Viterbi filter retains
+roughly 0.5% of the original database. Most of the sequences eliminated
+at this stage were high-scoring but non-homologous under MSV, typically
+because of composition bias (e.g., low-complexity regions that happen to
+match a few match states well).</p>
+<h3 data-number="4.6.3" id="sec:forward-filter">Stage 3: The Forward
+Filter</h3>
+<p>Surviving sequences are scored with the full Forward algorithm, which
+computes <span class="math inline">\(P(O \mid \lambda)\)</span> summed
+over all possible alignments. The Forward score is more sensitive than
+the Viterbi score because it does not commit to a single alignment. Two
+distantly related proteins might each have a moderately good alignment
+to the model, with the Forward score accumulating probability mass from
+both, while the Viterbi score only reports the better of the two.</p>
+<p>The Forward probability is converted to a bit score by comparing to a
+null model: <span class="math display">\[\label{eq:forward-bitscore}
+  S = \log_2 \frac{P(O \mid \text{profile HMM})}{P(O \mid
+\text{null})}.\]</span> Statistical significance is assessed by fitting
+the distribution of Forward scores to an extreme value distribution,
+yielding E-values that account for database size. Sequences with
+E-values below a reporting threshold (typically <span
+class="math inline">\(10^{-3}\)</span> for inclusion in Pfam) are
+reported as hits.</p>
+<h3 data-number="4.6.4" id="sec:wing-folding">The Wing-Folding
+Trick</h3>
+<p>HMMER3 supports both local alignment (any subsequence of the target
+can match any sub-model) and “glocal” alignment (the entire model must
+be used, but only a subsequence of the target). The wing-folding trick
+implements local alignment without adding extra states to the model.</p>
+<p>In a glocal model, entry is only through <span
+class="math inline">\(M_1\)</span> and exit only through <span
+class="math inline">\(M_L\)</span>. To allow local alignment, we need
+entry into any <span class="math inline">\(M_j\)</span> and exit from
+any <span class="math inline">\(M_j\)</span>. One approach is to add
+explicit entry and exit transitions from special begin and end states,
+but this increases the number of transitions and complicates the dynamic
+programming. The wing-folding trick instead modifies the boundary
+conditions of the DP recursion to implicitly allow entry and exit at any
+position, folding the “wings” of the model (the unused portions before
+the entry point and after the exit point) into the calculation without
+explicitly traversing them. The result is that local alignment has
+exactly the same computational cost as glocal alignment.<span
+class="sidenote-wrapper"><label for="sn-62" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-62" class="margin-toggle"/><span
+class="sidenote">The name comes from a visual analogy: in the profile
+HMM diagram, the unused portions of the model at the beginning and end
+look like folded wings.<br />
+<br />
+</span></span></p>
+<h2 data-number="4.7" id="sec:ch4-exercises">Exercises</h2>
+<ol>
+<li><p><strong>PSSM calculation.</strong> Consider a three-column MSA
+with the following amino acid counts at each position (all other amino
+acids have count 0):</p>
+<p>Position 1: Ala = 8, Val = 2. Position 2: Gly = 10. Position 3: Leu =
+5, Ile = 3, Val = 2.</p>
+<p>Assume uniform background frequencies <span class="math inline">\(p_a
+= 0.05\)</span> for all 20 amino acids. Compute the PSSM entries <span
+class="math inline">\(S(j, a)\)</span> using <a href="#eq:pssm-entry"
+data-reference-type="ref"
+data-reference="eq:pssm-entry">[eq:pssm-entry]</a> for each observed
+amino acid at each position. What is the score of the sequence
+Ala–Gly–Leu?</p></li>
+<li><p><strong>Effect of pseudocounts.</strong> Using the MSA from
+Exercise 1, recompute the PSSM entries using <a href="#eq:pseudocounts"
+data-reference-type="ref"
+data-reference="eq:pseudocounts">[eq:pseudocounts]</a> with <span
+class="math inline">\(\alpha_a = 1\)</span> for all amino acids (i.e., a
+total pseudocount of 20). How do the scores change for abundant versus
+unobserved amino acids? What happens if you increase the pseudocount to
+<span class="math inline">\(\alpha_a = 5\)</span>?</p></li>
+<li><p><strong>Forward algorithm.</strong> Using the CpG island HMM from
+<a href="4-ch:profile-hmm.html#sec:cpg-example"
+data-reference-type="ref" data-reference="sec:cpg-example">4.3.2</a>,
+compute <span class="math inline">\(P(O \mid \lambda)\)</span> for <span
+class="math inline">\(O = A, C, G\)</span> by filling in the full
+forward table. Verify that <span class="math inline">\(\sum_i
+\alpha_3(i)\)</span> gives the total probability.</p></li>
+<li><p><strong>Viterbi vs. Forward.</strong> For the same model and the
+sequence <span class="math inline">\(O = C, G, A, T, C, G\)</span>,
+compute both the Viterbi path and the posterior state probabilities
+<span class="math inline">\(\gamma_t(i)\)</span> for each position. Are
+there positions where the Viterbi path assigns state <span
+class="math inline">\(I\)</span> but <span
+class="math inline">\(\gamma_t(I) &lt; 0.5\)</span>? What does this mean
+for the reliability of the Viterbi decoding?</p></li>
+<li><p><strong>Profile HMM construction.</strong> Given the following
+MSA of four sequences aligned to five columns:</p>
+<pre><code>    A C - G T
+    A C C G T
+    A C C G -
+    - C - G T</code></pre>
+<p>Apply the 50% gap rule to determine which columns become match states
+and which become insert states. For each match state, compute the
+emission probabilities using a pseudocount of <span
+class="math inline">\(\alpha_a = 0.25\)</span> per nucleotide (total
+pseudocount 1.0).</p></li>
+<li><p><strong>HMMER3 filter sensitivity.</strong> Suppose the MSV
+filter has a sensitivity of 99.5% (retains 99.5% of true homologs) and
+the Viterbi filter has a sensitivity of 99%. What is the overall
+sensitivity of the two-stage pre-filter? If the true homologs comprise
+0.01% of the database, and the MSV filter retains 2% of all sequences
+while the Viterbi filter retains 25% of MSV survivors, how many
+sequences reach the Forward stage for a database of 100 million
+sequences?</p></li>
+</ol>
+<h2 data-number="4.8" id="sec:ch4-notes">Chapter Notes</h2>
+<p>The hidden Markov model formalism was developed by Leonard Baum and
+colleagues at the Institute for Defense Analyses in the late 1960s,
+originally for classified work on signal processing. The algorithms
+became widely known through Rabiner’s 1989 tutorial <span
+class="citation" data-cites="rabiner1989">(Rabiner 1989)</span>, written
+for the speech recognition community, which remains one of the clearest
+introductions to the subject. The application to biological sequences
+began in the early 1990s with work by Gary Churchill on multiple
+alignment and by Krogh, Mian, and Haussler on gene finding. The Krogh et
+al. 1994 paper on profile HMMs for protein families was a landmark that
+connected the statistical learning perspective with the biological
+problem of protein family classification.</p>
+<figure id="fig:interpro-domain">
+<img src="figures/ch04_interpro_domain.png" />
+<figcaption>The InterPro entry for the protein kinase domain
+(IPR000719), showing domain relationships and contributing member
+databases (PROSITE, Pfam, SMART).</figcaption>
+</figure>
+<p>Eddy’s HMMER software has gone through three major versions, each
+representing a different approach to the speed-versus-sensitivity
+tradeoff <span class="citation" data-cites="eddy2011">(Eddy
+2011)</span>. HMMER1 (1995) implemented the profile HMM framework of
+Krogh et al. but was far slower than BLAST. HMMER2 (1998) added
+Viterbi-based filtering and was competitive with PSI-BLAST in
+sensitivity, but still roughly 100 times slower. HMMER3 (2011)
+introduced the MSV/Viterbi/Forward filter pipeline described in <a
+href="4-ch:profile-hmm.html#sec:hmmer3" data-reference-type="ref"
+data-reference="sec:hmmer3">4.6</a>, achieving sensitivity equal to or
+greater than HMMER2 at speeds comparable to BLAST. The key technical
+contributions were the MSV filter, the use of SIMD vectorization
+following Farrar’s striped algorithm, and the wing-folding trick for
+efficient local alignment. Today HMMER3 is the engine behind Pfam,
+InterPro, and the protein annotation pipelines of most genome
+projects.</p>
+<div class="figure*">
+<p><img src="figures/ch04_domain_search.png" alt="image" /></p>
+</div>
+<p>Position-specific scoring matrices predate profile HMMs. Gribskov,
+McLachlan, and Eisenberg introduced sequence profiles in 1987, and
+Henikoff and Henikoff developed the Blocks database of ungapped local
+alignments that was used to train substitution matrices and Dirichlet
+priors. PSI-BLAST <span class="citation"
+data-cites="altschul1997">(Altschul et al. 1997)</span> made iterative
+profile searches widely accessible through the NCBI BLAST web server.
+The relationship between PSSMs and profile HMMs is discussed at length
+in Durbin et al. <span class="citation" data-cites="durbin1998">(Durbin
+et al. 1998)</span>, which also provides the clearest textbook treatment
+of Dirichlet mixture priors for biological sequence analysis. The use of
+Bayesian priors for estimating amino acid frequencies from small samples
+is one of the most successful applications of Bayesian statistics in
+computational biology, and the Dirichlet mixture approach of Sjölander
+et al. (1996) remains the standard in HMMER and related tools.</p>
+<p>Multiple sequence alignment is a field unto itself, with a long and
+contentious history of benchmarks and competitions. The BAliBASE,
+PREFAB, and SABmark benchmarks have driven progress, but all are limited
+by the difficulty of defining “correct” alignment at low sequence
+identity. Thompson et al.’s CLUSTAL W (1994) was the most cited
+bioinformatics paper for many years, and T-Coffee <span class="citation"
+data-cites="notredame2000">(Notredame, Higgins, and Heringa 2000)</span>
+introduced the consistency principle that influenced subsequent methods
+including PROBCONS, MUSCLE, and MAFFT. The current state of the art for
+very large alignments (<span class="math inline">\(&gt;10{,}000\)</span>
+sequences) is represented by CLUSTAL <span
+class="math inline">\(\Omega\)</span> and MAFFT, both of which use
+heuristic guide trees and iterative refinement to scale to the family
+sizes encountered in modern protein databases.</p>
+</section>
+</article>
+</body>
+</html>

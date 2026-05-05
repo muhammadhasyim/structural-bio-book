@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="" />
+  <title>Molecular Docking</title>
+  <link rel="stylesheet" href="tufte.css" />
+  <link rel="stylesheet" href="site.css" />
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<article>
+<section>
+<h1 data-number="9" id="ch:docking">Molecular Docking</h1>
+<p>In 2003, Cyril Dominguez sat in Rolf Boelens’s NMR lab in Utrecht
+with a familiar frustration. He had chemical shift perturbation data for
+the barnase–barstar complex. The NMR experiments told him exactly which
+residues shifted upon binding. He knew which parts of each protein
+touched the other. But no docking program at the time could use this
+information directly. The standard approach was to generate thousands of
+docked orientations by shape complementarity alone, then filter the
+results against experimental data after the fact. This was wasteful: you
+ran an expensive global search, and only at the end did you ask whether
+the answer agreed with what you already knew.<span
+class="sidenote-wrapper"><label for="sn-115" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-115" class="margin-toggle"/><span
+class="sidenote">The barnase–barstar complex (PDB: 1BRS) is a classic
+benchmark for docking. Barnase is a ribonuclease; barstar is its
+intracellular inhibitor. Their binding affinity is among the highest
+known for protein–protein interactions, with <span
+class="math inline">\(K_d \approx 10^{-14}\)</span> M.<br />
+<br />
+</span></span></p>
+<p>Dominguez, Boelens, and Bonvin turned this logic on its head. They
+asked: what if the experimental data drove the docking from the start?
+What if, instead of treating NMR restraints as a post-hoc filter, we
+encoded them directly into the energy function that guides the search?
+The result was HADDOCK <span class="citation"
+data-cites="dominguez2003">(Dominguez, Boelens, and Bonvin 2003)</span>,
+and it changed how the field thinks about incorporating prior knowledge
+into structure prediction.</p>
+<p>But before we can appreciate what HADDOCK does differently, we need
+to understand the docking problem itself and the algorithms that came
+before.</p>
+<h2 data-number="9.1" id="sec:docking-problem">The Docking Problem</h2>
+<p><span class="newthought">Given the three-dimensional structures of
+two proteins</span>, predict the structure of their complex. This is the
+protein–protein docking problem. We assume we have atomic coordinates
+for each partner in isolation, and we want to find how they fit
+together.</p>
+<p>Consider two rigid bodies in three-dimensional space. If we fix
+protein A at the origin, protein B has six degrees of freedom: three
+rotational (specifying its orientation) and three translational
+(specifying its position relative to A). The rotational degrees of
+freedom live in <span class="math inline">\(\SO(3)\)</span>, the group
+of proper rotations. We can parameterize them with three Euler angles
+<span class="math inline">\((\alpha, \beta, \gamma)\)</span> or with a
+unit quaternion. The translational degrees of freedom live in <span
+class="math inline">\(\R^3\)</span>. Together, the search space is the
+Special Euclidean group <span class="math inline">\(\SE(3) = \SO(3)
+\ltimes \R^3\)</span>.<span
+class="sidenote-wrapper"><label for="sn-116" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-116" class="margin-toggle"/><span
+class="sidenote"><span class="math inline">\(\SE(3)\)</span> is the
+group of rigid-body transformations in three dimensions. It has six
+dimensions: three rotational and three translational.<br />
+<br />
+</span></span></p>
+<p>How large is this search space? If we discretize rotations at <span
+class="math inline">\(15^\circ\)</span> steps, we get roughly 70,000
+distinct orientations.<span
+class="sidenote-wrapper"><label for="sn-117" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-117" class="margin-toggle"/><span
+class="sidenote">The number of orientations depends on the angular step
+<span class="math inline">\(\Delta\theta\)</span>. For uniform sampling
+of <span class="math inline">\(\SO(3)\)</span>, the number scales as
+<span class="math inline">\((360/\Delta\theta)^3 / \text{symmetry
+factor}\)</span>. At <span class="math inline">\(15^\circ\)</span>
+steps, this gives approximately <span class="math inline">\(24^3 / 4
+\approx 70{,}000\)</span> for asymmetric objects.<br />
+<br />
+</span></span> For each orientation, if the proteins span roughly
+100 Å and we sample translations on a 1 Å grid, we have <span
+class="math inline">\(\sim 10^6\)</span> translational positions. The
+total number of configurations to evaluate exceeds <span
+class="math inline">\(10^{10}\)</span>. Evaluating a full physics-based
+energy function at each point is computationally intractable. We need
+faster methods.</p>
+<h2 data-number="9.2" id="sec:fft-docking">Rigid-Body Docking via
+FFT</h2>
+<p><span class="newthought">The breakthrough came from signal
+processing.</span> In 1992, Katchalski-Katzir and colleagues realized
+that if we represent proteins on a three-dimensional grid, the
+translational search at fixed orientation becomes a correlation, and
+correlations can be computed efficiently using the Fast Fourier
+Transform <span class="citation"
+data-cites="katchalskikatzir1992">(Katchalski-Katzir et al.
+1992)</span>.</p>
+<p>We begin by placing protein A (the “receptor”) on a cubic grid of
+side <span class="math inline">\(N\)</span>. Each grid point <span
+class="math inline">\((i,j,k)\)</span> receives a value <span
+class="math inline">\(a_{ijk}\)</span> that encodes the protein’s shape:
+<span class="math display">\[\label{eq:grid-receptor}
+a_{ijk} = \begin{cases}
+1 &amp; \text{if $(i,j,k)$ is a surface point of A} \\
+-15 &amp; \text{if $(i,j,k)$ is an interior (core) point of A} \\
+0 &amp; \text{if $(i,j,k)$ is exterior to A}
+\end{cases}\]</span> The large negative value for interior points
+penalizes steric clashes. Surface points reward contact. Exterior points
+contribute nothing.</p>
+<p>We construct a similar grid for protein B (the “ligand”), but with a
+simpler encoding: <span class="math display">\[\label{eq:grid-ligand}
+b_{ijk} = \begin{cases}
+1 &amp; \text{if $(i,j,k)$ is a surface point of B} \\
+1 &amp; \text{if $(i,j,k)$ is an interior point of B} \\
+0 &amp; \text{if $(i,j,k)$ is exterior to B}
+\end{cases}\]</span></p>
+<p>Now define the shape complementarity score for a translation <span
+class="math inline">\((u,v,w)\)</span> as: <span
+class="math display">\[\label{eq:correlation}
+C(u,v,w) = \sum_{i,j,k} a_{ijk} \cdot b_{i-u,\, j-v,\, k-w}\]</span> A
+high value of <span class="math inline">\(C\)</span> means many
+surface–surface contacts (each contributing <span
+class="math inline">\(+1\)</span>) and few clashes. A clash between B’s
+interior and A’s core gives <span class="math inline">\((-15)(1) =
+-15\)</span>, which strongly penalizes overlap.</p>
+<p><a href="#eq:correlation" data-reference-type="ref"
+data-reference="eq:correlation">[eq:correlation]</a> is a discrete
+cross-correlation. The direct computation requires <span
+class="math inline">\(O(N^6)\)</span> operations: for each of the <span
+class="math inline">\(N^3\)</span> translations, we sum over all <span
+class="math inline">\(N^3\)</span> grid points. But we can invoke the
+convolution theorem.<span
+class="sidenote-wrapper"><label for="sn-118" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-118" class="margin-toggle"/><span
+class="sidenote">The convolution theorem states that the Fourier
+transform of a correlation is the pointwise product of the Fourier
+transform of one function with the complex conjugate of the Fourier
+transform of the other: <span class="math inline">\(\mathcal{F}[C] =
+\hat{A}^* \cdot \hat{B}\)</span>.<br />
+<br />
+</span></span> Let <span class="math inline">\(\hat{A}\)</span> and
+<span class="math inline">\(\hat{B}\)</span> denote the
+three-dimensional discrete Fourier transforms of the receptor and ligand
+grids. Then: <span class="math display">\[\label{eq:fft-correlation}
+C = \mathcal{F}^{-1}\!\left[\hat{A}^* \cdot \hat{B}\right]\]</span>
+Computing <span class="math inline">\(\hat{A}\)</span> and <span
+class="math inline">\(\hat{B}\)</span> each takes <span
+class="math inline">\(O(N^3 \log N)\)</span> operations via FFT. The
+pointwise multiplication takes <span
+class="math inline">\(O(N^3)\)</span>. The inverse FFT takes another
+<span class="math inline">\(O(N^3 \log N)\)</span>. The total cost for
+one orientation is <span class="math inline">\(O(N^3 \log N)\)</span>,
+replacing the naive <span class="math inline">\(O(N^6)\)</span>.</p>
+<p>The full algorithm proceeds as follows. For each sampled rotation
+<span class="math inline">\((\alpha_m, \beta_m, \gamma_m)\)</span> of
+protein B:</p>
+<ol>
+<li><p>Rotate B’s coordinates.</p></li>
+<li><p>Discretize the rotated B onto the grid to obtain <span
+class="math inline">\(\{b_{ijk}\}\)</span>.</p></li>
+<li><p>Compute <span class="math inline">\(C =
+\mathcal{F}^{-1}[\hat{A}^* \cdot \hat{B}]\)</span>.</p></li>
+<li><p>Record the top-scoring translations.</p></li>
+</ol>
+<p>After iterating over all <span class="math inline">\(\sim
+70{,}000\)</span> rotations, we rank all recorded solutions by their
+correlation score and retain the top candidates.</p>
+<p><span class="newthought">How fine must the grid be?</span> Typical
+implementations use grid spacings of 1.0–1.5 Å and grid dimensions of
+<span class="math inline">\(N = 128\)</span> or <span
+class="math inline">\(N = 256\)</span>. A single FFT correlation on a
+<span class="math inline">\(128^3\)</span> grid takes a fraction of a
+second on modern hardware. Multiplied by 70,000 rotations, the full
+rigid-body search completes in hours on a single processor, or minutes
+with GPU acceleration.</p>
+<p>Programs that implement this approach include FTDock, ZDOCK, and
+ClusPro. They differ in how they augment the shape complementarity grid
+with electrostatic and desolvation terms (see <a
+href="9-ch:docking.html#sec:scoring-functions" data-reference-type="ref"
+data-reference="sec:scoring-functions">9.3</a>), but the computational
+engine is the same.</p>
+<h2 data-number="9.3" id="sec:scoring-functions">Scoring Functions</h2>
+<p><span class="newthought">Shape complementarity finds geometrically
+feasible docking poses</span>, but it cannot distinguish the native
+complex from the many near-misses. We need scoring functions that
+capture the physics and chemistry of protein–protein recognition. Three
+philosophies dominate.</p>
+<h3 data-number="9.3.1" id="physics-based-scoring">Physics-Based
+Scoring</h3>
+<p>A physics-based scoring function evaluates the interaction energy
+between the two proteins using terms derived from molecular mechanics
+force fields. The total score decomposes as: <span
+class="math display">\[\label{eq:physics-score}
+E_\text{total} = E_\text{vdW} + E_\text{elec} +
+E_\text{desolv}\]</span></p>
+<p>The van der Waals term uses the Lennard-Jones 12-6 potential. For
+atom <span class="math inline">\(i\)</span> on protein A and atom <span
+class="math inline">\(j\)</span> on protein B separated by distance
+<span class="math inline">\(r_{ij}\)</span>: <span
+class="math display">\[\label{eq:lj-docking-score}
+V_\text{LJ}(r_{ij}) =
+4\varepsilon_{ij}\left[\left(\frac{\sigma_{ij}}{r_{ij}}\right)^{12} -
+\left(\frac{\sigma_{ij}}{r_{ij}}\right)^{6}\right]\]</span> Here <span
+class="math inline">\(\varepsilon_{ij}\)</span> is the well depth and
+<span class="math inline">\(\sigma_{ij}\)</span> is the distance at
+which the potential crosses zero. The <span
+class="math inline">\(r^{-12}\)</span> term models Pauli repulsion at
+short range. The <span class="math inline">\(r^{-6}\)</span> term models
+London dispersion (attractive van der Waals) forces. The total van der
+Waals energy sums over all inter-protein atom pairs:<span
+class="sidenote-wrapper"><label for="sn-119" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-119" class="margin-toggle"/><span
+class="sidenote">In practice, we truncate the sum at a cutoff distance
+(typically 8–12 Å) because the <span
+class="math inline">\(r^{-6}\)</span> potential decays rapidly.<br />
+<br />
+</span></span> <span class="math display">\[\label{eq:evdw}
+E_\text{vdW} = \sum_{i \in A}\sum_{j \in B}
+V_\text{LJ}(r_{ij})\]</span></p>
+<p>The electrostatic term uses a Coulomb potential with a
+distance-dependent dielectric: <span
+class="math display">\[\label{eq:elec}
+E_\text{elec} = \sum_{i \in A}\sum_{j \in B} \frac{q_i
+q_j}{4\pi\varepsilon_0\,\varepsilon(r_{ij})\,r_{ij}}\]</span> where
+<span class="math inline">\(q_i\)</span> and <span
+class="math inline">\(q_j\)</span> are partial atomic charges. The
+dielectric function <span class="math inline">\(\varepsilon(r)\)</span>
+accounts crudely for solvent screening. A common choice is <span
+class="math inline">\(\varepsilon(r) = 4r\)</span>, which attenuates
+long-range electrostatics and implicitly mimics the effect of
+water.<span
+class="sidenote-wrapper"><label for="sn-120" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-120" class="margin-toggle"/><span
+class="sidenote">A distance-dependent dielectric is a gross
+simplification. More rigorous treatments solve the Poisson–Boltzmann
+equation or use Generalized Born models. But for fast scoring of
+thousands of docking poses, the linear dielectric is a useful
+approximation.<br />
+<br />
+</span></span></p>
+<p>The desolvation term estimates the free energy cost of burying polar
+and apolar surface upon complex formation. Atomic solvation parameters
+(ASP), calibrated against experimental transfer free energies, assign an
+energy per unit of buried surface area for each atom type.</p>
+<h3 data-number="9.3.2"
+id="knowledge-based-scoring-statistical-potentials">Knowledge-Based
+Scoring (Statistical Potentials)</h3>
+<p><span class="newthought">Instead of computing energies from first
+principles</span>, we can extract effective interaction potentials from
+the statistics of known protein–protein complexes. The idea, borrowed
+from protein structure prediction, relies on Boltzmann inversion.</p>
+<p>Let <span class="math inline">\(g(r)\)</span> be the radial
+distribution function for a pair of atom types at distance <span
+class="math inline">\(r\)</span>, defined as: <span
+class="math display">\[\label{eq:rdf}
+g(r) = \frac{\rho_\text{obs}(r)}{\rho_\text{ref}(r)}\]</span> where
+<span class="math inline">\(\rho_\text{obs}(r)\)</span> is the observed
+frequency of atom pairs at distance <span
+class="math inline">\(r\)</span> in a database of experimental complex
+structures, and <span class="math inline">\(\rho_\text{ref}(r)\)</span>
+is the expected frequency under a reference state where no specific
+interactions exist.</p>
+<p>The knowledge-based potential of mean force is: <span
+class="math display">\[\label{eq:kb-potential}
+w(r) = -k_BT \ln g(r) = -k_BT \ln
+\frac{\rho_\text{obs}(r)}{\rho_\text{ref}(r)}\]</span> Distances where
+atom pairs are observed more frequently than expected yield attractive
+(negative) potentials. Distances where they are depleted yield repulsive
+(positive) potentials.</p>
+<p>The critical choice is the reference state. One option is to use the
+average density of atoms in a sphere of radius <span
+class="math inline">\(r\)</span> around any given atom (the “uniform
+density” reference). Another is to use the distribution seen at protein
+surfaces regardless of complex formation (the “surface” reference). The
+choice of reference state significantly affects the resulting
+potentials.<span
+class="sidenote-wrapper"><label for="sn-121" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-121" class="margin-toggle"/><span
+class="sidenote">The reference state problem is analogous to the choice
+of null model in sequence alignment scoring. Just as PAM and BLOSUM
+matrices differ in their reference, knowledge-based potentials differ
+depending on how we define “no interaction.”<br />
+<br />
+</span></span></p>
+<p>Programs such as DFIRE, SOAP, and PIE use knowledge-based scoring.
+Their main advantage is speed (the potential is pre-tabulated as a
+lookup table) and their empirical calibration against real interfaces.
+Their main weakness is that they cannot extrapolate beyond the training
+data.</p>
+<h3 data-number="9.3.3"
+id="empirical-and-machine-learning-scoring">Empirical and
+Machine-Learning Scoring</h3>
+<p>A third approach trains a scoring function on labeled data. We have a
+set of docked poses with known quality (measured, for example, by
+interface RMSD to the crystal structure). We extract descriptors from
+each pose: number of contacts, buried surface area, shape
+complementarity index, electrostatic energy, and so on. We then fit a
+model that predicts a quality score from these descriptors.</p>
+<p>In the simplest case, this is a linear combination: <span
+class="math display">\[\label{eq:empirical-score}
+S = \sum_{k=1}^{K} w_k \cdot f_k\]</span> where <span
+class="math inline">\(f_k\)</span> are the descriptors and <span
+class="math inline">\(w_k\)</span> are learned weights. More recent
+approaches use random forests, gradient-boosted trees, or graph neural
+networks to capture nonlinear relationships between descriptors and
+binding quality. The CAPRI experiment, which blindly evaluates docking
+predictions, has shown that the best rescoring methods increasingly rely
+on machine learning.</p>
+<h2 data-number="9.4" id="sec:hotspots">Hotspot Residues and the
+Interface Energetics</h2>
+<p><span class="newthought">Not all interface residues contribute
+equally to binding.</span> This was demonstrated decisively in 1995,
+when Tim Clackson and James Wells performed systematic alanine scanning
+mutagenesis on the human growth hormone (hGH) bound to its
+receptor <span class="citation" data-cites="clackson1995">(Clackson and
+Wells 1995)</span>.</p>
+<p>The hGH–receptor interface buries roughly 1,300 Å<span
+class="math inline">\(^2\)</span> of surface area on each side. About 30
+residues from each protein make intermolecular contacts. Clackson and
+Wells mutated each interface residue to alanine, one at a time, and
+measured the effect on binding free energy <span
+class="math inline">\(\Delta\Delta G\)</span>. The result was striking:
+most mutations had negligible effect. Only a small subset of residues
+(roughly 10% of the interface) contributed more than 2 kcal/mol each.
+These “hotspot” residues accounted for the majority of the binding
+energy.</p>
+<p>Two residues on the hormone side, Trp-104 and Trp-169, together
+contributed over 6 kcal/mol. The hotspot was not distributed evenly
+across the interface. It was concentrated in a compact cluster at the
+center.<span
+class="sidenote-wrapper"><label for="sn-122" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-122" class="margin-toggle"/><span
+class="sidenote">The concentration of binding energy at a few residues
+has practical implications. It means that a small molecule mimicking the
+hotspot geometry might recapitulate the binding of a large protein
+surface. This observation underlies the field of protein–protein
+interaction inhibitors.<br />
+<br />
+</span></span></p>
+<p><span class="newthought">The “O-ring” hypothesis</span> emerged from
+these data. The hotspot residues sit at the center of the interface,
+surrounded by a ring of energetically less important residues. Bogan and
+Thorn proposed that this ring serves to exclude bulk solvent from the
+hotspot, creating a low-dielectric environment that amplifies
+electrostatic and van der Waals contacts at the center. If water could
+penetrate to the hotspot, the contacts there would be screened and
+weakened.</p>
+<p>Subsequent large-scale analyses confirmed that hotspot residues are
+enriched in tryptophan, arginine, and tyrosine. These amino acids
+combine large hydrophobic surface areas with hydrogen-bonding capacity.
+They can simultaneously desolvate (driving the hydrophobic effect) and
+make specific polar contacts (conferring specificity).</p>
+<p>The concept of hotspot residues matters for docking because it tells
+us that interfaces are not featureless hydrophobic patches. They have
+structure, hierarchy, and unequal energetic contributions. A good
+scoring function must capture this unevenness. And if we know where the
+hotspots are (from mutagenesis, NMR, or bioinformatic prediction), we
+can use that information to guide the search.</p>
+<figure id="fig:interface-mapping">
+<img src="figures/ch09_interface_mapping.png" />
+<figcaption>Protein-protein interface mapping with active and passive
+residues.</figcaption>
+</figure>
+<h2 data-number="9.5" id="sec:haddock">Information-Driven Docking:
+HADDOCK</h2>
+<p><span class="newthought">We return now to the problem that motivated
+this chapter.</span> Dominguez, Boelens, and Bonvin had NMR chemical
+shift perturbation data telling them which residues of barnase and
+barstar participate in the interface. They wanted a docking method that
+could use this information not as a post-hoc filter, but as a driving
+force during the search <span class="citation"
+data-cites="dominguez2003 vanzundert2016">(Dominguez, Boelens, and
+Bonvin 2003; Zundert et al. 2016)</span>.</p>
+<p>Their insight was simple and powerful. Instead of sampling all
+orientations uniformly (as FFT-based methods do) and hoping the correct
+one scores well, they biased the sampling toward orientations consistent
+with the experimental data. They did this by adding restraint terms to
+the energy function, penalizing any configuration where the
+experimentally identified residues are not in contact.</p>
+<h3 data-number="9.5.1"
+id="ambiguous-interaction-restraints-airs">Ambiguous Interaction
+Restraints (AIRs)</h3>
+<p>The central concept in HADDOCK is the Ambiguous Interaction
+Restraint. We define two categories of residues for each protein:</p>
+<ul>
+<li><p><strong>Active residues</strong>: residues experimentally
+identified as being at the interface (e.g., those showing large chemical
+shift perturbations) that are also solvent-accessible in the free
+form.</p></li>
+<li><p><strong>Passive residues</strong>: surface-exposed residues that
+neighbor the active residues. These might participate in the interface
+but have not been directly identified.</p></li>
+</ul>
+<div class="marginfigure">
+<p><img src="figures/ch09_active_residues.png" alt="image" /></p>
+<blockquote>
+<p>Active residues (orange) defined for AIR restraints.</p>
+</blockquote>
+</div>
+<p>The restraint is called “ambiguous” because we do not specify which
+active residue on protein A contacts which residue on protein B. We only
+require that each active residue on A is close to <em>some</em> active
+or passive residue on B, without specifying which one.<span
+class="sidenote-wrapper"><label for="sn-123" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-123" class="margin-toggle"/><span
+class="sidenote">Ambiguity is important because NMR chemical shift
+perturbation data identifies interface residues but does not directly
+reveal their specific inter-protein contacts. Requiring specific
+pairings would over-constrain the problem.<br />
+<br />
+</span></span></p>
+<p>Formally, for each active residue <span
+class="math inline">\(i\)</span> on protein A, we define an effective
+distance to protein B: <span class="math display">\[\label{eq:dair}
+d_i^\text{AIR} = \left(\frac{1}{N_B}\sum_{j \in B_\text{active} \cup
+B_\text{passive}} \frac{1}{d_{ij}^6}\right)^{-1/6}\]</span> where <span
+class="math inline">\(d_{ij}\)</span> is the distance between any atom
+of residue <span class="math inline">\(i\)</span> and any atom of
+residue <span class="math inline">\(j\)</span>, and <span
+class="math inline">\(N_B\)</span> is the number of active plus passive
+residues on protein B. The <span class="math inline">\(r^{-6}\)</span>
+averaging ensures that the closest contact dominates: if even one
+residue <span class="math inline">\(j\)</span> on B is close to residue
+<span class="math inline">\(i\)</span> on A, the effective distance is
+small.<span
+class="sidenote-wrapper"><label for="sn-124" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-124" class="margin-toggle"/><span
+class="sidenote">The <span class="math inline">\(r^{-6}\)</span>
+averaging is borrowed from NOE distance restraints in NMR structure
+determination, where the same functional form arises from the <span
+class="math inline">\(r^{-6}\)</span> dependence of the nuclear
+Overhauser effect.<br />
+<br />
+</span></span></p>
+<div class="marginfigure">
+<p><img src="figures/ch09_distance_restraints.png" alt="image" /></p>
+<blockquote>
+<p>Distance restraints between protein partners in HADDOCK.</p>
+</blockquote>
+</div>
+<p>The AIR energy for all active residues on both proteins is: <span
+class="math display">\[\label{eq:eair}
+E_\text{AIR} = k_\text{AIR}\left[\frac{1}{N_A}\sum_{i \in
+A_\text{active}} \left(d_i^\text{AIR}\right)^2 + \frac{1}{N_B}\sum_{j
+\in B_\text{active}} \left(d_j^\text{AIR}\right)^2\right]\]</span> where
+<span class="math inline">\(k_\text{AIR}\)</span> is a force constant
+and the term is applied as a flat-bottom potential: it is zero when the
+effective distance is below a threshold (typically 2 Å for the distance
+between closest heavy atoms) and quadratic above it.</p>
+<h3 data-number="9.5.2" id="the-three-stage-protocol">The Three-Stage
+Protocol</h3>
+<p>HADDOCK does not use FFT. Instead, it employs a multi-stage protocol
+that progressively introduces flexibility.</p>
+<div class="figure*">
+<p><img src="figures/ch09_haddock3_protocol.png" alt="image" /></p>
+</div>
+<h5 data-number="9.5.2.0.1"
+id="stage-it0-rigid-body-energy-minimization.">Stage it0: Rigid-body
+energy minimization.</h5>
+<p>In the first stage, both proteins are treated as rigid bodies. A
+large number of starting orientations are generated by randomizing the
+positions of the two proteins, then performing rigid-body energy
+minimization with the AIR restraints active. The energy function at this
+stage is: <span class="math display">\[\label{eq:it0-score}
+E_\text{it0} = 0.01 \cdot E_\text{vdW} + 1.0 \cdot E_\text{elec} + 1.0
+\cdot E_\text{AIR} + 0.01 \cdot E_\text{desolv}\]</span> The small
+weight on <span class="math inline">\(E_\text{vdW}\)</span> prevents
+premature trapping in local minima caused by steric clashes. The
+electrostatic and AIR terms dominate, pulling the proteins together in
+orientations consistent with the data. Typically 1,000 to 10,000
+rigid-body models are generated, and the top 200 by <span
+class="math inline">\(E_\text{it0}\)</span> are retained.<span
+class="sidenote-wrapper"><label for="sn-125" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-125" class="margin-toggle"/><span
+class="sidenote">The number of starting structures and the selection
+cutoff are adjustable parameters. For well-defined restraints (many
+active residues identified with high confidence), fewer starting
+structures suffice. For ambiguous data, more thorough sampling is
+needed.<br />
+<br />
+</span></span></p>
+<h5 data-number="9.5.2.0.2"
+id="stage-it1-semi-flexible-simulated-annealing.">Stage it1:
+Semi-flexible simulated annealing.</h5>
+<p>The top 200 models from it0 enter a semi-flexible refinement stage.
+Simulated annealing molecular dynamics is performed in torsion angle
+space. The protocol has three phases:</p>
+<p>First, a high-temperature phase at 2,000 K for 500 MD steps. During
+this phase, only interface side chains are flexible; all backbone atoms
+remain fixed. The high temperature allows side chains to overcome
+barriers and find favorable rotameric states.</p>
+<p>Second, a slow-cooling phase from 2,000 K to 50 K over 1,000 MD
+steps. In this phase, both side chains and backbone atoms at the
+interface become flexible. This allows local backbone rearrangements to
+accommodate the docked orientation.</p>
+<p>Third, a final energy minimization of the full system (200 steps of
+conjugate gradient minimization).</p>
+<p>The flexibility is limited to the interface region (residues within
+5 Å of the partner). Residues far from the interface remain rigid
+throughout. This approach captures induced-fit effects without the
+expense of full flexible docking.</p>
+<h5 data-number="9.5.2.0.3"
+id="stage-itw-explicit-solvent-refinement.">Stage itw: Explicit solvent
+refinement.</h5>
+<p>The final stage places each complex in a shell of explicit water
+molecules (typically 8 Å thick) and performs a short molecular dynamics
+simulation (100–200 steps). This allows the interface to relax in the
+presence of solvent and captures water-mediated contacts that stabilize
+many protein–protein interfaces.</p>
+<h3 data-number="9.5.3" id="final-scoring">Final Scoring</h3>
+<p>After the three stages, the refined models are scored with a
+different weighting: <span
+class="math display">\[\label{eq:haddock-score}
+E_\text{HADDOCK} = 1.0 \cdot E_\text{vdW} + 0.2 \cdot E_\text{elec} +
+1.0 \cdot E_\text{desolv} + 0.1 \cdot E_\text{AIR}\]</span> The AIR term
+is down-weighted at this stage because its purpose was to guide the
+search, not to dominate the final ranking. Now that the structures have
+been refined, the physical energy terms (van der Waals and desolvation)
+carry more weight.<span
+class="sidenote-wrapper"><label for="sn-126" class="margin-toggle sidenote-number"></label><input type="checkbox" id="sn-126" class="margin-toggle"/><span
+class="sidenote">The different weightings between it0 and the final
+scoring reflect a deliberate strategy: use experimental data
+aggressively during sampling, then rely on physics for discrimination
+among converged solutions.<br />
+<br />
+</span></span></p>
+<h3 data-number="9.5.4" id="clustering-and-model-selection">Clustering
+and Model Selection</h3>
+<p>The 200 refined structures are not independent. Many converge to
+similar solutions, differing only in minor side-chain conformations.
+HADDOCK groups the solutions by pairwise structural similarity, relying
+on two metrics.</p>
+<p>Interface RMSD (i-RMSD) measures the root-mean-square deviation of
+interface backbone atoms after optimal superposition of the interface
+region.</p>
+<p>The Fraction of Common Contacts (FCC) measures the fraction of
+inter-protein residue–residue contacts shared between two models. Two
+residues are in contact if any pair of their atoms is within 5 Å. Given
+two models with contact sets <span class="math inline">\(S_1\)</span>
+and <span class="math inline">\(S_2\)</span>: <span
+class="math display">\[\label{eq:fcc}
+\text{FCC}(1,2) = \frac{|S_1 \cap S_2|}{\min(|S_1|, |S_2|)}\]</span></p>
+<p>Models are clustered using a cutoff (typically FCC <span
+class="math inline">\(&gt; 0.6\)</span> or i-RMSD <span
+class="math inline">\(&lt; 4\)</span> Å). The final output reports
+cluster averages: the mean HADDOCK score of the top four models in each
+cluster. The best cluster, not the best single model, is the primary
+prediction.</p>
+<div class="figure*">
+<p><img src="figures/ch09_cluster_scoring.png" alt="image" /></p>
+</div>
+<h3 data-number="9.5.5" id="sources-of-information">Sources of
+Information</h3>
+<p>The power of HADDOCK lies in its flexibility regarding input data.
+Any experiment or prediction that identifies interface residues can be
+translated into AIRs: NMR chemical shift perturbations,
+hydrogen-deuterium exchange mass spectrometry, cross-linking mass
+spectrometry, mutagenesis data, evolutionary conservation (interface
+residues tend to be conserved in obligate complexes), or bioinformatic
+interface predictions.</p>
+<p>This information-driven philosophy broke from the “blind” approach of
+pure shape-based docking. In practice, we rarely dock two proteins with
+zero prior knowledge. We almost always know something about the
+interaction, and a good docking framework should let us incorporate that
+knowledge.</p>
+<h2 data-number="9.6" id="sec:template-docking">Template-Based
+Docking</h2>
+<p><span class="newthought">A conceptually different approach</span> to
+the docking problem asks: have we seen a similar interface before?
+Protein–protein interfaces are not infinitely diverse. Many unrelated
+complexes share similar binding geometries. Subtilisin binds multiple
+structurally different inhibitors using a conserved interface geometry.
+Serine proteases recognize serpins through recurring structural
+motifs.</p>
+<p>The PRISM algorithm exploits this observation. Tuncbag, Keskin, and
+Gursoy proposed that known complex interfaces can serve as structural
+templates. The procedure works as follows.</p>
+<p>First, build a library of template interfaces extracted from
+experimentally determined complexes. Each template consists of two
+interacting surface patches with their relative geometry.</p>
+<p>Second, for each query protein pair, identify surface patches on both
+proteins and structurally align them to the template library. If a
+surface patch on protein A matches one side of a template, and a surface
+patch on protein B matches the other side, we can place A and B in the
+relative orientation dictated by the template.</p>
+<p>Third, evaluate the resulting model with a physics-based energy
+function to filter sterically clashed or energetically unfavorable
+predictions.</p>
+<p>Template-based docking has one great advantage: because it draws on
+known interfaces, the predicted complexes tend to have realistic
+interface geometries. It does not suffer from the problem of generating
+thousands of near-native solutions that lack the fine details of real
+interfaces. Its main limitation is coverage. If no template in the
+library resembles the true interface, the method cannot generate a
+correct prediction. As structural databases grow, this limitation
+diminishes.</p>
+<h2 data-number="9.7" id="sec:docking-quality">Assessing Docking
+Quality</h2>
+<p><span class="newthought">How do we know if a docking prediction is
+correct?</span> The Critical Assessment of PRedicted Interactions
+(CAPRI) experiment provides standardized quality metrics based on three
+quantities.</p>
+<p>Ligand RMSD (L-RMSD) is computed after superimposing the receptor in
+the predicted and experimental complexes, then measuring the RMSD of the
+ligand backbone atoms.</p>
+<p>Interface RMSD (i-RMSD) measures the RMSD of interface backbone atoms
+(those within 10 Å of the partner) after superimposing only the
+interface region.</p>
+<p>The fraction of native contacts (<span
+class="math inline">\(f_\text{nat}\)</span>) is the fraction of
+residue–residue contacts in the experimental structure that are also
+present in the prediction.</p>
+<p>CAPRI defines quality categories based on these metrics: <span
+class="math display">\[\label{eq:capri-quality}
+\begin{aligned}
+\text{High quality:}&amp; \quad f_\text{nat} \geq 0.5 \text{ and }
+(\text{L-RMSD} \leq 1\text{\,\AA} \text{ or } \text{i-RMSD} \leq
+1\text{\,\AA}) \\
+\text{Medium quality:}&amp; \quad f_\text{nat} \geq 0.3 \text{ and }
+(\text{L-RMSD} \leq 5\text{\,\AA} \text{ or } \text{i-RMSD} \leq
+2\text{\,\AA}) \\
+\text{Acceptable:}&amp; \quad f_\text{nat} \geq 0.1 \text{ and }
+(\text{L-RMSD} \leq 10\text{\,\AA} \text{ or } \text{i-RMSD} \leq
+4\text{\,\AA})
+\end{aligned}\]</span></p>
+<p>These categories capture the intuition that a useful docking
+prediction need not be perfect. An acceptable prediction correctly
+identifies the binding interface even if the precise orientation is
+slightly off. A high-quality prediction is essentially indistinguishable
+from the experimental structure for most downstream applications.</p>
+<h2 data-number="9.8" id="sec:flexible-docking">The Flexible Docking
+Problem</h2>
+<p><span class="newthought">We have so far treated docking as a
+rigid-body problem</span>, but proteins change shape upon binding.
+Induced fit, conformational selection, and allosteric rearrangements all
+mean that the bound structure differs from the unbound. The magnitude of
+conformational change varies widely. Some complexes form with negligible
+rearrangement (antibody–antigen complexes with rigid epitopes). Others
+involve large domain motions (kinases closing around substrates).</p>
+<p>The challenge of flexibility is computational. If both proteins have
+<span class="math inline">\(M\)</span> flexible degrees of freedom each,
+the search space expands from 6 dimensions to <span
+class="math inline">\(6 + 2M\)</span> dimensions. Even allowing just
+side-chain flexibility at the interface (say, 20 residues with 2 torsion
+angles each) adds 40 degrees of freedom. Full backbone flexibility is
+worse.</p>
+<p>Three strategies dominate.</p>
+<p>Soft docking reduces the Lennard-Jones repulsion (by using a softer
+potential or by reducing <span
+class="math inline">\(\varepsilon\)</span>) so that slightly overlapping
+conformations are tolerated during the search. After identifying
+promising orientations, we refine with full potentials and allow local
+flexibility. HADDOCK’s three-stage protocol is an instance of this
+philosophy: the rigid-body stage uses a permissive energy function, and
+only the later refinement stages enforce strict steric
+complementarity.</p>
+<p>Ensemble docking takes a different tack. Instead of docking a single
+structure, we dock an ensemble of conformations for each protein, drawn
+from NMR ensembles, MD simulations, or normal-mode perturbations. Each
+member captures a different conformation that the protein might adopt.
+The computational cost multiplies by the ensemble size, but the approach
+can capture large conformational changes without explicitly sampling
+them during docking.</p>
+<p>On-the-fly flexibility rebuilds side chains or even backbone segments
+during the docking search itself. RosettaDock couples a low-resolution
+rigid-body search with Monte Carlo side-chain repacking and backbone
+minimization, allowing the protein to adjust its conformation in
+response to the docking partner at each step.</p>
+<h2 data-number="9.9" id="sec:integrative">From Pairwise Docking to
+Integrative Modeling</h2>
+<p><span class="newthought">Real biological assemblies involve more than
+two proteins.</span> The ribosome has over 50 protein subunits. The
+nuclear pore complex contains roughly 30 distinct proteins in multiple
+copies, totaling over 500 chains. Predicting the structures of such
+assemblies requires going beyond pairwise docking.</p>
+<p>Integrative modeling, as implemented in programs like IMP
+(Integrative Modeling Platform), combines diverse experimental data with
+computational sampling. Cryo-EM maps provide overall shape at
+intermediate resolution. Cross-linking mass spectrometry constrains
+distances between specific residue pairs. Small-angle X-ray scattering
+provides information about overall dimensions. Co-evolutionary analysis
+predicts inter-protein contacts.</p>
+<p>The integrative approach does not privilege any single data type.
+Instead, it formulates the structure determination problem as a Bayesian
+inference: find the structure (or ensemble of structures) that best
+satisfies all available data, weighted by each dataset’s reliability.
+Information-driven docking, as introduced by HADDOCK, was an early
+instance of this philosophy applied to binary complexes. Integrative
+modeling extends it to arbitrarily large assemblies.</p>
+<h2 data-number="9.10" id="sec:docking-notes">Chapter Notes</h2>
+<p>The FFT approach to rigid-body docking was introduced by
+Katchalski-Katzir et al. in 1992 <span class="citation"
+data-cites="katchalskikatzir1992">(Katchalski-Katzir et al.
+1992)</span>. The paper is a model of clarity: the key insight
+(correlation equals convolution, convolution is cheap via FFT) is
+explained in two pages. Many subsequent programs built on this
+foundation. ZDOCK (Chen, Li, and Weng, 2003) added electrostatics and
+desolvation to the grid. ClusPro (Kozakov et al., 2017) automated the
+entire pipeline including clustering and energy minimization. PIPER
+(Kozakov et al., 2006) extended the FFT approach to pairwise
+potentials.</p>
+<p>HADDOCK was published in 2003 <span class="citation"
+data-cites="dominguez2003">(Dominguez, Boelens, and Bonvin 2003)</span>
+and has been updated continuously since. HADDOCK 2.2 <span
+class="citation" data-cites="vanzundert2016">(Zundert et al.
+2016)</span> introduced a web server that made information-driven
+docking accessible to non-experts. HADDOCK 3.0, released in 2024,
+adopted a modular workflow engine that allows users to customize the
+docking protocol. The HADDOCK server has been used in over 20,000
+published studies.</p>
+<p>The alanine scanning work by Clackson and Wells <span
+class="citation" data-cites="clackson1995">(Clackson and Wells
+1995)</span> remains one of the most cited papers in protein interaction
+energetics. The ASEdb (Alanine Scanning Energetics database) and later
+the SKEMPI database compiled thousands of such measurements, enabling
+the training of computational hotspot predictors. The Robetta alanine
+scanning server and FoldX provide fast computational approximations of
+<span class="math inline">\(\Delta\Delta G\)</span> upon mutation.</p>
+<p>Knowledge-based scoring functions trace their intellectual lineage to
+Sippl’s (1990) work on statistical potentials for single proteins. Their
+application to protein–protein scoring was developed independently by
+several groups in the early 2000s. The DFIRE potential (Zhou and Zhou,
+2002) and SOAP (Dong et al., 2013) are widely used.</p>
+<p>The CAPRI experiment (Critical Assessment of PRedicted Interactions)
+has run since 2001, providing blind benchmarks for the docking
+community. CAPRI results consistently show that methods combining
+experimental data with computational docking outperform purely
+computational approaches. This observation validates the
+information-driven philosophy that HADDOCK pioneered.</p>
+<p>Template-based docking (PRISM) was developed by the Gursoy and Keskin
+group at Koc University. Their insight that interfaces are reusable
+structural motifs connects protein docking to the broader theme of
+structural modularity in biology. Interface databases such as PIFACE and
+SCOPPI catalog recurring interface architectures.</p>
+<p>The convergence of deep learning with docking is reshaping the field.
+AlphaFold-Multimer <span class="citation" data-cites="evans2022">(Evans
+et al. 2022)</span> directly predicts complex structures without an
+explicit docking step, by co-folding multiple chains. EquiDock and
+DiffDock use SE(3)-equivariant neural networks and diffusion models,
+respectively, to generate docked poses. Whether these learned methods
+will fully replace physics-based and information-driven docking remains
+an open question. Their accuracy on well-represented complex types is
+impressive, but their behavior on unusual interfaces or in the presence
+of sparse experimental data is less established. The information-driven
+philosophy, which treats experimental evidence as a first-class citizen
+in the modeling process, will likely remain relevant regardless of the
+sampling engine underneath.</p>
+</section>
+</article>
+</body>
+</html>

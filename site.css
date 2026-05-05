@@ -1,0 +1,230 @@
+/* Structural Bioinformatics web book: Tufte CSS extensions */
+
+/*
+ * Tufte CSS narrows body text with `section > p { width: 55%; }`. Pandoc must wrap
+ * the page in <article><section>…</section></article> (see template-chunked.html).
+ */
+
+/* Reinforce Tufte column width (some engines differ on cascade order). */
+article > section > p,
+article > section > footer,
+article > section > table {
+  width: 55%;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+article > section > dl,
+article > section > ol,
+article > section > ul {
+  width: 50%;
+  padding-left: 5%;
+  -webkit-padding-start: 5%;
+  box-sizing: border-box;
+}
+
+/* Headings were full body width; align with the text block + leave room for margin notes. */
+article > section > h1,
+article > section > h2,
+article > section > h3 {
+  max-width: 55%;
+  box-sizing: border-box;
+}
+
+/* End-of-document footnotes live in a nested <section>; let them use readable width. */
+section.footnotes.footnotes-end-of-document > ol {
+  width: 100%;
+  max-width: 100%;
+  padding-inline-start: 1.5rem;
+  box-sizing: border-box;
+}
+
+/*
+ * Tufte's default figcaption { float: right; max-width: 40% } is for a different DOM;
+ * it pulls captions into the margin and breaks full-width figures. Reset for our HTML.
+ */
+article > section figure figcaption {
+  float: none;
+  clear: both;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  text-align: left;
+  font-style: italic;
+  line-height: 1.45;
+  box-sizing: border-box;
+}
+
+article > section figure.fullwidth figcaption {
+  margin-right: 0;
+  max-width: 100%;
+  /* Slight inset so long captions align visually with the figure block */
+  padding-right: clamp(0rem, 2vw, 1rem);
+}
+
+/*
+ * Pandoc emits div.marginfigure. Tufte's default uses margin-right: -60% and width: 50%,
+ * which are relative to the *containing block*. Here the block is the full-width section,
+ * so -60% shoves figures into the void / off-screen. Keep figures in the right ~45% band
+ * with fluid width (% of section + vw cap + rem max), not fixed px layout.
+ */
+article > section > div.marginfigure {
+  float: right;
+  clear: right;
+  box-sizing: border-box;
+  display: flow-root;
+  /* top | right | bottom | left — left margin = gutter between text column and figure */
+  margin: 0.35rem 0 1.5rem clamp(0.75rem, 2.5vw, 2rem);
+  /* Fluid margin column: % of section, capped by viewport and by rem (font-relative). */
+  width: min(30%, min(18rem, 28vw));
+  font-size: 1.05rem;
+  line-height: 1.35;
+  position: relative;
+}
+
+/* Keep caption text (if present) inside the margin box; never Tufte-float it away. */
+article > section > div.marginfigure figcaption {
+  float: none;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.45rem 0 0;
+  font-size: 0.92em;
+  line-height: 1.35;
+  text-align: left;
+  font-style: italic;
+}
+
+article > section > div.marginfigure p + p {
+  margin-top: 0.4rem;
+  font-size: 0.92em;
+  line-height: 1.35;
+  font-style: italic;
+}
+
+/* Caption promoted from \\caption via flatten (blockquote under image in margin column). */
+article > section > div.marginfigure blockquote {
+  float: none;
+  margin: 0.45rem 0 0;
+  padding: 0 0 0 0.4rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 0.92em;
+  line-height: 1.35;
+  font-style: italic;
+}
+
+/*
+ * After a margin figure, don't let the next block wrap beside the float: that squeezes
+ * body text next to the figure and makes sidenotes feel like they're "in" the paragraph.
+ */
+article > section > div.marginfigure + :is(p, h2, h3, h4, h5, h6) {
+  clear: right;
+}
+
+div.marginfigure img {
+  width: 100%;
+  height: auto;
+}
+
+div.marginfigure p {
+  margin: 0;
+}
+
+/* Sidenotes: stay narrow vs the text column; avoid ~90% widths that eat the paragraph. */
+article > section p .sidenote,
+article > section p .marginnote {
+  float: right;
+  clear: right;
+  margin-right: 0;
+  margin-left: 0.5rem;
+  margin-top: 0.15rem;
+  width: min(38%, min(13rem, 26vw));
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+article > section blockquote .sidenote,
+article > section blockquote .marginnote {
+  float: right;
+  clear: right;
+  margin-right: 0;
+  min-width: unset;
+  width: min(42%, min(14rem, 28vw));
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+article > section .sidenote-wrapper {
+  box-sizing: border-box;
+}
+
+/* Footnotes from \\sidenote: keep readable width */
+.footnotes {
+  font-size: 1.1rem;
+}
+
+/* algorithm2e → verbatim (flatten_for_web.py + algorithm_codeblock.lua) */
+pre.algorithm {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-x: auto;
+  margin-top: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+
+/* Chunked site nav from Pandoc */
+nav#sitenav {
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+}
+
+/* Part titles come through as centered divs from flatten script */
+div.center {
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  article > section > p,
+  article > section > footer,
+  article > section > table {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  article > section > dl,
+  article > section > ol,
+  article > section > ul {
+    width: 90%;
+  }
+
+  article > section > h1,
+  article > section > h2,
+  article > section > h3 {
+    max-width: 100%;
+  }
+
+  article > section > div.marginfigure {
+    float: none;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  article > section p .sidenote,
+  article > section p .marginnote {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  article > section blockquote .sidenote,
+  article > section blockquote .marginnote {
+    width: 100%;
+    max-width: 100%;
+    float: none;
+    margin-left: 0;
+  }
+}
