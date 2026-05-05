@@ -1,4 +1,6 @@
-# Build the Pandoc + Tufte CSS site and deploy to GitHub Pages.
+# Build the Pandoc + Tufte CSS site and publish to the gh-pages branch.
+# GitHub Pages source: Settings → Pages → Deploy from a branch → gh-pages / (root).
+# This avoids actions/deploy-pages, which returns 404 until "GitHub Actions" Pages is enabled.
 name: Deploy GitHub Pages
 
 on:
@@ -7,16 +9,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,18 +29,9 @@ jobs:
       - name: Build site
         run: bash website/build.sh
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Push site to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: website/dist
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          folder: website/dist
+          branch: gh-pages
+          clean: true

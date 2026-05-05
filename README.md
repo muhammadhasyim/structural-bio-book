@@ -18,15 +18,15 @@ latexmk -C main.tex
 
 ## Web edition (GitHub Pages)
 
-CI builds the static site with Pandoc (see `website/build.sh`) and deploys via `.github/workflows/pages.yml`.
+CI builds the static site with Pandoc (`website/build.sh`) and pushes `website/dist` to the **`gh-pages`** branch (`.github/workflows/pages.yml`).
 
-If the deploy job fails with **HttpError: Not Found** or **Failed to create deployment (404)**, enable Pages for this repository:
+**One-time setup** ([Pages settings](https://github.com/muhammadhasyim/structural-bio-book/settings/pages)):
 
-1. Open **Settings → Pages**: `https://github.com/muhammadhasyim/structural-bio-book/settings/pages`
-2. Under **Build and deployment**, set **Source** to **GitHub Actions** (not “Deploy from a branch”).
-3. Re-run the failed workflow (**Actions** → workflow run → **Re-run all jobs**) or push a small commit.
+1. Under **Build and deployment**, set **Source** to **Deploy from a branch** (not “GitHub Actions”).
+2. Choose **Branch** `gh-pages`, folder **`/ (root)`**, then Save.
+3. After the first successful workflow run, the site appears at your Pages URL (often `https://muhammadhasyim.github.io/structural-bio-book/`).
 
-Until Source is **GitHub Actions**, the Pages deployment API returns 404 and `deploy-pages` cannot create a deployment.
+If you prefer the **GitHub Actions** deployment API instead, you can switch the workflow back to `actions/deploy-pages` and set Pages **Source** to **GitHub Actions**; that path returns **404** until that source is enabled in the UI.
 
 ## Layout
 
