@@ -17,7 +17,15 @@ figures/_raw/
 *.lof
 *.lot
 
+# Python
+__pycache__/
+*.py[cod]
+
 # Editor / OS
 .DS_Store
 *.swp
 *~
+
+# Pandoc / GitHub Pages web build (generated)
+website/build/
+website/dist/
