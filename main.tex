@@ -1,0 +1,36 @@
+\documentclass[nobib]{tufte-book}
+\input{preamble}
+\input{tufte-tweaks}
+
+\title{Structural Bioinformatics}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\part{Foundations}
+\include{chapters/ch01_foundations}
+\include{chapters/ch02_data_quality}
+
+\part{Sequence Analysis}
+\include{chapters/ch03_pairwise_alignment}
+\include{chapters/ch04_profile_hmm}
+\include{chapters/ch05_classification}
+
+\part{Structure Prediction}
+\include{chapters/ch06_homology_modeling}
+\include{chapters/ch07_alphafold}
+\include{chapters/ch08_alphafill}
+
+\part{Interactions and Dynamics}
+\include{chapters/ch09_docking}
+\include{chapters/ch10_molecular_dynamics}
+
+\part{Special Topics}
+\include{chapters/ch11_disorder}
+\include{chapters/ch12_drug_design}
+
+\printbibliography
+\end{document}

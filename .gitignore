@@ -1,0 +1,23 @@
+# Intermediate extraction cache (regenerate from course PDFs/PPTX if needed)
+figures/_raw/
+
+# LaTeX / Biblatex / latexmk
+*.aux
+*.bbl
+*.bcf
+*-SAVE-ERROR
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Editor / OS
+.DS_Store
+*.swp
+*~

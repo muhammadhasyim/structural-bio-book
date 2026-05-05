@@ -1,0 +1,7 @@
+% tufte-tweaks.tex -- minor overrides for tufte-book class
+\newcounter{sidenote}
+\let\oldchapter\chapter
+\renewcommand{\chapter}[1]{\oldchapter{#1}\setcounter{sidenote}{0}}
+
+% Slightly tighter spacing in margin notes
+\renewcommand{\sidenote}[1]{\marginnote{\footnotesize #1}}
