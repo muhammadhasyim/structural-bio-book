@@ -380,7 +380,7 @@ window.Quarto = {
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_alphafold_pipeline.png" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_alphafold_pipeline.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
@@ -388,7 +388,7 @@ window.Quarto = {
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_jumper2021_fig1.jpg" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_jumper2021_fig1.jpg" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
@@ -409,7 +409,7 @@ z_{ij}^{(0)} = \bm{f}_i^{\text{left}} + \bm{f}_j^{\text{right}},\]</span> where 
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_jumper2021_fig3.jpg" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_jumper2021_fig3.jpg" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
@@ -617,7 +617,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <div class="no-row-height column-margin column-container"><div class="">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/ch07_plddt_structure.png" class="img-fluid figure-img"></p>
+<p><img alt="AlphaFold model colored by pLDDT: blue (high confidence) core, orange (low confidence) disordered regions." src="figures/ch07_plddt_structure.png" class="img-fluid figure-img"></p>
 <figcaption>AlphaFold model colored by pLDDT: blue (high confidence) core, orange (low confidence) disordered regions.</figcaption>
 </figure>
 </div>
@@ -659,7 +659,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_plddt_pae.png" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_plddt_pae.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
@@ -670,7 +670,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <div class="no-row-height column-margin column-container"><div class="">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/ch07_pae_matrix.png" class="img-fluid figure-img"></p>
+<p><img alt="PAE matrix showing domain structure: dark blocks indicate well-predicted intra-domain geometry." src="figures/ch07_pae_matrix.png" class="img-fluid figure-img"></p>
 <figcaption>PAE matrix showing domain structure: dark blocks indicate well-predicted intra-domain geometry.</figcaption>
 </figure>
 </div>
@@ -678,7 +678,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <p>The PAE matrix is visualized as a heatmap with residue indices on both axes. Well-predicted structures show dark blocks along the diagonal (low intra-domain error) and potentially lighter off-diagonal blocks (higher inter-domain error).</p>
 <div id="ch07-alphafold-fig:confidence-interpretation" class="quarto-figure quarto-figure-center anchored page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_confidence_interpretation.png" class="img-fluid figure-img"></p>
+<p><img alt="Interpreting AlphaFold confidence: pLDDT coloring with PAE matrix and ipTM/pTM scores for a multi-domain prediction." src="figures/ch07_confidence_interpretation.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">Interpreting AlphaFold confidence: pLDDT coloring with PAE matrix and ipTM/pTM scores for a multi-domain prediction.</figcaption>
 </figure>
 </div>
@@ -694,7 +694,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 \mathcal{L}_\text{FAPE}^\text{multi} = \min_{\pi \in \mathcal{P}} \mathcal{L}_\text{FAPE}\!\left(\bm{x}^\text{pred}, \pi(\bm{x}^\text{true})\right),\]</span> where <span class="math inline">\(\mathcal{P}\)</span> is the set of valid chain permutations and <span class="math inline">\(\pi(\bm{x}^\text{true})\)</span> applies permutation <span class="math inline">\(\pi\)</span> to the true atom positions.<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a></p>
 <div class="no-row-height column-margin column-container"><div id="fn22"><p><sup>22</sup>&nbsp;For a homodimer, <span class="math inline">\(\mathcal{P}\)</span> has two elements: the identity and the swap. For a homotrimer, there are six permutations. For heteromeric complexes with no identical chains, only the identity permutation is valid.</p></div></div><div id="ch07-alphafold-fig:ranked-pae" class="quarto-figure quarto-figure-center anchored page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_ranked_pae.png" class="img-fluid figure-img"></p>
+<p><img alt="PAE matrices for five ranked AlphaFold-Multimer models of a dimer, showing variation in inter-chain confidence." src="figures/ch07_ranked_pae.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">PAE matrices for five ranked AlphaFold-Multimer models of a dimer, showing variation in inter-chain confidence.</figcaption>
 </figure>
 </div>
@@ -706,7 +706,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_abramson2024_fig1.jpg" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_abramson2024_fig1.jpg" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
@@ -721,7 +721,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_abramson2024_fig2.jpg" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_abramson2024_fig2.jpg" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
@@ -756,7 +756,7 @@ e_{ij} = \bigl\| T_i^{-1} \circ \bm{x}_j^\text{pred} - T_i^{-1} \circ \bm{x}_j^\
 <div class="figure* page-columns page-full">
 <div class="quarto-figure quarto-figure-center page-columns page-full">
 <figure class="figure page-columns page-full">
-<p><img src="figures/ch07_alphafold_vs_experiment.png" class="img-fluid figure-img"></p>
+<p><img alt="image" src="figures/ch07_alphafold_vs_experiment.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">image</figcaption>
 </figure>
 </div>
