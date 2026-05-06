@@ -46,6 +46,7 @@ If you prefer the **GitHub Actions** deployment API instead, you can switch the 
 - `chapters/` — one file per chapter (`\include`)
 - `_quarto.yml` — Quarto Tufte book (GitHub Pages output under `_book/`)
 - `website/quarto_gen.py` — generates `ch##_*.qmd` from the LaTeX sources before each render (gitignored)
+- `website/html_fig_img_alt.py` — post-render step (see `_quarto.yml`): copies figure captions onto `<img alt="…">` for margin-caption HTML
 - `figures/` — final PNG/JPEG figures (sources live outside this repo or in local `figures/_raw/`, which is gitignored)
 
 ## License

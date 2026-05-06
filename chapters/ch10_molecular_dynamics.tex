@@ -5,7 +5,7 @@ In the summer of 1957, Berni Alder and Tom Wainwright sat before the MANIAC comp
 
 Within a few years, Aneesur Rahman at Argonne simulated 864 argon atoms interacting through a Lennard-Jones potential and computed the first realistic velocity autocorrelation functions for a liquid. By 1971, Rahman and Frank Stillinger had simulated liquid water with 216 molecules, reproducing radial distribution functions that matched X-ray scattering data. The trajectory from 32 structureless spheres to the million-atom, millisecond simulations that David Shaw's group runs today on purpose-built hardware traces one of computational science's great arcs. The method at the core has not changed: solve Newton's equations of motion for a collection of particles interacting through an empirical potential energy function, and record the trajectory.
 
-\newthought{This chapter develops} molecular dynamics simulation from its statistical mechanical foundations through the practical details of force fields, integration algorithms, temperature and pressure control, treatment of long-range electrostatics, and enhanced sampling methods. We close with trajectory analysis techniques that connect simulation output to experimentally measurable quantities.
+\newthought{This chapter develops} molecular dynamics simulation from its statistical mechanical foundations through the practical details of force fields, integration algorithms, temperature and pressure control, treatment of long-range electrostatics, and enhanced sampling methods. The enhanced-sampling section is organized around biomolecular use cases: peptide folding, protein--ligand binding, ion permeation, ligand unbinding, and rare conformational transitions. We close with trajectory analysis techniques that connect simulation output to experimentally measurable quantities.
 
 \section{Statistical Mechanics Foundations}
 \label{sec:md-stat-mech}
@@ -397,7 +397,7 @@ where $\beta_i = 1/(k_B T_i)$ and $E_i$ is the potential energy of the configura
 
 We can verify that this satisfies detailed balance with respect to the product of canonical distributions at each temperature. If $E_i > E_j$ and $T_i < T_j$ (the colder replica has higher energy), the swap moves the high-energy configuration to higher temperature and the low-energy configuration to lower temperature, which is energetically favorable and has high acceptance probability.
 
-The practical challenge is choosing the temperature ladder. Adjacent temperatures must be close enough that their energy distributions overlap, giving reasonable acceptance rates (typically 20--30\%). For a system of $N$ particles, the energy variance scales as $N$, so the required temperature spacing scales as $1/\sqrt{N}$. The number of replicas needed grows as $\sqrt{N}$, making REMD impractical for large systems (beyond $\sim$25,000 atoms) without modifications such as replica exchange with solute tempering (REST2).
+The practical challenge is choosing the temperature ladder. Adjacent temperatures must be close enough that their energy distributions overlap, giving reasonable acceptance rates (typically 20--30\%). For a system of $N$ particles, the energy variance scales as $N$, so the required temperature spacing scales as $1/\sqrt{N}$. The number of replicas needed grows as $\sqrt{N}$, making REMD impractical for large systems (beyond $\sim$25,000 atoms) without modifications such as replica exchange with solute tempering (REST2). Its sweet spot in biomolecular simulation is therefore the folding of peptides, miniproteins, and isolated intrinsically disordered segments, where the solute is small enough that replicas can diffuse repeatedly between low and high temperatures.
 
 \subsection{Metadynamics}
 \label{sec:metadynamics}
@@ -423,7 +423,7 @@ w(t) = w_0 \exp\!\left(-\frac{V_{\text{bias}}(s(t), t)}{k_B \Delta T}\right)
 \end{equation}
 where $\Delta T$ is a parameter controlling the bias deposition rate. The bias converges smoothly to $-((\Delta T)/(T + \Delta T))F(s)$, from which $F(s)$ is recovered by rescaling.
 
-The choice of CVs is the art of metadynamics. Good CVs must distinguish the relevant metastable states and capture the slow motions. If important slow degrees of freedom are missing from the CV set, the simulation will still be trapped along those orthogonal directions. Dimensionality reduction methods (PCA, diffusion maps) and machine learning approaches are increasingly used to identify optimal CVs.
+The choice of CVs is the art of metadynamics. Good CVs must distinguish the relevant metastable states and capture the slow motions. If important slow degrees of freedom are missing from the CV set, the simulation will still be trapped along those orthogonal directions. In biomolecular work, well-tempered metadynamics is often used for ligand binding and unbinding along distance/contact CVs, loop or kinase-domain conformational changes along dihedral or RMSD-like CVs, and membrane permeation along a solute--bilayer-normal coordinate. Dimensionality reduction methods (PCA, diffusion maps) and machine learning approaches are increasingly used to identify optimal CVs.
 
 \subsection{Umbrella Sampling and WHAM}
 \label{sec:umbrella-sampling}
@@ -451,7 +451,90 @@ P_i^{\text{bias}}(s) = \frac{P(s)\exp(-\beta w_i(s))}{\int P(s')\exp(-\beta w_i(
 \end{equation}
 where $\exp(-\beta f_i) = \int P(s)\exp(-\beta w_i(s))\,ds$ is the normalization constant. Inverting this relation for $P(s)$ from each window and combining the estimates with optimal (minimum-variance) weights yields Equations~\ref{eq:wham-prob}--\ref{eq:wham-f}.
 
-In practice, umbrella sampling requires careful setup: the windows must overlap sufficiently in CV space, the spring constant must be tuned, and each window must be equilibrated before collecting statistics. Despite this overhead, umbrella sampling remains the gold standard for computing free energy profiles along well-defined reaction coordinates because the statistical error is straightforward to estimate and systematic errors from poor CV choice are easier to diagnose than in adaptive methods.
+In practice, umbrella sampling requires careful setup: the windows must overlap sufficiently in CV space, the spring constant must be tuned, and each window must be equilibrated before collecting statistics. Despite this overhead, umbrella sampling remains the gold standard for computing free energy profiles along well-defined biomolecular reaction coordinates: ion permeation through a channel, protein--ligand separation, base-pair opening in nucleic acids, or insertion of a small molecule across a membrane. The statistical error is straightforward to estimate, and systematic errors from poor CV choice are easier to diagnose than in adaptive methods.
+
+\subsection{Alchemical Free Energies: FEP and Thermodynamic Integration}
+\label{sec:fep-ti}
+
+\newthought{Many biomolecular questions} are not about crossing a physical barrier along a coordinate, but about changing the Hamiltonian itself. What is the change in binding free energy when a ligand methyl group is replaced by chlorine? What is the stability effect of mutating valine to alanine in a protein core? What is the hydration free energy of an ion or drug fragment? These are \emph{alchemical} questions: state $\mathcal{A}$ and state $\mathcal{B}$ may differ by atom types, charges, or interactions, but the calculation asks only for the free-energy difference between them.
+
+Free-energy perturbation (FEP) starts from the identity of Zwanzig~\cite{zwanzig1954,tuckerman2023}. If configurations are sampled from the canonical distribution of state $\mathcal{A}$, then
+\begin{equation}
+\label{eq:zwanzig-fep}
+\Delta A_{\mathcal{A}\mathcal{B}}
+= -k_B T \ln \left\langle
+\exp\!\left[-\beta\left(U_{\mathcal{B}} - U_{\mathcal{A}}\right)\right]
+\right\rangle_{\mathcal{A}} .
+\end{equation}
+The equation is exact, but it is only useful when configurations typical of $\mathcal{A}$ also have appreciable probability in $\mathcal{B}$. This \emph{overlap problem} is severe for protein--ligand and protein-mutation calculations: deleting a charged ligand atom, creating a Lennard-Jones core, or changing a buried side chain can make $U_{\mathcal{B}}-U_{\mathcal{A}}$ enormous for most frames.
+
+The practical fix is to introduce intermediate states $U_\lambda$, with $\lambda\in[0,1]$, and compute the total free-energy change as a sum over small perturbations. In a ligand-binding calculation, one usually decouples electrostatics and van der Waals interactions in separate stages, uses soft-core nonbonded potentials near the endpoints, and samples the same alchemical path in the binding site and in bulk solvent. The binding free energy is recovered by closing the thermodynamic cycle rather than waiting for a ligand to bind spontaneously.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/ch10_tuckerman_binding_cycles.jpg}
+  \caption{Thermodynamic cycles for computing protein--ligand binding free energies. The direct physical association path is usually inefficient in explicit solvent; staged alchemical paths exploit the fact that free energy is a state function. Adapted from Tuckerman~\cite{tuckerman2023}.}
+  \label{fig:binding-thermodynamic-cycles}
+\end{figure}
+
+Thermodynamic integration (TI) uses the same $\lambda$ path but differentiates the $\lambda$-dependent free energy. If $U(\mathbf{r}^N,\lambda)$ connects $U_{\mathcal{A}}$ and $U_{\mathcal{B}}$, then~\cite{kirkwood1935,tuckerman2023}
+\begin{equation}
+\label{eq:ti-kirkwood}
+\Delta A_{\mathcal{A}\mathcal{B}}
+= \int_0^1
+\left\langle \frac{\partial U}{\partial \lambda} \right\rangle_\lambda
+\, d\lambda .
+\end{equation}
+In practice, TI means running equilibrated simulations at a grid of $\lambda$ values and numerically integrating $\langle \partial U/\partial\lambda\rangle_\lambda$. It is attractive when the derivative is smooth and interpretable; FEP-like estimators are attractive when neighboring states have excellent overlap. Modern relative binding free-energy workflows often use both views: the same alchemical windows can be analyzed by FEP, TI, BAR, or MBAR to expose hysteresis and overlap failures.
+
+\subsection{Multistate Reweighting: BAR and MBAR}
+\label{sec:mbar}
+
+Umbrella sampling, replica exchange, and alchemical free-energy calculations all generate samples from several related biased ensembles. Bennett's acceptance ratio (BAR) gives the statistically optimal two-state free-energy estimate when samples from states $\mathcal{A}$ and $\mathcal{B}$ overlap~\cite{bennett1976}. The multistate Bennett acceptance ratio (MBAR) generalizes the idea to many states at once~\cite{shirts2008}. Conceptually, MBAR plays the same ``unbias and merge'' role as WHAM, but it operates directly on reduced potential energies rather than on a one-dimensional histogram. This makes it especially useful for biomolecular ligand-binding and solvation calculations, where 12--40 alchemical $\lambda$ windows must be combined and where poor overlap between a few adjacent windows can dominate the final error bar.
+
+\subsection{Jarzynski's Equality and Steered Molecular Dynamics}
+\label{sec:jarzynski-steered}
+
+\newthought{Equilibrium sampling is not the only route} to free energies. Jarzynski's equality relates a free-energy difference to an exponential average of nonequilibrium work values~\cite{jarzynski1997,tuckerman2023}:
+\begin{equation}
+\label{eq:jarzynski}
+e^{-\beta \Delta A_{\mathcal{A}\mathcal{B}}}
+= \left\langle e^{-\beta W} \right\rangle .
+\end{equation}
+Each realization begins from equilibrium in state $\mathcal{A}$ and follows a time-dependent protocol, such as changing $\lambda(t)$ or moving a restraint. Jensen's inequality immediately gives $\langle W\rangle \ge \Delta A$: fast protocols dissipate work.
+
+Steered molecular dynamics (SMD) is the biomolecular version most students encounter first. A harmonic restraint is attached to a coordinate--for example, the distance between a ligand and the binding-site center, or the end-to-end extension of a protein domain--and the restraint center is moved in time. SMD can generate plausible ligand-unbinding pathways, reveal mechanical unfolding intermediates, and seed umbrella windows along a separation coordinate. Quantitative Jarzynski estimates, however, require many independent pulls and are dominated by rare low-work trajectories; for drug-sized ligands pulled too quickly from a protein pocket, the work distribution is often too dissipative for Eq.~\ref{eq:jarzynski} to converge reliably.
+
+\subsection{Transition Path Sampling}
+\label{sec:tps}
+
+Metadynamics and umbrella sampling require a useful reaction coordinate. Transition path sampling (TPS) addresses the complementary case: we can define two basins $\mathcal{A}$ and $\mathcal{B}$, but we do not trust a single CV to describe how the system moves between them~\cite{dellago1998,bolhuis2002,tuckerman2023}. A transition path is a time-ordered trajectory segment beginning in $\mathcal{A}$ and ending in $\mathcal{B}$. TPS performs Monte Carlo in the space of such paths, often by choosing a time slice on an existing path, slightly perturbing momenta or coordinates, and reintegrating forward and backward in time. The trial is accepted only if it remains a valid $\mathcal{A}\to\mathcal{B}$ transition.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/ch10_tuckerman_rare_event_double_well.jpg}
+  \caption{A rare-event trajectory: barrier crossings are fast, while waiting times between crossings are long. Biomolecular analogues include peptide folding, ligand escape, and allosteric switching. Adapted from Tuckerman~\cite{tuckerman2023}.}
+  \label{fig:double-well-rare}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/ch10_tuckerman_transition_path.jpg}
+  \caption{A discrete transition path from basin $\mathcal{A}$ to basin $\mathcal{B}$. Adapted from Tuckerman~\cite{tuckerman2023}.}
+  \label{fig:tps-path}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/ch10_tuckerman_shooting.jpg}
+  \caption{Shooting move in transition path sampling: a point on an existing path is perturbed and new trajectory branches are integrated. Only branches that connect $\mathcal{A}$ to $\mathcal{B}$ enter the path ensemble. Adapted from Tuckerman~\cite{tuckerman2023}.}
+  \label{fig:tps-shooting}
+\end{figure}
+
+For biomolecules, TPS is best suited to mechanistic questions: Which contacts form first during a small-protein folding event? Does a domain closure proceed through one route or several? Does a ligand leave through a transient tunnel or by a gate-opening motion? The price is high. One needs an initial reactive path, often obtained by high-temperature simulation, steered MD, or running an easier reverse process such as unfolding; and each accepted path requires fresh dynamics.
+
+\subsection{Wang--Landau Sampling and Adiabatic Free-Energy Dynamics}
+\label{sec:wang-landau-afed}
+
+Wang--Landau sampling estimates a density of states by adaptively flattening a histogram~\cite{wang2001,tuckerman2023}. In biomolecular applications, the useful version is usually not the original energy-space algorithm for spin systems but a collective-variable variant: flatten the histogram along a peptide dihedral, a small-molecule torsion, or a membrane-insertion coordinate, then recover the corresponding free-energy profile. The method is most compelling when the CV is low-dimensional and the goal is a broad scan of conformational preferences rather than high-precision kinetics.
+
+Adiabatic free-energy dynamics (AFED) and driven AFED place a slow variable--often an alchemical $\lambda$ or a structural CV--into an extended dynamical system with an artificial mass~\cite{tuckerman2023}. The goal is to separate fast atomic vibrations from slower collective motion so that the extended variable sweeps the relevant free-energy surface without requiring every fast mode to equilibrate at each trial displacement. In biomolecular simulations, this perspective is useful for slow protein torsions, loop motions, and alchemical switching variables in explicit solvent; in practice it is a specialized method, complementary to the more common metadynamics, umbrella, and MBAR workflows.
 
 \section{Trajectory Analysis}
 \label{sec:analysis}
@@ -548,7 +631,7 @@ The story of the first MD simulations at Los Alamos and Argonne is told in Alder
 
 The Particle Mesh Ewald method~\cite{darden1993} transformed biomolecular simulation by making proper long-range electrostatics affordable. Before PME, most simulations used cutoffs of 8--10~\AA\ with various switching functions, leading to artifacts that we now know were responsible for incorrect folding thermodynamics and unstable protein simulations.
 
-Enhanced sampling remains an active research area. Laio and Parrinello's original metadynamics paper (2002) in \emph{PNAS} has been cited over 5000 times. The well-tempered variant (Barducci, Bussi, and Parrinello, 2008) solved the convergence problem. Modern developments include funnel metadynamics for binding free energies, on-the-fly probability enhanced sampling (OPES), and machine-learning approaches to collective variable discovery (including methods based on autoencoders and time-lagged independent component analysis).
+Enhanced sampling remains an active research area. Laio and Parrinello's original metadynamics paper (2002) in \emph{PNAS} has been cited over 5000 times. The well-tempered variant (Barducci, Bussi, and Parrinello, 2008) solved the convergence problem. Tuckerman's \emph{Statistical Mechanics: Theory and Molecular Simulation}~\cite{tuckerman2023} provides a unified statistical-mechanical treatment of FEP, thermodynamic integration, Jarzynski's equality, transition path sampling, Wang--Landau sampling, metadynamics, and adiabatic free-energy dynamics; Figures~\ref{fig:binding-thermodynamic-cycles}--\ref{fig:tps-shooting} adapt schematic examples from that treatment. Modern developments include funnel metadynamics for binding free energies, on-the-fly probability enhanced sampling (OPES), and machine-learning approaches to collective variable discovery (including methods based on autoencoders and time-lagged independent component analysis).
 
 The connection between MD trajectories and experimental observables is discussed in the reviews by Lindorff-Larsen et al.\ (2005) on NMR validation and by Hub et al.\ (2010) on comparison with SAXS data. The principal component analysis approach to protein dynamics was formalized as ``essential dynamics'' by Amadei, Linssen, and Berendsen (1993).
 
