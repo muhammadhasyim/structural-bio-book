@@ -15,7 +15,7 @@ For a community that had watched decades of slow, grinding progress on the prote
 Structure prediction for single domains was solved in practice.
 
 This chapter develops AlphaFold2 (AF2) in depth: from sequence and alignment inputs through the Evoformer and structure module to losses, recycling, and confidence metrics~\cite{jumper2021}.
-We then summarize AlphaFold3 (AF3), which generalizes the same high-level pattern---a pairwise trunk followed by a structure generator---but replaces the Evoformer with a lighter \emph{Pairformer} and replaces invariant-point attention on backbone frames with a \emph{diffusion} model over atomic coordinates, enabling proteins, nucleic acids, ligands, and ions in one framework~\cite{abramson2024}.
+We then summarize AlphaFold3 (AF3), which generalizes the same high-level pattern (a pairwise trunk followed by a structure generator) but replaces the Evoformer with a lighter \emph{Pairformer} and replaces invariant-point attention on backbone frames with a \emph{diffusion} model over atomic coordinates, enabling proteins, nucleic acids, ligands, and ions in one framework~\cite{abramson2024}.
 Diagrams reproduced from the primary papers are included where they clarify the geometry of the representations and the flow of tensors through the network.
 We begin with the folding problem and CASP.
 
@@ -66,8 +66,7 @@ AlphaFold2, revealed at CASP14 two years later, replaced this pipeline with an e
 \subsection*{Measuring prediction quality: GDT-TS}
 \label{sec:af2-gdtts}
 
-We need a metric before we can discuss results.
-The Global Distance Test Total Score (GDT-TS) is the standard metric used in CASP~\cite{zemla2003}.
+The Global Distance Test Total Score (GDT-TS) is the metric CASP reports most often~\cite{zemla2003}.
 Given a predicted structure and the true experimental structure, both with $N$ residues, GDT-TS is defined as
 \begin{equation}
 \label{eq:gdtts}
@@ -790,7 +789,7 @@ In practice, AlphaFold-Multimer produces reliable predictions for stable complex
 \label{sec:af3-overview}
 %% ====================================================================
 
-AlphaFold3 (AF3) targets the same scientific goal as AF2---predicting 3D structure from sequence and homologs---but for \emph{general biomolecular complexes}: protein--protein, protein--nucleic acid, protein--ligand, covalent modifications, ions, and glycans within a single model~\cite{abramson2024}.
+AlphaFold3 (AF3) targets the same scientific goal as AF2 (predicting 3D structure from sequence and homologs) but for \emph{general biomolecular complexes}: protein--protein, protein--nucleic acid, protein--ligand, covalent modifications, ions, and glycans within a single model~\cite{abramson2024}.
 The published system keeps the familiar two-stage layout (a deep \emph{trunk} that builds conditioning features, then a \emph{structure module} that emits coordinates), but both stages are redesigned so the same network can represent arbitrary chemistry without residue-specific frame machinery for every heavy atom.
 
 \begin{figure*}
@@ -812,7 +811,7 @@ This replaces hand-built atom typing rules in the trunk with a uniform graph ove
 
 The Evoformer alternated expensive MSA processing with pair updates.
 AF3 \emph{de-emphasizes} the MSA: a comparatively small MSA embedding block projects the alignment to features that are merged into the pair and single streams, but no full $N_\text{seq} \times N_\text{res}$ tensor is carried through 48 trunk blocks.
-Instead, the dominant computation is a \emph{Pairformer}---48 blocks that resemble the \emph{pair stack} of AF2 (triangular multiplicative updates and triangular attention on $\bm{z}$, plus transitions) while updating a single representation in lockstep.
+Instead, the dominant computation is a \emph{Pairformer} (48 blocks that resemble the \emph{pair stack} of AF2: triangular multiplicative updates and triangular attention on $\bm{z}$, plus transitions) while updating a single representation in lockstep.
 Pair--MSA information is exchanged through a lightweight \emph{pair-weighted} aggregation over sequences rather than full column-wise self-attention at every depth.
 Intuitively, co-evolutionary signal is distilled early; the deep stack then performs the same geometric consistency propagation on edges $(i,j)$ that \cref{sec:af2-tri-mult,sec:af2-tri-attn} described, but on general tokens.
 
@@ -835,7 +834,7 @@ Second, noise is applied at multiple scales: small noise emphasizes local stereo
 That multi-scale objective replaces much of the stereochemical loss engineering AF2 required for torsions and peptide-bond penalties, because local geometry is learned as a denoising task at high resolution.
 
 Because diffusion is inherently \emph{stochastic}, AF3 can return different minima for different seeds even when the trunk is deterministic.
-For difficult targets (notably antibody--antigen interfaces), the paper recommends generating many seeds and ranking by confidence rather than trusting a single draw.
+For difficult targets (especially antibody--antigen interfaces), the paper recommends generating many seeds and ranking by confidence rather than trusting a single draw.
 
 \subsection*{Confidence, ranking, and failure modes}
 \label{sec:af3-confidence}
@@ -844,7 +843,7 @@ AF2 attached pLDDT and PAE heads to the final IPA stack.
 A single diffusion training step does not expose a full generated structure, so AF3 trains confidence with a \emph{rollout}: run a shortened denoising trajectory during training, treat the result as a pseudo-prediction, align symmetric copies of ground truth, and regress or classify errors from the pair representation~\cite{abramson2024}.
 Alongside pLDDT and PAE (now on tokens, not residues only), AF3 introduces a \emph{predicted distance error} (PDE) on pairs of atoms, summarizing whether predicted distances match the true distance map.
 
-To reduce \emph{hallucinated} compact structure in disordered regions---a known failure mode of generative models---AF3 augments training with \emph{cross-distillation} from AlphaFold-Multimer predictions, which tend to paint disorder as extended coils; the paper reports improved CAID-style disorder calibration.
+To reduce \emph{hallucinated} compact structure in disordered regions (a known failure mode of generative models), AF3 augments training with \emph{cross-distillation} from AlphaFold-Multimer predictions, which tend to paint disorder as extended coils; the paper reports improved CAID-style disorder calibration.
 Ranking scores combine interface quality predictions (ipTM analogs) with penalties for steric clashes and chirality violations, which remain important because the diffusion head can occasionally produce overlapping chains or incorrect ligand chirality despite sharp local geometry.
 
 \subsection*{Relation to the rest of this chapter}

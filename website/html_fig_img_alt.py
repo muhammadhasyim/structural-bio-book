@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
-Post-render: copy ``<figcaption>`` text onto ``<img>`` as ``alt`` when missing or placeholder.
+Post-render HTML fixes for Quarto ``_book`` output.
 
-Quarto with ``fig-cap-location: margin`` often emits ``<img>`` without a useful ``alt`` while
-putting the caption in ``<figcaption class="margin-caption">``. Browsers and assistive tech
-then surface a bare word like "image".
+1. Copy ``<figcaption>`` text onto ``<img>`` as ``alt`` when missing or placeholder.
+
+   Quarto with ``fig-cap-location: margin`` often emits ``<img>`` without a useful ``alt`` while
+   putting the caption in ``<figcaption class="margin-caption">``. Browsers and assistive tech
+   then surface a bare word like "image".
+
+2. Unwrap ``\\[ ... \\]`` around AMS ``equation`` / ``align`` / … blocks inside ``span.math.display``.
+
+   Quarto emits display math as ``\\[ ... \\]``; an inner ``\\begin{equation}`` is then nested in
+   display mode, which prevents MathJax AMS numbering and breaks ``\\eqref`` (often shown as "???").
 """
 from __future__ import annotations
 
@@ -23,6 +30,27 @@ _CAPTION = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 _TAG = re.compile(r"<[^>]+>")
+
+# Quarto wraps display math as ``\[ ... \]``.  AMS display environments such as
+# ``equation`` and ``align`` already open display mode; nesting breaks tagging,
+# equation numbers, and ``\eqref`` (often shown as ``???`` in the browser).
+_AMS_NESTABLE_ENV = (
+    r"equation\*?|align\*?|gather\*?|multline\*?|flalign\*?|eqnarray\*?"
+)
+_NESTED_AMS_ENV_OPEN_RE = re.compile(
+    r"\\\[\s*(?P<begin>\\begin\{(" + _AMS_NESTABLE_ENV + r")\})"
+)
+_NESTED_AMS_ENV_CLOSE_RE = re.compile(
+    r"(?P<end>\\end\{(" + _AMS_NESTABLE_ENV + r")\})\s*\\\]"
+)
+
+
+def unwrap_nested_amsmath_display_delimiters(html: str) -> str:
+    """Strip a leading ``\\[`` / trailing ``\\]`` pair when they wrap AMS display envs (equation, align, …)."""
+
+    html = _NESTED_AMS_ENV_OPEN_RE.sub(lambda m: m.group("begin"), html)
+    html = _NESTED_AMS_ENV_CLOSE_RE.sub(lambda m: m.group("end"), html)
+    return html
 
 
 def _strip_tags(html: str) -> str:
@@ -73,7 +101,8 @@ def patch_html_document(html: str) -> str:
         patched_inner = patch_figure_html(inner)
         return m.group(0).replace(inner, patched_inner, 1)
 
-    return _FIGURE_BLOCK.sub(repl, html)
+    html = _FIGURE_BLOCK.sub(repl, html)
+    return html
 
 
 def main() -> None:
@@ -84,7 +113,7 @@ def main() -> None:
     n_files = 0
     for path in sorted(out_dir.rglob("*.html")):
         text = path.read_text(encoding="utf-8")
-        new_text = patch_html_document(text)
+        new_text = patch_html_document(unwrap_nested_amsmath_display_delimiters(text))
         if new_text != text:
             path.write_text(new_text, encoding="utf-8")
             n_files += 1
@@ -97,8 +126,13 @@ def _self_test() -> None:
 <p><img src="figures/x.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">Myoglobin side view.</figcaption>
 </figure>"""
-    out = patch_html_document(sample)
+    out = patch_html_document(unwrap_nested_amsmath_display_delimiters(sample))
     assert 'alt="Myoglobin side view."' in out
+
+    eq = '<span class="math display">\\[\\begin{equation}x\\end{equation}\\]</span>'
+    out_eq = unwrap_nested_amsmath_display_delimiters(eq)
+    assert "\\[" not in out_eq
+    assert "\\begin{equation}x\\end{equation}" in out_eq
 
 
 if __name__ == "__main__":

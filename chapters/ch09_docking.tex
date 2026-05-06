@@ -12,9 +12,9 @@ This was wasteful: you ran an expensive global search, and only at the end did y
 Dominguez, Boelens, and Bonvin turned this logic on its head.
 They asked: what if the experimental data drove the docking from the start?
 What if, instead of treating NMR restraints as a post-hoc filter, we encoded them directly into the energy function that guides the search?
-The result was HADDOCK~\cite{dominguez2003}, and it changed how the field thinks about incorporating prior knowledge into structure prediction.
+The result was HADDOCK~\cite{dominguez2003}, which put experimental restraints in the objective from the start instead of only filtering trajectories afterward.
 
-But before we can appreciate what HADDOCK does differently, we need to understand the docking problem itself and the algorithms that came before.
+The rest of the chapter first lays out the docking problem and the main algorithms that preceded HADDOCK, then returns to restraint-driven sampling in detail.
 
 \section{The Docking Problem}
 \label{sec:docking-problem}
