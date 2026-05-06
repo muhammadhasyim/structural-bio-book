@@ -30,8 +30,9 @@ __pycache__/
 website/build/
 website/dist/
 
-# Quarto (generated chapters + rendered site)
-quarto/_generated/
+# Quarto (Pandoc-generated chapter sources at book root + rendered site)
+/ch[0-9][0-9]_*.qmd
+website/chapter_gen_manifest.json
 _book/
 
 /.quarto/

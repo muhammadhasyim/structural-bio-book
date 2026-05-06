@@ -18,7 +18,7 @@ latexmk -C main.tex
 
 ## Web edition (GitHub Pages)
 
-The HTML site is a **Quarto** book using the vendored [Tufte Quarto](https://github.com/fredguth/tufte-quarto) extension (`_extensions/tufte/`). Canonical prose remains LaTeX (`main.tex`, `chapters/`); `website/quarto_gen.py` (run automatically via `pre-render` in `_quarto.yml`) converts each chapter with Pandoc into `quarto/_generated/chapters/*.qmd`, then `quarto render` writes `_book/`.
+The HTML site is a **Quarto** book using the vendored [Tufte Quarto](https://github.com/fredguth/tufte-quarto) extension (`_extensions/tufte/`). Canonical prose remains LaTeX (`main.tex`, `chapters/`); `website/quarto_gen.py` (run automatically via `pre-render` in `_quarto.yml`) converts each chapter with Pandoc into root-level `ch##_*.qmd` files next to `index.qmd`, then `quarto render` writes `_book/` with short URLs such as `ch01_foundations.html`.
 
 **Local preview**
 
@@ -26,7 +26,7 @@ The HTML site is a **Quarto** book using the vendored [Tufte Quarto](https://git
 quarto render   # or: quarto preview
 ```
 
-**CI** (`.github/workflows/pages.yml`) installs Quarto, runs `quarto render`, and pushes **`_book/`** to the **`gh-pages`** branch.
+**CI** (`.github/workflows/pages.yml`) installs Quarto and Pandoc, runs `python3 website/quarto_gen.py` then `quarto render`, and pushes **`_book/`** to the **`gh-pages`** branch.
 
 The older Pandoc chunk pipeline (`website/build.sh` → `website/dist/`) is retained only for comparison; it is no longer what Pages deploys.
 
@@ -45,7 +45,7 @@ If you prefer the **GitHub Actions** deployment API instead, you can switch the 
 - `main.tex` — root document
 - `chapters/` — one file per chapter (`\include`)
 - `_quarto.yml` — Quarto Tufte book (GitHub Pages output under `_book/`)
-- `website/quarto_gen.py` — generates `quarto/_generated/chapters/*.qmd` from the LaTeX sources before each render
+- `website/quarto_gen.py` — generates `ch##_*.qmd` from the LaTeX sources before each render (gitignored)
 - `figures/` — final PNG/JPEG figures (sources live outside this repo or in local `figures/_raw/`, which is gitignored)
 
 ## License

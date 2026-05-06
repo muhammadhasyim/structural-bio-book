@@ -10,7 +10,6 @@ import sys
 from pathlib import Path
 
 from flatten_for_web import (
-    FIG_STAR_BLOCK,
     iter_chapter_stems_with_parts,
     read_tex,
     transform_chapter_body,
@@ -87,13 +86,14 @@ def run_pandoc_latex_to_markdown(
     return proc.stdout.lstrip("\n")
 
 
-# .qmd files live under quarto/_generated/chapters/; LaTeX uses repo-root ``figures/``.
-FIGURES_REL_FROM_GENERATED = "../../../figures/"
+# Generated chapter .qmd files live next to ``index.qmd`` (book project root); figures stay in
+# repo-root ``figures/`` (same relative path from those .qmd files).
+FIGURES_REL_FROM_CHAPTER_QMD = "figures/"
 
 
 def adjust_markdown_paths_for_generated_chapter(md: str) -> str:
-    """Rewrite repo-root ``figures/`` links so they resolve from ``quarto/_generated/chapters/``."""
-    return md.replace("](figures/", f"]({FIGURES_REL_FROM_GENERATED}")
+    """Rewrite Pandoc ``figures/`` image paths for chapter .qmd at the book project root."""
+    return md.replace("](figures/", f"]({FIGURES_REL_FROM_CHAPTER_QMD}")
 
 
 MARGINFIG_BLOCK = re.compile(r"^:::\s*marginfigure\s*\n(.*?)^:::\s*$", re.MULTILINE | re.DOTALL)
@@ -151,39 +151,9 @@ def rewrite_marginfigure_blocks(md: str) -> str:
     return MARGINFIG_BLOCK.sub(repl, md)
 
 
-def collect_figure_star_labels(chapter_tex: str) -> set[str]:
-    """LaTeX ``\\label{...}`` values inside ``figure*`` environments (full-width in PDF)."""
-    found: set[str] = set()
-    for blk in FIG_STAR_BLOCK.finditer(chapter_tex):
-        inner = blk.group(1)
-        for lm in re.finditer(r"\\label\{([^}]+)\}", inner):
-            found.add(lm.group(1))
-    return found
-
-
-def wrap_figure_star_figures(md: str, star_labels: set[str]) -> str:
-    """Wrap body figures that came from ``figure*`` so they span the page column in HTML."""
-    if not star_labels:
-        return md
-    out_lines: list[str] = []
-    for line in md.splitlines(keepends=True):
-        stripped = line.strip()
-        if stripped.startswith("![") and "](../../../figures/" in stripped:
-            brace = re.search(r"\{([^}]*)\}", stripped)
-            if brace and any(lab in brace.group(1) for lab in star_labels):
-                nl = line if line.endswith("\n") else line + "\n"
-                out_lines.append("::: {.column-screen-inset}\n")
-                out_lines.append(nl)
-                out_lines.append(":::\n")
-                continue
-        out_lines.append(line)
-    return "".join(out_lines)
-
-
-def postprocess_chapter_markdown(md: str, *, chapter_source_tex: str) -> str:
+def postprocess_chapter_markdown(md: str) -> str:
     md = adjust_markdown_paths_for_generated_chapter(md)
     md = rewrite_marginfigure_blocks(md)
-    md = wrap_figure_star_figures(md, collect_figure_star_labels(chapter_source_tex))
     return md
 
 
@@ -239,7 +209,7 @@ def main() -> None:
         "--out-dir",
         type=Path,
         default=None,
-        help="Output directory for generated .qmd files (default: <book-root>/quarto/_generated).",
+        help="Directory for generated chapter .qmd files (default: <book-root>, same as index.qmd).",
     )
     ap.add_argument(
         "--keep-tikz-source",
@@ -248,10 +218,7 @@ def main() -> None:
     )
     args = ap.parse_args()
     book_root: Path = args.book_root.resolve()
-    out_dir = (
-        (args.out_dir.resolve() if args.out_dir is not None else book_root / "quarto" / "_generated")
-    )
-    chapters_dir = out_dir / "chapters"
+    out_dir = args.out_dir.resolve() if args.out_dir is not None else book_root
     bib_path = book_root / "references.bib"
     bib_arg: Path | None = bib_path if bib_path.is_file() else None
     if bib_arg is None:
@@ -277,11 +244,12 @@ def main() -> None:
             )
         except RuntimeError as e:
             raise RuntimeError(f"Pandoc failed for {stem}: {e}") from e
-        out_path = chapters_dir / stem_to_out_name(stem)
-        write_qmd(out_path, title, postprocess_chapter_markdown(md, chapter_source_tex=raw))
+        out_path = out_dir / stem_to_out_name(stem)
+        write_qmd(out_path, title, postprocess_chapter_markdown(md))
 
-    write_generated_manifest(out_dir / "manifest.json", parts=parts)
-    print(f"quarto_gen: wrote {len(items)} chapters under {chapters_dir}", file=sys.stderr)
+    manifest_path = book_root / "website" / "chapter_gen_manifest.json"
+    write_generated_manifest(manifest_path, parts=parts)
+    print(f"quarto_gen: wrote {len(items)} chapters into {out_dir}", file=sys.stderr)
 
 
 if __name__ == "__main__":

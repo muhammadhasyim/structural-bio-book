@@ -1,0 +1,41 @@
+{
+  "parts": [
+    {
+      "part": "Foundations",
+      "chapters": [
+        "ch01_foundations.qmd",
+        "ch02_data_quality.qmd"
+      ]
+    },
+    {
+      "part": "Sequence Analysis",
+      "chapters": [
+        "ch03_pairwise_alignment.qmd",
+        "ch04_profile_hmm.qmd",
+        "ch05_classification.qmd"
+      ]
+    },
+    {
+      "part": "Structure Prediction",
+      "chapters": [
+        "ch06_homology_modeling.qmd",
+        "ch07_alphafold.qmd",
+        "ch08_alphafill.qmd"
+      ]
+    },
+    {
+      "part": "Interactions and Dynamics",
+      "chapters": [
+        "ch09_docking.qmd",
+        "ch10_molecular_dynamics.qmd"
+      ]
+    },
+    {
+      "part": "Special Topics",
+      "chapters": [
+        "ch11_disorder.qmd",
+        "ch12_drug_design.qmd"
+      ]
+    }
+  ]
+}
