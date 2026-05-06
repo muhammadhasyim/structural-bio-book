@@ -1,0 +1,7 @@
+---
+title: "Structural Bioinformatics"
+---
+
+This site is the HTML edition of *Structural Bioinformatics*, built from the same LaTeX sources as the PDF (`main.tex` and `chapters/`). Chapters are generated before each render (`python3 website/quarto_gen.py` via `pre-render`).
+
+For the print-oriented PDF, build with `latexmk -pdf main.tex` as described in the repository README.

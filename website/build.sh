@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build static site for GitHub Pages (Pandoc + Tufte CSS).
+# Legacy Pandoc + tufte-css chunked HTML pipeline (superseded by Quarto; see README).
+# Kept for local comparison. CI uses `quarto render` (`.github/workflows/pages.yml`).
 #
 # Pipeline (single source of truth):
 #   1. flatten_for_web.py  -> build/merged.tex + fullwidth-figures.json

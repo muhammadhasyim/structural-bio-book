@@ -1,0 +1,29 @@
+% Minimal preamble for Pandoc LaTeX → Markdown conversion of chapter fragments.
+% Full PDF still uses preamble.tex + tufte-book; this is HTML-pipeline only.
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\newcommand{\newthought}[1]{\textbf{#1}}
+
+% Notation from preamble.tex (extend if Pandoc fails on new macros)
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\SE}{\mathrm{SE}}
+\newcommand{\SO}{\mathrm{SO}}
+\newcommand{\vx}{\bm{x}}
+\newcommand{\vr}{\bm{r}}
+\newcommand{\vt}{\bm{t}}
+\newcommand{\mR}{\bm{R}}
+\newcommand{\mT}{\bm{T}}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\KL}{KL}

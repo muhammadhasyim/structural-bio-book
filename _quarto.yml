@@ -1,0 +1,46 @@
+project:
+  type: tufte
+  output-dir: _book
+  pre-render:
+    - python3 website/quarto_gen.py
+  resources:
+    - figures/**
+
+book:
+  title: "Structural Bioinformatics"
+  author: ""
+  site-url: https://muhammadhasyim.github.io/structural-bio-book/
+  repo-url: https://github.com/muhammadhasyim/structural-bio-book
+  page-navigation: true
+  chapters:
+    - index.qmd
+    - part: "Foundations"
+      chapters:
+        - quarto/_generated/chapters/ch01_foundations.qmd
+        - quarto/_generated/chapters/ch02_data_quality.qmd
+    - part: "Sequence Analysis"
+      chapters:
+        - quarto/_generated/chapters/ch03_pairwise_alignment.qmd
+        - quarto/_generated/chapters/ch04_profile_hmm.qmd
+        - quarto/_generated/chapters/ch05_classification.qmd
+    - part: "Structure Prediction"
+      chapters:
+        - quarto/_generated/chapters/ch06_homology_modeling.qmd
+        - quarto/_generated/chapters/ch07_alphafold.qmd
+        - quarto/_generated/chapters/ch08_alphafill.qmd
+    - part: "Interactions and Dynamics"
+      chapters:
+        - quarto/_generated/chapters/ch09_docking.qmd
+        - quarto/_generated/chapters/ch10_molecular_dynamics.qmd
+    - part: "Special Topics"
+      chapters:
+        - quarto/_generated/chapters/ch11_disorder.qmd
+        - quarto/_generated/chapters/ch12_drug_design.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    fig-cap-location: margin
+    css: website/quarto-tufte-overrides.css

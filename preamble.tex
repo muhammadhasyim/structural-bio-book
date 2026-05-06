@@ -11,7 +11,9 @@
 \usepackage{xcolor}
 
 % Bibliography
-\usepackage[backend=biber,style=numeric-comp,sorting=none,maxbibnames=99]{biblatex}
+% maxbibnames: keep moderate so Biber does not expand huge author lists with
+% NFD Unicode (combining accents) that pdfLaTeX rejects in the .bbl output.
+\usepackage[backend=biber,style=numeric-comp,sorting=none,maxbibnames=8]{biblatex}
 \addbibresource{references.bib}
 
 % Cross-referencing

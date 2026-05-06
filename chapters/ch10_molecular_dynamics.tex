@@ -409,7 +409,7 @@ V_{\text{bias}}(s, t) = \sum_{t' = \tau_G, 2\tau_G, \ldots}^{t' < t} w \exp\!\le
 \end{equation}
 where $w$ is the Gaussian height and $\sigma$ is the Gaussian width.
 
-As the simulation progresses, the accumulated bias fills free energy basins, pushing the system over barriers into new regions of CV space. In the long-time limit, the bias potential converges to the negative of the free energy surface:\sidenote{This remarkable property means metadynamics is self-limiting: once a basin is filled, the bias stops growing there (because the system no longer visits) and exploration moves to unfilled regions.}
+As the simulation progresses, the accumulated bias fills free energy basins, pushing the system over barriers into new regions of CV space. In the long-time limit, the bias potential converges to the negative of the free energy surface:\sidenote{Metadynamics is self-limiting for this reason: once a basin is filled, the bias stops growing there (because the system no longer visits) and exploration moves to unfilled regions.}
 \begin{equation}
 \label{eq:metad-fes}
 \lim_{t \to \infty} V_{\text{bias}}(s, t) = -F(s) + C
@@ -510,7 +510,7 @@ Eigenvalue decomposition of $\mathbf{C}$ yields
 \end{equation}
 where the columns of $\mathbf{U}$ are the principal components (eigenvectors) and the diagonal elements of $\boldsymbol{\Lambda}$ are the corresponding eigenvalues (variances along each direction). The eigenvectors are sorted by decreasing eigenvalue.
 
-A remarkable property of protein dynamics is that typically 90\% of the positional variance is captured by the first 10--20 principal components out of thousands. These ``essential dynamics'' modes correspond to the slowest, largest-amplitude collective motions: domain closures, hinge bending, loop rearrangements. Projecting the trajectory onto the first two or three PCs provides a low-dimensional view of conformational space that reveals metastable states, transitions, and the overall landscape explored by the simulation.
+Protein dynamics are often low-dimensional in practice: typically 90\% of the positional variance is captured by the first 10--20 principal components out of thousands. These ``essential dynamics'' modes correspond to the slowest, largest-amplitude collective motions: domain closures, hinge bending, loop rearrangements. Projecting the trajectory onto the first two or three PCs provides a low-dimensional view of conformational space that reveals metastable states, transitions, and the overall landscape explored by the simulation.
 
 The covariance matrix $\mathbf{C}$ is related to the inverse of the Hessian of the free energy surface in the harmonic approximation: if the system is confined to a single free energy basin, $\mathbf{C} = k_BT \mathbf{H}^{-1}$ where $\mathbf{H}_{ij} = \partial^2 F / \partial r_i \partial r_j$. This connects PCA to the normal modes of the system and to elastic network models.
 
@@ -542,7 +542,7 @@ Validation checks during and after the simulation include: conservation of the e
 \section{Chapter Notes}
 \label{sec:md-notes}
 
-The foundations of molecular dynamics are treated comprehensively in the textbook by Frenkel and Smit~\cite{frenkel2002}, which remains the standard reference for computational statistical mechanics. Allen and Tildesley's \emph{Computer Simulation of Liquids} (1987, revised 2017) covers implementation details. For force fields, the review by Ponder and Case (2003) in \emph{Advances in Protein Chemistry} provides historical context on how parameters are derived and validated.
+The foundations of molecular dynamics are treated thoroughly in the textbook by Frenkel and Smit~\cite{frenkel2002}, which remains the standard reference for computational statistical mechanics. Allen and Tildesley's \emph{Computer Simulation of Liquids} (1987, revised 2017) covers implementation details. For force fields, the review by Ponder and Case (2003) in \emph{Advances in Protein Chemistry} provides historical context on how parameters are derived and validated.
 
 The story of the first MD simulations at Los Alamos and Argonne is told in Alder and Wainwright's original 1957 paper in the \emph{Journal of Chemical Physics} and Rahman's 1964 paper on liquid argon. Verlet's 1967 paper~\cite{verlet1967} introduced both the integration algorithm and the neighbor list that bears his name. The development of the Nos\'e-Hoover thermostat~\cite{nose1984} was a breakthrough in extended-system methods; Martyna, Klein, and Tuckerman (1992) generalized it to Nos\'e-Hoover chains.
 

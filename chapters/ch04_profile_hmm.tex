@@ -12,9 +12,9 @@ What made the Krogh et al.\ paper so striking was not just the formalism but the
 On the globin family and on the kinase family, their HMMs detected remote homologs that pairwise methods missed entirely.
 Four years later, Sean Eddy built HMMER, a software package that made profile HMMs practical for database searches at genome scale~\cite{eddy2011}.
 Eddy's key insight was that the Forward algorithm, which sums over all possible alignments rather than picking a single best one, gives a more sensitive measure of homology than any single-alignment score.
-The machinery we develop in this chapter leads directly to HMMER and its descendants, which today underpin Pfam, InterPro, and most large-scale protein annotation pipelines.\sidenote{The Pfam database, now in its 36th release, contains over 20{,}000 profile HMM families. Every protein in UniProt is annotated against Pfam using HMMER.}
+The machinery we develop in this chapter leads directly to HMMER and its descendants, which today support Pfam, InterPro, and most large-scale protein annotation pipelines.\sidenote{The Pfam database, now in its 36th release, contains over 20{,}000 profile HMM families. Every protein in UniProt is annotated against Pfam using HMMER.}
 
-We will build toward profile HMMs in layers.
+This chapter builds toward profile HMMs in layers.
 We begin with multiple sequence alignment, the data from which profiles are constructed.
 We then develop position-specific scoring matrices, the simplest form of a sequence profile.
 With that foundation, we introduce hidden Markov models as a general framework, develop the three canonical algorithms on a concrete biological example, and finally specialize the framework to the profile HMM architecture used in practice.
@@ -683,4 +683,4 @@ The use of Bayesian priors for estimating amino acid frequencies from small samp
 Multiple sequence alignment is a field unto itself, with a long and contentious history of benchmarks and competitions.
 The BAliBASE, PREFAB, and SABmark benchmarks have driven progress, but all are limited by the difficulty of defining ``correct'' alignment at low sequence identity.
 Thompson et al.'s CLUSTAL~W (1994) was the most cited bioinformatics paper for many years, and T-Coffee~\cite{notredame2000} introduced the consistency principle that influenced subsequent methods including PROBCONS, MUSCLE, and MAFFT.
-The current state of the art for very large alignments ($>10{,}000$ sequences) is represented by CLUSTAL~$\Omega$ and MAFFT, both of which use heuristic guide trees and iterative refinement to scale to the family sizes encountered in modern protein databases.
+For very large alignments ($>10{,}000$ sequences), CLUSTAL~$\Omega$ and MAFFT are the usual choices; both use heuristic guide trees and iterative refinement to scale to the family sizes encountered in modern protein databases.

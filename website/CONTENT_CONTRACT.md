@@ -12,3 +12,5 @@ For each construct, fix **structure in the pipeline** (flatten / Lua / template)
 | `algorithm` | `pre` / code block with algorithm class | `flatten_for_web.py` (verbatim wrap) + `filters/algorithm_codeblock.lua` | Done (when present) |
 
 **Rule:** If the browser looks wrong, classify as *content loss*, *wrong structure*, or *styling only* — only the last belongs as the first fix in `site.css`.
+
+**Layout (`site.css` + Tufte floats):** A naïve CSS Grid that places `div.marginfigure` into a dedicated column places *every* margin figure in **row 1**, column 2 regardless of DOM order — misaligning captions relative to prose. Margin figures therefore stay floated (same stacking model Tufte/CSS uses). Sidenotes should **not** override `tufte.css` margins: removing the negative-margin rule traps notes inside the 55 % paragraph width and overlaps body text.

@@ -315,25 +315,56 @@ def iter_document_body(lines: list[str]):
         yield line
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--book-root", type=Path, required=True)
-    ap.add_argument("--output", type=Path, required=True)
-    ap.add_argument(
-        "--fullwidth-json",
-        type=Path,
-        help="Write Pandoc metadata JSON listing figure* labels (for Tufte fullwidth CSS).",
-    )
-    ap.add_argument(
-        "--keep-tikz-source",
-        action="store_true",
-        help=(
-            "Append TikZ source inside verbatim blocks after the omission note "
-            "(large HTML; default is note-only)."
-        ),
-    )
-    args = ap.parse_args()
-    root = args.book_root.resolve()
+def transform_chapter_body(tex: str, *, keep_tikz_source: bool = False) -> str:
+    """
+    Web-safe transforms for a single chapter fragment (no merged-document \\\\part lines).
+
+    Used by the Quarto generator, which assigns book parts in ``_quarto.yml`` instead.
+    """
+    body = replace_cref(tex)
+    body = replace_sidenote(body)
+    body = replace_balanced_environment(body, "marginfigure", marginfigure_promote_captions_inner)
+    body = algorithm_environments_to_verbatim(body)
+    body = tikzpicture_environments_to_placeholder(body, keep_source=keep_tikz_source)
+    return strip_endinput(body)
+
+
+def iter_chapter_stems_with_parts(book_root: Path) -> list[tuple[str | None, str]]:
+    """
+    Return ordered (part_title, include_stem) pairs matching ``main.tex`` \\\\include lines.
+
+    ``include_stem`` is the argument to ``\\\\include{...}`` without ``.tex`` (e.g.
+    ``chapters/ch01_foundations``). ``part_title`` is the nearest preceding ``\\\\part{...}`` title,
+    or ``None`` before the first ``\\\\part``.
+    """
+    main_lines = (book_root / "main.tex").read_text(encoding="utf-8").splitlines()
+    current_part: str | None = None
+    out: list[tuple[str | None, str]] = []
+    for line in iter_document_body(main_lines):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("%"):
+            continue
+        if stripped.startswith("\\maketitle") or stripped.startswith("\\tableofcontents"):
+            continue
+        if stripped.startswith("\\printbibliography"):
+            continue
+        pm = re.match(r"\\part\{([^}]*)\}", stripped)
+        if pm:
+            current_part = pm.group(1).strip() or None
+            continue
+        m = INCLUDE_RE.match(stripped)
+        if m:
+            out.append((current_part, m.group(1)))
+    return out
+
+
+def flatten_merged_body(book_root: Path, *, keep_tikz_source: bool = False) -> str:
+    """
+    Build the legacy merged LaTeX fragment (with ``\\\\part`` and include markers).
+
+    Used by ``website/build.sh``; kept for the Pandoc chunk pipeline.
+    """
+    root = book_root.resolve()
     main_lines = (root / "main.tex").read_text(encoding="utf-8").splitlines()
 
     chunks: list[str] = []
@@ -358,12 +389,30 @@ def main() -> None:
 
     body = "".join(chunks)
     body = replace_part(body)
-    body = replace_cref(body)
-    body = replace_sidenote(body)
-    body = replace_balanced_environment(body, "marginfigure", marginfigure_promote_captions_inner)
-    body = algorithm_environments_to_verbatim(body)
-    body = tikzpicture_environments_to_placeholder(body, keep_source=args.keep_tikz_source)
-    body = strip_endinput(body)
+    body = transform_chapter_body(body, keep_tikz_source=keep_tikz_source)
+    return body
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--book-root", type=Path, required=True)
+    ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument(
+        "--fullwidth-json",
+        type=Path,
+        help="Write Pandoc metadata JSON listing figure* labels (for Tufte fullwidth CSS).",
+    )
+    ap.add_argument(
+        "--keep-tikz-source",
+        action="store_true",
+        help=(
+            "Append TikZ source inside verbatim blocks after the omission note "
+            "(large HTML; default is note-only)."
+        ),
+    )
+    args = ap.parse_args()
+    root = args.book_root.resolve()
+    body = flatten_merged_body(root, keep_tikz_source=args.keep_tikz_source)
 
     header = (
         "% Pandoc web fragment (do not run through pdflatex)\n"

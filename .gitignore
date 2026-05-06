@@ -29,3 +29,10 @@ __pycache__/
 # Pandoc / GitHub Pages web build (generated)
 website/build/
 website/dist/
+
+# Quarto (generated chapters + rendered site)
+quarto/_generated/
+_book/
+
+/.quarto/
+**/*.quarto_ipynb

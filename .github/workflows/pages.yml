@@ -1,4 +1,4 @@
-# Build the Pandoc + Tufte CSS site and publish to the gh-pages branch.
+# Build the Quarto Tufte HTML book and publish to the gh-pages branch.
 # GitHub Pages source: Settings → Pages → Deploy from a branch → gh-pages / (root).
 # This avoids actions/deploy-pages, which returns 404 until "GitHub Actions" Pages is enabled.
 name: Deploy GitHub Pages
@@ -21,17 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Pandoc
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Set up Pandoc (for LaTeX → Markdown in quarto_gen)
         uses: r-lib/actions/setup-pandoc@v2
         with:
           pandoc-version: "3.6"
 
       - name: Build site
-        run: bash website/build.sh
+        run: quarto render
 
       - name: Push site to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: website/dist
+          folder: _book
           branch: gh-pages
           clean: true
