@@ -1,6 +1,10 @@
-# Build the Quarto Tufte HTML book and publish to the gh-pages branch.
-# GitHub Pages source: Settings → Pages → Deploy from a branch → gh-pages / (root).
-# This avoids actions/deploy-pages, which returns 404 until "GitHub Actions" Pages is enabled.
+# Quarto Tufte HTML book → GitHub Pages (artifact deploy).
+#
+# One-time repo setup (required or deploy-pages returns 404):
+#   Settings → Pages → Build and deployment → Source: GitHub Actions
+#   (Do not use “Deploy from a branch” for this workflow.)
+#
+# Reference: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 name: Deploy GitHub Pages
 
 on:
@@ -9,14 +13,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,8 +35,7 @@ jobs:
         with:
           pandoc-version: "3.6"
 
-      # Quarto 4 resolves book chapter paths before project pre-render runs, so
-      # gitignored ch##_*.qmd chapter sources must exist before `quarto render`.
+      # Quarto resolves book chapter paths before pre-render; ensure .qmd exist first.
       - name: Generate chapter sources
         run: python3 website/quarto_gen.py
 
@@ -40,9 +45,17 @@ jobs:
       - name: Disable Jekyll on Pages (underscore paths / Quarto output)
         run: test -f _book/.nojekyll || touch _book/.nojekyll
 
-      - name: Push site to gh-pages branch
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          folder: _book
-          branch: gh-pages
-          clean: true
+          path: _book
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
