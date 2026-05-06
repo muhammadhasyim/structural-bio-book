@@ -458,7 +458,7 @@ The algorithm converges when the change in log-likelihood falls below a threshol
 
 \newthought{We now specialize the general HMM framework} to the problem that motivated this chapter: modeling protein families.
 A profile HMM is an HMM with a particular architecture designed to represent a multiple sequence alignment.
-The architecture was introduced by Krogh et al.\ in 1994 and refined by Eddy and others over the following decade.
+The architecture was introduced by Krogh et al.\ in 1994~\cite{krogh1994} and refined by Eddy and others over the following decade~\cite{durbin1998}.
 
 \begin{figure*}
   \includegraphics[width=\linewidth]{figures/ch04_domain_architecture.png}
@@ -650,10 +650,10 @@ The result is that local alignment has exactly the same computational cost as gl
 \label{sec:ch4-notes}
 %% ============================================================
 
-The hidden Markov model formalism was developed by Leonard Baum and colleagues at the Institute for Defense Analyses in the late 1960s, originally for classified work on signal processing.
+The hidden Markov model formalism was developed by Leonard Baum and colleagues at the Institute for Defense Analyses in the late 1960s, originally for classified work on signal processing~\cite{baum1970}.
 The algorithms became widely known through Rabiner's 1989 tutorial~\cite{rabiner1989}, written for the speech recognition community, which remains one of the clearest introductions to the subject.
-The application to biological sequences began in the early 1990s with work by Gary Churchill on multiple alignment and by Krogh, Mian, and Haussler on gene finding.
-The Krogh et al.\ 1994 paper on profile HMMs for protein families was a landmark that connected the statistical learning perspective with the biological problem of protein family classification.
+The application to biological sequences began in the early 1990s with work by Gary Churchill on multiple alignment~\cite{churchill1989} and by Krogh, Mian, and Haussler on gene finding~\cite{krogh1994hmmgene}.
+The Krogh et al.\ 1994 paper on profile HMMs for protein families was a landmark that connected the statistical learning perspective with the biological problem of protein family classification~\cite{krogh1994}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/ch04_interpro_domain.png}
@@ -675,7 +675,7 @@ Today HMMER3 is the engine behind Pfam, InterPro, and the protein annotation pip
 \end{figure*}
 
 Position-specific scoring matrices predate profile HMMs.
-Gribskov, McLachlan, and Eisenberg introduced sequence profiles in 1987~\cite{gribskov1987}, and Henikoff and Henikoff developed the Blocks database of ungapped local alignments that was used to train substitution matrices and Dirichlet priors.
+Gribskov, McLachlan, and Eisenberg introduced sequence profiles in 1987~\cite{gribskov1987}, and Henikoff and Henikoff developed the Blocks database of ungapped local alignments that was used to train substitution matrices and Dirichlet priors~\cite{henikoff1992}.
 PSI-BLAST~\cite{altschul1997} made iterative profile searches widely accessible through the NCBI BLAST web server.
 The relationship between PSSMs and profile HMMs is discussed at length in Durbin et al.~\cite{durbin1998}, which also provides the clearest textbook treatment of Dirichlet mixture priors for biological sequence analysis.
 The use of Bayesian priors for estimating amino acid frequencies from small samples is one of the most successful applications of Bayesian statistics in computational biology, and the Dirichlet mixture approach of Sj\"olander et al.~\cite{sjolander1996} remains the standard in HMMER and related tools.

@@ -416,7 +416,7 @@ As the simulation progresses, the accumulated bias fills free energy basins, pus
 \end{equation}
 where $F(s)$ is the free energy as a function of the CV and $C$ is an immaterial constant.
 
-Standard metadynamics has a convergence problem: the bias continues to fluctuate around $-F(s)$ even after the landscape is filled, because Gaussians of constant height keep being deposited. Well-tempered metadynamics (Barducci, Bussi, and Parrinello, 2008) resolves this by decreasing the Gaussian height as the bias grows:
+Standard metadynamics has a convergence problem: the bias continues to fluctuate around $-F(s)$ even after the landscape is filled, because Gaussians of constant height keep being deposited. Well-tempered metadynamics (Barducci, Bussi, and Parrinello, 2008)~\cite{barducci2008} resolves this by decreasing the Gaussian height as the bias grows:
 \begin{equation}
 \label{eq:well-tempered}
 w(t) = w_0 \exp\!\left(-\frac{V_{\text{bias}}(s(t), t)}{k_B \Delta T}\right)
@@ -428,7 +428,7 @@ The choice of CVs is the art of metadynamics. Good CVs must distinguish the rele
 \subsection{Umbrella Sampling and WHAM}
 \label{sec:umbrella-sampling}
 
-Umbrella sampling, introduced by Torrie and Valleau in 1977, predates both REMD and metadynamics. The idea is to divide the reaction coordinate $s$ into overlapping windows and run separate simulations in each window with a biasing potential that confines the system near a target value $s_i$:
+Umbrella sampling, introduced by Torrie and Valleau in 1977~\cite{torrie1977}, predates both REMD and metadynamics. The idea is to divide the reaction coordinate $s$ into overlapping windows and run separate simulations in each window with a biasing potential that confines the system near a target value $s_i$:
 \begin{equation}
 \label{eq:umbrella-bias}
 w_i(s) = \frac{1}{2}k(s - s_i)^2
@@ -631,7 +631,7 @@ The story of the first MD simulations at Los Alamos and Argonne is told in Alder
 
 The Particle Mesh Ewald method~\cite{darden1993} transformed biomolecular simulation by making proper long-range electrostatics affordable. Before PME, most simulations used cutoffs of 8--10~\AA\ with various switching functions, leading to artifacts that we now know were responsible for incorrect folding thermodynamics and unstable protein simulations.
 
-Enhanced sampling remains an active research area. Laio and Parrinello's original metadynamics paper (2002) in \emph{PNAS} has been cited over 5000 times. The well-tempered variant (Barducci, Bussi, and Parrinello, 2008) solved the convergence problem. Tuckerman's \emph{Statistical Mechanics: Theory and Molecular Simulation}~\cite{tuckerman2023} provides a unified statistical-mechanical treatment of FEP, thermodynamic integration, Jarzynski's equality, transition path sampling, Wang--Landau sampling, metadynamics, and adiabatic free-energy dynamics; Figures~\ref{fig:binding-thermodynamic-cycles}--\ref{fig:tps-shooting} adapt schematic examples from that treatment. Modern developments include funnel metadynamics for binding free energies, on-the-fly probability enhanced sampling (OPES), and machine-learning approaches to collective variable discovery (including methods based on autoencoders and time-lagged independent component analysis).
+Enhanced sampling remains an active research area. Laio and Parrinello's original metadynamics paper (2002) in \emph{PNAS}~\cite{laio2002} has been cited over 5000 times. The well-tempered variant (Barducci, Bussi, and Parrinello, 2008)~\cite{barducci2008} solved the convergence problem. Tuckerman's \emph{Statistical Mechanics: Theory and Molecular Simulation}~\cite{tuckerman2023} provides a unified statistical-mechanical treatment of FEP, thermodynamic integration, Jarzynski's equality, transition path sampling, Wang--Landau sampling, metadynamics, and adiabatic free-energy dynamics; Figures~\ref{fig:binding-thermodynamic-cycles}--\ref{fig:tps-shooting} adapt schematic examples from that treatment. Modern developments include funnel metadynamics for binding free energies, on-the-fly probability enhanced sampling (OPES), and machine-learning approaches to collective variable discovery (including methods based on autoencoders and time-lagged independent component analysis).
 
 The connection between MD trajectories and experimental observables is discussed in the reviews by Lindorff-Larsen et al.\ (2005) on NMR validation and by Hub et al.\ (2010) on comparison with SAXS data. The principal component analysis approach to protein dynamics was formalized as ``essential dynamics'' by Amadei, Linssen, and Berendsen (1993).
 

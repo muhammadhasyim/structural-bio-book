@@ -1,10 +1,17 @@
 <script>
+// Quarto HTML uses MathJax 3; LaTeX macros from bm / babel (Å) are not available unless defined here.
 window.MathJax = {
   tex: {
     tags: "ams",
     tagSide: "right",
     tagIndent: "0.8em",
     packages: {"[+]": ["ams", "newcommand", "configmacros"]},
+    macros: {
+      // Angstrom (matches LaTeX textcomp / inputenc Å in math and inside \text{...})
+      AA: "\\unicode{x212B}",
+      // Bold math vectors/matrices (LaTeX bm package); MathJax has no bm — \boldsymbol is the usual substitute
+      bm: ["\\boldsymbol{#1}", 1],
+    },
   },
 };
 </script>

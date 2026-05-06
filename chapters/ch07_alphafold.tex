@@ -955,7 +955,7 @@ Foldseek encodes each backbone as a one-dimensional string over a learned ``3Di 
 This integration lets users start from a single predicted structure and discover structurally similar proteins across the entire database, including remote homologs undetectable by sequence alone.
 
 \newthought{Several community tools extend} the utility of AlphaFold predictions beyond what the core model provides.
-AlphaFill~\cite{hekkelman2022} transplants missing ligands and cofactors into predicted structures by finding experimental structures of close homologs that contain these molecules and transferring them based on structural alignment.
+AlphaFill~\cite{hekkelman2023} transplants missing ligands and cofactors into predicted structures by finding experimental structures of close homologs that contain these molecules and transferring them based on structural alignment.
 AlphaPulldown~\cite{stahl2023} automates large-scale protein--protein interaction screening with AlphaFold-Multimer, adding an analysis pipeline for scoring predicted interfaces, support for custom templates, and crosslink-based modelling through the AlphaLink integration.
 AlphaMissense~\cite{cheng2023} repurposes the AlphaFold2 architecture to classify the pathogenicity of all possible single amino acid substitutions in the human proteome.
 It assigns a pathogenicity score between 0 (benign) and 1 (pathogenic) by fine-tuning on a combination of evolutionary conservation and structural context learned during AlphaFold2 training.
