@@ -43,7 +43,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-90c9270c1203cfa5b05faa3852d83389.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -71,6 +71,16 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script>
+window.MathJax = {
+  tex: {
+    tags: "ams",
+    tagSide: "right",
+    tagIndent: "0.8em",
+    packages: {"[+]": ["ams", "newcommand", "configmacros"]},
+  },
+};
+</script>
 
 
 <link rel="stylesheet" href="website/quarto-tufte-overrides.css">
@@ -240,7 +250,13 @@ ul.task-list li input[type="checkbox"] {
 </li>
     </ul>
     </div>
-    
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#preface" id="toc-preface" class="nav-link active" data-scroll-target="#preface">Preface</a></li>
+  </ul>
+</nav>
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
@@ -255,10 +271,25 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+
+<section id="preface" class="level2">
+<h2 class="anchored" data-anchor-id="preface">Preface</h2><p><img src="cover.png" title="Structural Bioinformatics" class="quarto-cover-image nolightbox img-fluid"></p>
+<p>This book is a <strong>compiled knowledge base</strong>, not a monograph with a single author’s unified research program. The chapters were assembled from <strong>on-demand workshops</strong>, <strong>open courseware</strong>, and related notes, then rewritten into one linear narrative. The main public sources are:</p>
+<ul>
+<li><a href="https://www.ebi.ac.uk/training/materials/structural-bioinformatics-materials/">Structural bioinformatics (EMBL-EBI Training course materials)</a> (CC BY 4.0), for repositories, quality checks, comparative modeling, function from sequence and structure, complex modeling, and navigation of AI-predicted structures.</li>
+<li><a href="https://www.ebi.ac.uk/training/online/courses/alphafold/">AlphaFold: A practical guide (EMBL-EBI Training online tutorial)</a> (CC BY 4.0), for how AlphaFold works, validation, confidence metrics, database access, and downstream use.</li>
+<li><a href="https://ocw.mit.edu/courses/7-91j-foundations-of-computational-and-systems-biology-spring-2014/">Foundations of Computational and Systems Biology (MIT OpenCourseWare 7.91J, Spring 2014)</a>, for the broader computational-biology framing (sequence and structure analysis, prediction, and related methods) that sits alongside the structural focus.</li>
+</ul>
+<p>Additional fragments and equations that shaped drafts live under the repository’s <strong><code>mark/</code></strong> tree: extracted LaTeX and figures kept as <strong>local reference snapshots</strong> (textbook and course-style sources) used while writing; they are not redistributed as a standalone course.</p>
+<p>The prose is <strong>mostly produced with AI assistance in Cursor</strong>: prompts, edits, and fact checks were iterated in the editor; equations, citations, and figures were checked against the LaTeX build. Treat the result as <strong>lecture notes plus references</strong>, not as peer-reviewed curriculum. When something matters for your work, go back to the primary papers and to the courses above.</p>
+<p><strong>Figures</strong> in the book were pulled from the primary literature, documentation, and course PDFs in two ways: by <strong>working in Cursor</strong> (selecting regions, exporting crops, fixing filenames and <code>\includegraphics</code> paths in the LaTeX tree), and by using <strong><a href="https://mathpix.com/">Mathpix</a></strong> to snip or OCR equations and diagram fragments from PDFs when that was faster than redrawing or retyping. Either route still required checking labels, aspect ratio, and licensing (journal CC-BY figures, supplementary PDFs, and similar) before inclusion.</p>
+<p>Stylistically, the target was the tone of Moritz Hardt and Benjamin Recht’s <em><a href="https://mlstory.org/">Patterns, Predictions, and Actions</a></em>: define terms, state assumptions, prove or sketch what is needed, and move on. Fluff is noise; redundancy is a bug.</p>
+<hr>
 <p>This site is the HTML edition of <em>Structural Bioinformatics</em>, built from the same LaTeX sources as the PDF (<code>main.tex</code> and <code>chapters/</code>). Chapters are generated before each render (<code>python3 website/quarto_gen.py</code> via <code>pre-render</code>).</p>
 <p>For the print-oriented PDF, build with <code>latexmk -pdf main.tex</code> as described in the repository README.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
