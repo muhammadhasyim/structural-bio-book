@@ -29,6 +29,11 @@ jobs:
         with:
           pandoc-version: "3.6"
 
+      # Quarto 4 resolves book chapter paths before project pre-render runs, so
+      # gitignored quarto/_generated/*.qmd must exist before `quarto render`.
+      - name: Generate chapter sources
+        run: python3 website/quarto_gen.py
+
       - name: Build site
         run: quarto render
 
