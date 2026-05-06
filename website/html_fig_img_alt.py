@@ -8,10 +8,11 @@ Post-render HTML fixes for Quarto ``_book`` output.
    putting the caption in ``<figcaption class="margin-caption">``. Browsers and assistive tech
    then surface a bare word like "image".
 
-2. Unwrap ``\\[ ... \\]`` around AMS ``equation`` / ``align`` / … blocks inside ``span.math.display``.
+2. Unwrap ``\\[ ... \\]`` around AMS display envs (``equation``, ``align``, ``aligned``, …) in
+   ``span.math.display``. Nesting breaks MathJax AMS numbering and ``\\eqref`` / ``\\ref`` (often "???").
 
-   Quarto emits display math as ``\\[ ... \\]``; an inner ``\\begin{equation}`` is then nested in
-   display mode, which prevents MathJax AMS numbering and breaks ``\\eqref`` (often shown as "???").
+3. Some Quarto/Pandoc versions emit ``\\[\\label{eq:...} ... \\]`` instead of ``\\begin{equation}``.
+   Those spans get rewritten to ``\\begin{equation}\\label{...} ... \\end{equation}``.
 """
 from __future__ import annotations
 
@@ -35,7 +36,11 @@ _TAG = re.compile(r"<[^>]+>")
 # ``equation`` and ``align`` already open display mode; nesting breaks tagging,
 # equation numbers, and ``\eqref`` (often shown as ``???`` in the browser).
 _AMS_NESTABLE_ENV = (
-    r"equation\*?|align\*?|gather\*?|multline\*?|flalign\*?|eqnarray\*?"
+    r"equation\*?|align\*?|aligned|gather\*?|multline\*?|flalign\*?|eqnarray\*?"
+)
+_DISPLAY_MATH_SPAN_RE = re.compile(
+    r'<span\s+class="math display">(.*?)</span>',
+    re.DOTALL | re.IGNORECASE,
 )
 _NESTED_AMS_ENV_OPEN_RE = re.compile(
     r"\\\[\s*(?P<begin>\\begin\{(" + _AMS_NESTABLE_ENV + r")\})"
@@ -50,6 +55,33 @@ def unwrap_nested_amsmath_display_delimiters(html: str) -> str:
 
     html = _NESTED_AMS_ENV_OPEN_RE.sub(lambda m: m.group("begin"), html)
     html = _NESTED_AMS_ENV_CLOSE_RE.sub(lambda m: m.group("end"), html)
+    return html
+
+
+def convert_label_only_display_spans(html: str) -> str:
+    """
+    Pandoc sometimes outputs ``\\[\\label{eq:...} ... \\]`` (no ``equation`` env). MathJax then
+    fails to tag/number, so ``\\ref`` becomes ???. Wrap as ``\\begin{equation}...\\end{equation}``.
+    """
+
+    def repl(m: re.Match[str]) -> str:
+        inner = m.group(1)
+        t = inner.strip()
+        if len(t) < 4 or not t.startswith(r"\[") or not t.endswith(r"\]"):
+            return m.group(0)
+        body = t[2:-2].strip()
+        if body.startswith(r"\label{") and r"\begin{" not in body:
+            fixed = r"\begin{equation}" + body + r"\end{equation}"
+            return '<span class="math display">' + fixed + "</span>"
+        return m.group(0)
+
+    return _DISPLAY_MATH_SPAN_RE.sub(repl, html)
+
+
+def patch_math_for_github_pages(html: str) -> str:
+    """Apply all HTML math normalizations (order matters)."""
+    html = unwrap_nested_amsmath_display_delimiters(html)
+    html = convert_label_only_display_spans(html)
     return html
 
 
@@ -113,7 +145,7 @@ def main() -> None:
     n_files = 0
     for path in sorted(out_dir.rglob("*.html")):
         text = path.read_text(encoding="utf-8")
-        new_text = patch_html_document(unwrap_nested_amsmath_display_delimiters(text))
+        new_text = patch_html_document(patch_math_for_github_pages(text))
         if new_text != text:
             path.write_text(new_text, encoding="utf-8")
             n_files += 1
@@ -126,13 +158,25 @@ def _self_test() -> None:
 <p><img src="figures/x.png" class="img-fluid figure-img"></p>
 <figcaption class="margin-caption">Myoglobin side view.</figcaption>
 </figure>"""
-    out = patch_html_document(unwrap_nested_amsmath_display_delimiters(sample))
+    out = patch_html_document(patch_math_for_github_pages(sample))
     assert 'alt="Myoglobin side view."' in out
 
     eq = '<span class="math display">\\[\\begin{equation}x\\end{equation}\\]</span>'
-    out_eq = unwrap_nested_amsmath_display_delimiters(eq)
+    out_eq = patch_math_for_github_pages(eq)
     assert "\\[" not in out_eq
     assert "\\begin{equation}x\\end{equation}" in out_eq
+
+    lab = (
+        '<span class="math display">\\[\\label{eq:z} Z = 1\\]</span>'
+    )
+    out_lab = patch_math_for_github_pages(lab)
+    assert "\\[" not in out_lab
+    assert "\\begin{equation}\\label{eq:z} Z = 1\\end{equation}" in out_lab
+
+    al = '<span class="math display">\\[\\begin{aligned} a \\\\ b \\end{aligned}\\]</span>'
+    out_al = patch_math_for_github_pages(al)
+    assert "\\[" not in out_al
+    assert "\\begin{aligned}" in out_al
 
 
 if __name__ == "__main__":
