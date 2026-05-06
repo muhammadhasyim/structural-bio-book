@@ -45,11 +45,11 @@ No one aligns more than a handful of sequences exactly.
 \subsection{Progressive Alignment}
 \label{sec:progressive-alignment}
 
-The workhorse approximation is progressive alignment, the strategy behind CLUSTAL~W and its successor CLUSTAL~$\Omega$.
+The workhorse approximation is progressive alignment, the strategy behind CLUSTAL~W~\cite{thompson1994} and its successor CLUSTAL~$\Omega$~\cite{sievers2011}.
 The idea is straightforward.
 First, compute all $\binom{k}{2}$ pairwise alignments and extract a distance matrix from the pairwise scores.
 Second, build a guide tree from the distance matrix, typically by neighbor-joining or UPGMA.
-Third, align the sequences following the guide tree from leaves to root: align the two closest sequences first, then successively align each next-closest sequence or group to the growing alignment.\sidenote{J.\ D.\ Thompson, D.\ G.\ Higgins, and T.\ J.\ Gibson. CLUSTAL~W: improving the sensitivity of progressive multiple sequence alignment through sequence weighting, position-specific gap penalties, and weight matrix choice. \textit{Nucleic Acids Res.}, 22(22):4673--4680, 1994.}
+Third, align the sequences following the guide tree from leaves to root: align the two closest sequences first, then successively align each next-closest sequence or group to the growing alignment.
 
 Progressive alignment is fast, $O(k^2 L^2)$ in practice, but it has a well-known flaw: errors made at early stages propagate upward and are never corrected.
 If the guide tree is wrong, or if two sequences are misaligned at the first merge, every subsequent addition inherits that error.
@@ -556,7 +556,7 @@ The model is stripped down to its match states only, with no insert or delete st
 Scoring reduces to finding the highest-scoring set of ungapped segments that align subsequences of the target to contiguous blocks of match states.
 
 The critical implementation detail is SIMD vectorization.\sidenote{SIMD stands for Single Instruction, Multiple Data. Modern CPUs can perform the same operation on 16 or 32 bytes simultaneously using SSE or AVX instructions.}
-Farrar's 2007 striped Smith--Waterman algorithm showed that dynamic programming over a scoring profile can be parallelized across multiple target residues using SIMD registers.
+Farrar's 2007 striped Smith--Waterman algorithm~\cite{farrar2007} showed that dynamic programming over a scoring profile can be parallelized across multiple target residues using SIMD registers.
 HMMER3 adapts this approach, processing 16 target residues simultaneously on SSE hardware (or 32 on AVX).
 The MSV filter runs at approximately the speed of BLAST and retains only about 2\% of database sequences for further analysis.
 
@@ -665,7 +665,7 @@ Eddy's HMMER software has gone through three major versions, each representing a
 HMMER1 (1995) implemented the profile HMM framework of Krogh et al.\ but was far slower than BLAST.
 HMMER2 (1998) added Viterbi-based filtering and was competitive with PSI-BLAST in sensitivity, but still roughly 100 times slower.
 HMMER3 (2011) introduced the MSV/Viterbi/Forward filter pipeline described in \cref{sec:hmmer3}, achieving sensitivity equal to or greater than HMMER2 at speeds comparable to BLAST.
-The key technical contributions were the MSV filter, the use of SIMD vectorization following Farrar's striped algorithm, and the wing-folding trick for efficient local alignment.
+The key technical contributions were the MSV filter, the use of SIMD vectorization following Farrar's striped algorithm~\cite{farrar2007}, and the wing-folding trick for efficient local alignment.
 Today HMMER3 is the engine behind Pfam, InterPro, and the protein annotation pipelines of most genome projects.
 
 \begin{figure*}
@@ -675,12 +675,12 @@ Today HMMER3 is the engine behind Pfam, InterPro, and the protein annotation pip
 \end{figure*}
 
 Position-specific scoring matrices predate profile HMMs.
-Gribskov, McLachlan, and Eisenberg introduced sequence profiles in 1987, and Henikoff and Henikoff developed the Blocks database of ungapped local alignments that was used to train substitution matrices and Dirichlet priors.
+Gribskov, McLachlan, and Eisenberg introduced sequence profiles in 1987~\cite{gribskov1987}, and Henikoff and Henikoff developed the Blocks database of ungapped local alignments that was used to train substitution matrices and Dirichlet priors.
 PSI-BLAST~\cite{altschul1997} made iterative profile searches widely accessible through the NCBI BLAST web server.
 The relationship between PSSMs and profile HMMs is discussed at length in Durbin et al.~\cite{durbin1998}, which also provides the clearest textbook treatment of Dirichlet mixture priors for biological sequence analysis.
-The use of Bayesian priors for estimating amino acid frequencies from small samples is one of the most successful applications of Bayesian statistics in computational biology, and the Dirichlet mixture approach of Sj\"olander et al.\ (1996) remains the standard in HMMER and related tools.
+The use of Bayesian priors for estimating amino acid frequencies from small samples is one of the most successful applications of Bayesian statistics in computational biology, and the Dirichlet mixture approach of Sj\"olander et al.~\cite{sjolander1996} remains the standard in HMMER and related tools.
 
 Multiple sequence alignment is a field unto itself, with a long and contentious history of benchmarks and competitions.
 The BAliBASE, PREFAB, and SABmark benchmarks have driven progress, but all are limited by the difficulty of defining ``correct'' alignment at low sequence identity.
-Thompson et al.'s CLUSTAL~W (1994) was the most cited bioinformatics paper for many years, and T-Coffee~\cite{notredame2000} introduced the consistency principle that influenced subsequent methods including PROBCONS, MUSCLE, and MAFFT.
+Thompson et al.'s CLUSTAL~W~\cite{thompson1994} was the most cited bioinformatics paper for many years, and T-Coffee~\cite{notredame2000} introduced the consistency principle that influenced subsequent methods including PROBCONS, MUSCLE, and MAFFT.
 For very large alignments ($>10{,}000$ sequences), CLUSTAL~$\Omega$ and MAFFT are the usual choices; both use heuristic guide trees and iterative refinement to scale to the family sizes encountered in modern protein databases.

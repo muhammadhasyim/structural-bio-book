@@ -16,7 +16,7 @@ The prose was drafted mostly with AI assistance in Cursor: prompts, edits, and f
 
 Figures were taken from the primary literature, documentation, and course PDFs in two ways: by working in Cursor (selecting regions, exporting crops, fixing filenames and `\includegraphics` paths in the LaTeX tree), and by using [Mathpix](https://mathpix.com/) to snip or OCR equations and diagram fragments from PDFs when that was faster than redrawing or retyping. Either route still required checking labels, aspect ratio, and licensing (journal CC-BY figures, supplementary PDFs, and similar) before inclusion.
 
-Stylistically, the target was the tone of Moritz Hardt and Benjamin Recht's *[Patterns, Predictions, and Actions](https://mlstory.org/)*: define terms, state assumptions, prove or sketch what is needed, and move on. Fluff is noise; redundancy is a bug.
+Stylistically, the target was the tone of Moritz Hardt and Benjamin Recht's *[Patterns, Predictions, and Actions](https://mlstory.org/)*. Define terms, state assumptions, prove or sketch what is needed, and move on to the next idea.
 
 ---
 
