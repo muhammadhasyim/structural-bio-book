@@ -26,6 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Book build does not use submodules; a broken gitlink without .gitmodules breaks
+          # `submodule update` if submodules are ever enabled org-wide.
+          submodules: false
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
