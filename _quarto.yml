@@ -5,6 +5,9 @@ project:
     - python3 website/quarto_gen.py
   resources:
     - figures/**
+    # GitHub Pages runs Jekyll on gh-pages by default; it omits paths with underscore dirs
+    # (e.g. quarto/_generated/). This file disables Jekyll so chapter HTML is published.
+    - .nojekyll
 
 book:
   title: "Structural Bioinformatics"

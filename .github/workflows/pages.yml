@@ -37,6 +37,9 @@ jobs:
       - name: Build site
         run: quarto render
 
+      - name: Disable Jekyll on Pages (underscore paths like quarto/_generated/)
+        run: test -f _book/.nojekyll || touch _book/.nojekyll
+
       - name: Push site to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:
