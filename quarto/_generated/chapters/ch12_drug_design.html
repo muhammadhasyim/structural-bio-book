@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Chemical Biology and Structure-Based Drug Design – Structural Bioinformatics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../references.html" rel="next">
+<link href="../../../quarto/_generated/chapters/ch11_disorder.html" rel="prev">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../website/quarto-tufte-overrides.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch11_disorder.html">Special Topics</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch12_drug_design.html"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../../">Structural Bioinformatics</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/muhammadhasyim/structural-bio-book" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Bioinformatics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Biology: Physical Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch02_data_quality.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Sequence Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Pairwise Sequence Alignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Protein Classification</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Structure Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Homology Modeling and Threading</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch08_alphafill.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Completing Predicted Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactions and Dynamics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Docking</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Dynamics Simulations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Special Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Intrinsically Disordered Proteins</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch12_drug_design.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../references.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">—</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ch12-drug-design-sec:mol-representations" id="toc-ch12-drug-design-sec:mol-representations" class="nav-link active" data-scroll-target="#ch12-drug-design-sec\:mol-representations">Small Molecule Representations</a>
+  <ul class="collapse">
+  <li><a href="#ch12-drug-design-sec:smiles" id="toc-ch12-drug-design-sec:smiles" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:smiles">SMILES Notation</a></li>
+  <li><a href="#ch12-drug-design-sec:inchi" id="toc-ch12-drug-design-sec:inchi" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:inchi">The InChI Standard</a></li>
+  <li><a href="#ch12-drug-design-sec:descriptors" id="toc-ch12-drug-design-sec:descriptors" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:descriptors">Molecular Descriptors and Drug-Likeness</a></li>
+  </ul></li>
+  <li><a href="#ch12-drug-design-sec:chem-databases" id="toc-ch12-drug-design-sec:chem-databases" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:chem-databases">Chemical Databases</a>
+  <ul class="collapse">
+  <li><a href="#ch12-drug-design-sec:chembl" id="toc-ch12-drug-design-sec:chembl" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:chembl">ChEMBL</a></li>
+  <li><a href="#ch12-drug-design-sec:other-databases" id="toc-ch12-drug-design-sec:other-databases" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:other-databases">PubChem, DrugBank, and ZINC</a></li>
+  <li><a href="#ch12-drug-design-sec:data-quality" id="toc-ch12-drug-design-sec:data-quality" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:data-quality">Data Quality</a></li>
+  </ul></li>
+  <li><a href="#ch12-drug-design-sec:sar" id="toc-ch12-drug-design-sec:sar" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:sar">Structure-Activity Relationships</a>
+  <ul class="collapse">
+  <li><a href="#ch12-drug-design-sec:mmps" id="toc-ch12-drug-design-sec:mmps" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:mmps">Matched Molecular Pairs</a></li>
+  <li><a href="#ch12-drug-design-sec:activity-cliffs" id="toc-ch12-drug-design-sec:activity-cliffs" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:activity-cliffs">Activity Cliffs</a></li>
+  <li><a href="#ch12-drug-design-sec:qsar" id="toc-ch12-drug-design-sec:qsar" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:qsar">Quantitative Structure-Activity Relationships</a></li>
+  </ul></li>
+  <li><a href="#ch12-drug-design-sec:mol-similarity" id="toc-ch12-drug-design-sec:mol-similarity" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:mol-similarity">Molecular Similarity and Fingerprints</a>
+  <ul class="collapse">
+  <li><a href="#ch12-drug-design-sec:fingerprints" id="toc-ch12-drug-design-sec:fingerprints" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:fingerprints">Structural Fingerprints</a></li>
+  <li><a href="#ch12-drug-design-sec:tanimoto" id="toc-ch12-drug-design-sec:tanimoto" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:tanimoto">The Tanimoto Coefficient</a></li>
+  <li><a href="#ch12-drug-design-sec:similarity-property" id="toc-ch12-drug-design-sec:similarity-property" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:similarity-property">The Similarity-Property Principle</a></li>
+  </ul></li>
+  <li><a href="#ch12-drug-design-sec:virtual-screening" id="toc-ch12-drug-design-sec:virtual-screening" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:virtual-screening">Virtual Screening</a>
+  <ul class="collapse">
+  <li><a href="#ch12-drug-design-sec:ligand-based" id="toc-ch12-drug-design-sec:ligand-based" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:ligand-based">Ligand-Based Approaches</a></li>
+  <li><a href="#ch12-drug-design-sec:docking-screening" id="toc-ch12-drug-design-sec:docking-screening" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:docking-screening">Structure-Based Docking</a></li>
+  <li><a href="#ch12-drug-design-sec:vs-evaluation" id="toc-ch12-drug-design-sec:vs-evaluation" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:vs-evaluation">Evaluating Virtual Screens</a></li>
+  </ul></li>
+  <li><a href="#ch12-drug-design-sec:sbdd" id="toc-ch12-drug-design-sec:sbdd" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:sbdd">Structure-Based Drug Design</a>
+  <ul class="collapse">
+  <li><a href="#ch12-drug-design-sec:fbdd" id="toc-ch12-drug-design-sec:fbdd" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:fbdd">Fragment-Based Approaches</a></li>
+  <li><a href="#ch12-drug-design-sec:lead-opt" id="toc-ch12-drug-design-sec:lead-opt" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:lead-opt">Lead Optimization</a></li>
+  <li><a href="#ch12-drug-design-sec:fep" id="toc-ch12-drug-design-sec:fep" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:fep">Free Energy Perturbation</a></li>
+  </ul></li>
+  <li><a href="#ch12-drug-design-sec:ch12-notes" id="toc-ch12-drug-design-sec:ch12-notes" class="nav-link" data-scroll-target="#ch12-drug-design-sec\:ch12-notes">Chapter Notes</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch11_disorder.html">Special Topics</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch12_drug_design.html"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a></li></ol></nav><h1 class="title display-7"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></h1></header>
+
+<header id="title-block-header">
+
+
+</header>
+
+
+<p>In 1960, two researchers at the University of Pennsylvania, Peter Nowell and David Hungerford, reported a consistent chromosomal abnormality in the white blood cells of patients with chronic myeloid leukemia. The abnormality was a small, truncated chromosome that appeared in leukemic cells but not in normal tissue from the same patients. They named it the Philadelphia chromosome. It took two more decades to understand what it meant at the molecular level. In 1973, Janet Rowley demonstrated that the Philadelphia chromosome arose from a reciprocal translocation between chromosomes 9 and 22, and by the mid-1980s the molecular consequence was known: the translocation fused the BCR gene on chromosome 22 to the ABL1 tyrosine kinase on chromosome 9, producing a chimeric BCR-ABL protein with constitutive kinase activity.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> This runaway kinase drove the uncontrolled proliferation of myeloid cells. CML patients faced a median survival of three to five years, and the only curative option was a bone marrow transplant, available to fewer than a third of patients.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;The BCR-ABL fusion protein retains the kinase domain of ABL1 but loses the regulatory N-terminal cap. The result is a kinase that is always on, phosphorylating downstream substrates that drive cell proliferation and inhibit apoptosis.</p></div><div id="fn2"><p><sup>2</sup>&nbsp;STI-571 also inhibited the PDGF receptor and the c-KIT kinase, both of which share structural features with ABL in their inactive conformations. This cross-reactivity later proved therapeutically useful: imatinib is now also approved for gastrointestinal stromal tumors driven by c-KIT mutations.</p></div></div><p><strong>At Ciba-Geigy in Basel</strong> (later Novartis), a kinase inhibitor program had been running since the late 1980s. The chemist Jürg Zimmermann was synthesizing 2-phenylaminopyrimidine derivatives, screening them against a panel of kinases. One compound, designated STI-571, stood out: it inhibited the ABL kinase with an IC<span class="math inline">\(_{50}\)</span> of roughly 25&nbsp;nM while showing much weaker activity against most other kinases.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Brian Druker, an oncologist at Oregon Health &amp; Science University who had spent years arguing that BCR-ABL was the right therapeutic target for CML, obtained samples of STI-571 and tested it against cell lines. The compound killed BCR-ABL-positive cells at concentrations that left normal cells unharmed.</p>
+<p>The explanation came from crystallography. In 2000, Schindler and colleagues solved the structure of the ABL kinase domain bound to STI-571 and revealed a specific recognition mechanism <span class="citation" data-cites="schindler2000">(<a href="../../../references.html#ref-schindler2000" role="doc-biblioref">Schindler et al. 2000</a>)</span>. The drug occupied the ATP-binding cleft, as expected, but it did so by binding the kinase in its enzymatically inactive conformation, the so-called DFG-out state. In this conformation, a conserved Asp-Phe-Gly motif at the base of the activation loop flips outward, opening a hydrophobic pocket adjacent to the ATP site that is absent in the active conformation. STI-571 wedged into this pocket, making hydrogen bonds with the hinge region and van der Waals contacts with the displaced DFG motif. The drug did not simply block the active site. It trapped the kinase in a state where it could not function. This selectivity for the inactive conformation explained why STI-571 discriminated between ABL and the many structurally similar kinases that rarely adopt the DFG-out state.</p>
+<p>Clinical trials began in June 1998. In the Phase&nbsp;I study, 53 of 54 chronic-phase CML patients achieved complete hematologic responses within weeks of starting treatment <span class="citation" data-cites="druker2001">(<a href="../../../references.html#ref-druker2001" role="doc-biblioref"><span class="nocase">Druker et al.</span> 2001</a>)</span>. The FDA approved imatinib (marketed as Gleevec) in May 2001 after a review of just two and a half months. Five-year overall survival for chronic-phase CML patients on imatinib exceeded 89%, compared with roughly 30% under prior therapies. A disease that had been a death sentence became a chronic condition managed with a daily pill.</p>
+<p>Imatinib’s success was not accidental. It required decades of accumulated knowledge: the molecular biology of BCR-ABL, the structural biology of kinase conformations, the medicinal chemistry of selective inhibitors, and the clinical willingness to pursue a targeted therapy when most oncology drugs were cytotoxic poisons. Not every drug design program will produce an imatinib. Most will fail. But the computational and conceptual tools behind the effort are the subject of this chapter. We begin with the languages used to represent small molecules in machine-readable form, then turn to the databases that store experimental measurements of their biological activities. From there we develop the quantitative methods that relate molecular structure to activity, and close with the computational approaches that use protein structures to guide the design of new drugs.</p>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch12_drug_pipeline.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<section id="ch12-drug-design-sec:mol-representations" class="level1 page-columns page-full">
+<h1>Small Molecule Representations</h1>
+<p>Before we can search databases, compute molecular properties, or dock a compound into a protein binding site, we need a way to represent molecules as strings and numbers. Three representations dominate computational chemistry. SMILES strings encode molecular graphs as human-readable text. InChI identifiers provide canonical, unique names for chemical substances. And numerical molecular descriptors reduce a molecule to a vector of physicochemical properties that can serve as features in statistical models.</p>
+<section id="ch12-drug-design-sec:smiles" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:smiles">SMILES Notation</h2>
+<p><strong>The Simplified Molecular-Input</strong> Line-Entry System (SMILES) was developed by David Weininger in the late 1980s as a compact, human-readable notation for chemical structures <span class="citation" data-cites="weininger1988">(<a href="../../../references.html#ref-weininger1988" role="doc-biblioref">Weininger 1988</a>)</span>. A SMILES string represents a molecular graph in which atoms are nodes and bonds are edges. Hydrogen atoms bonded to carbon, nitrogen, oxygen, and sulfur are implicit and omitted from the string, keeping the notation compact. Atoms are written as their elemental symbols: <code>C</code> for carbon, <code>N</code> for nitrogen, <code>O</code> for oxygen, <code>S</code> for sulfur. Single bonds between adjacent atoms in the string are implied and need not be written explicitly. Double bonds are marked with <code>=</code>, triple bonds with <code>#</code>. Aromatic atoms are written in lowercase: <code>c</code>, <code>n</code>, <code>o</code>.</p>
+<p>Branches are enclosed in parentheses. In the string <code>CC(=O)O</code>, the first <code>C</code> is bonded to the second <code>C</code>, which has a double-bonded oxygen (the <code>=O</code> branch) and a single-bonded oxygen, giving acetic acid. Ring closures are indicated by matching digits placed after the atoms where the ring opens and closes. Cyclohexane is <code>C1CCCCC1</code>: the digit <code>1</code> after the first and last carbons indicates that they are bonded, completing a six-membered ring. Benzene, with its aromatic system, is <code>c1ccccc1</code>.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;SMILES encodes aromaticity by lowercase atom symbols. The Kekulé form <code>C1=CC=CC=C1</code> is also valid but less commonly used.</p></div></div><p>SMILES can encode stereochemistry. Tetrahedral chirality uses the <code>@</code> and <code>@@</code> symbols to specify the handedness of substituents around a chiral center. The string <code>N[C@@H](C)C(=O)O</code> specifies L-alanine, while <code>N[C@H](C)C(=O)O</code> specifies D-alanine. Geometric isomerism around double bonds uses <code>/</code> and <code>\</code> to indicate the relative orientation of substituents: <code>F/C=C/F</code> is <em>trans</em>-1,2-difluoroethene, and <code>F/C=C\F</code> is the <em>cis</em> isomer.</p>
+<p>A more complex example is aspirin, whose SMILES is <code>CC(=O)Oc1ccccc1C(=O)O</code>. The string begins with an acetyl group (<code>CC(=O)O</code>), continues through an ester oxygen to a benzene ring (<code>c1ccccc1</code>), and ends with a carboxylic acid (<code>C(=O)O</code>). Twenty-one characters encode the complete molecular graph. But SMILES has one significant limitation: a given molecule can have many valid SMILES strings, depending on where the traversal begins and how branches are ordered. Aspirin could equally be written as <code>O=C(C)Oc1ccccc1C(O)=O</code>. The lack of a unique representation complicates exact-match searches in databases. Canonical SMILES algorithms, implemented in toolkits such as RDKit and OpenBabel, solve this by defining a deterministic traversal order, but the canonical form differs across implementations.</p>
+</section>
+<section id="ch12-drug-design-sec:inchi" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:inchi">The InChI Standard</h2>
+<p><strong>The International Chemical Identifier</strong> (InChI) was developed by IUPAC and NIST to provide a unique, canonical string representation for any chemical substance. Unlike SMILES, InChI produces exactly one string per molecule, regardless of how the input structure is drawn or which software generates it. The representation is layered: the main layer encodes the molecular formula and the connection table (which atoms are bonded to which), while additional layers encode charge, stereochemistry, isotope labels, and other structural features. Each layer is separated by a forward slash. For aspirin, the InChI is</p>
+<div class="center">
+<p><code>InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)</code></p>
+</div>
+<p>The prefix <code>1S</code> indicates standard InChI version 1. The formula layer gives <code>C9H8O4</code>. The connection layer (<code>/c...</code>) encodes the bonding topology as a sequence of atom-number pairs.</p>
+<p>For database lookups, full InChI strings are often unwieldy. The InChIKey hashes a full InChI into a fixed-length 27-character string. For aspirin, this is <code>BSYNRYMUTXBXSQ-UHFFFAOYSA-N</code>. The first 14 characters encode the connectivity layer, a separator follows, and the remaining characters encode stereochemistry and charge. InChIKeys are short enough to serve as database indices and web search queries, though hash collisions are theoretically possible.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;The probability of an InChIKey collision is estimated at approximately <span class="math inline">\(10^{-9}\)</span> for a database of <span class="math inline">\(10^{9}\)</span> compounds, which is small but nonzero. For exact identification, the full InChI should be used.</p></div></div></section>
+<section id="ch12-drug-design-sec:descriptors" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:descriptors">Molecular Descriptors and Drug-Likeness</h2>
+<p><strong>A molecule’s structure determines</strong> its physical and biological properties, but the mapping between structure and properties is complicated. Molecular descriptors are numerical quantities computed from the molecular graph or 3D coordinates that capture aspects of size, shape, polarity, and electronic structure. The simplest descriptors are counts and sums: molecular weight (MW), the number of hydrogen bond donors (HBD, counting N–H and O–H groups), the number of hydrogen bond acceptors (HBA, counting nitrogen and oxygen atoms), and the number of rotatable bonds. The octanol-water partition coefficient, <span class="math inline">\(\log P\)</span>, measures lipophilicity: how strongly a molecule partitions into an organic phase relative to water. <span class="math inline">\(\log P\)</span> can be computed from fragment-based models (such as the Wildman-Crippen method) or measured experimentally by the shake-flask method. The topological polar surface area (TPSA) estimates the molecular surface area contributed by nitrogen, oxygen, and their attached hydrogens, and correlates with a molecule’s ability to cross cell membranes by passive diffusion.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;TPSA was introduced by Ertl, Rohde, and Selzer in 2000 as a fast, fragment-based approximation to the computationally expensive 3D polar surface area. Compounds with TPSA above roughly 140&nbsp;Å<span class="math inline">\(^2\)</span> tend to have poor intestinal absorption.</p></div></div><p>In 1997, Christopher Lipinski and colleagues at Pfizer analyzed the properties of compounds that had reached Phase&nbsp;II clinical trials and found simple thresholds distinguishing orally bioavailable drugs from compounds that failed in development <span class="citation" data-cites="lipinski2001">(<a href="../../../references.html#ref-lipinski2001" role="doc-biblioref">Lipinski et al. 1997</a>)</span>. Their Rule of Five states that poor absorption or permeation is more likely when a compound has molecular weight above 500&nbsp;Da, <span class="math inline">\(\log P\)</span> above 5, more than 5 hydrogen bond donors, or more than 10 hydrogen bond acceptors. The name comes from the multiples of five in these cutoffs. The rule is a filter, not a law: many successful drugs violate one or more criteria (cyclosporine, with MW&nbsp;1202 and numerous violations, is orally bioavailable), and many compounds satisfying all four criteria still fail for other reasons. But as a first-pass triage for large compound libraries, the Rule of Five remains widely applied. Molecular descriptors also serve as features for statistical models: a set of <span class="math inline">\(n\)</span> compounds, each characterized by <span class="math inline">\(p\)</span> descriptors, produces an <span class="math inline">\(n \times p\)</span> matrix that can feed regression, classification, or clustering algorithms. This is the basis of quantitative structure-activity relationships, which we develop in Section&nbsp;<a href="#sec:qsar" data-reference-type="ref" data-reference="sec:qsar">3.3</a>.</p>
+</section>
+</section>
+<section id="ch12-drug-design-sec:chem-databases" class="level1 page-columns page-full">
+<h1>Chemical Databases</h1>
+<p>When a medicinal chemistry program begins, the first question is always the same: what is already known? Which compounds have been tested against this target? What activities were measured? What structural features correlate with potency? Public chemical databases store the accumulated answers to these questions, curated from decades of published literature and deposited screening data.</p>
+<section id="ch12-drug-design-sec:chembl" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:chembl">ChEMBL</h2>
+<p><strong>ChEMBL is a manually curated database</strong> of bioactive molecules, maintained by the European Bioinformatics Institute <span class="citation" data-cites="gaulton2012">(<a href="../../../references.html#ref-gaulton2012" role="doc-biblioref">Gaulton et al. 2012</a>)</span>. Its data model reflects the structure of medicinal chemistry experiments. At the center are three entities: compounds (identified by ChEMBL IDs and stored with SMILES strings, InChI identifiers, and computed descriptors), assays (describing how biological activity was measured, including the assay format, organism, and target), and targets (proteins, protein complexes, or whole organisms against which activity was measured). Each activity record links a compound to an assay and reports a numerical bioactivity value with its type and units.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;As of ChEMBL&nbsp;33, the database contained approximately 2.4&nbsp;million distinct compounds, 1.6&nbsp;million assays, 15,500 targets, and 20&nbsp;million activity values. These numbers grow with each release.</p></div></div><div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch12_target_types.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p>The most common bioactivity types in ChEMBL are IC<span class="math inline">\(_{50}\)</span> (the compound concentration producing 50% inhibition of a biological process), <span class="math inline">\(K_i\)</span> (the inhibition constant derived from enzyme kinetics), <span class="math inline">\(K_d\)</span> (the dissociation constant measured by biophysical methods such as surface plasmon resonance or isothermal titration calorimetry), and EC<span class="math inline">\(_{50}\)</span> (the concentration producing 50% of maximal effect in a cell-based assay). These quantities measure different things and are not directly comparable. An IC<span class="math inline">\(_{50}\)</span> depends on assay conditions (substrate concentration, incubation time), while a <span class="math inline">\(K_i\)</span> or <span class="math inline">\(K_d\)</span> is a thermodynamic property of the compound-target interaction. Mixing activity types without careful annotation is a common source of error in computational analyses.</p>
+<p>ChEMBL assigns a confidence score between 0 and 9 to each target assignment, reflecting how directly the assay measures activity against the stated target. A score of 9 means the target was identified at the single-protein level (for example, a biochemical assay against purified enzyme). A score of 1 means the target assignment is at the organism level (a phenotypic screen in a whole animal). These scores matter for computational work: training a predictive model on data with confidence scores below 5 introduces substantial noise from indirect or ambiguous target assignments.</p>
+</section>
+<section id="ch12-drug-design-sec:other-databases" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:other-databases">PubChem, DrugBank, and ZINC</h2>
+<p><strong>PubChem</strong>, maintained by the National Center for Biotechnology Information, is the largest public repository of chemical information <span class="citation" data-cites="kim2019">(<a href="../../../references.html#ref-kim2019" role="doc-biblioref"><span class="nocase">Kim et al.</span> 2019</a>)</span>.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> It consists of three interlinked databases: Substance (raw deposited records, often with duplicates across sources), Compound (unique chemical structures derived by standardizing Substance records), and BioAssay (biological screening results). PubChem’s strength is breadth: it aggregates data from hundreds of sources, including ChEMBL, patent filings, government screening programs, and academic depositions. The tradeoff is heterogeneity. Much of the deposited data is unfiltered, and bioassay results vary widely in quality, protocol, and relevance to drug discovery.</p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;As of 2024, PubChem Compound contained over 115&nbsp;million unique structures. These numbers grow continuously as new data sources are integrated.</p></div><div id="fn8"><p><sup>8</sup>&nbsp;DrugBank contained approximately 15,000 drug entries as of version&nbsp;5.1, including FDA-approved drugs, experimental compounds, nutraceuticals, and withdrawn drugs.</p></div></div><p>DrugBank focuses on the narrower domain of approved and experimental drugs <span class="citation" data-cites="wishart2018">(<a href="../../../references.html#ref-wishart2018" role="doc-biblioref"><span class="nocase">Wishart et al.</span> 2018</a>)</span>.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> Each entry provides pharmacological data, drug-target interactions, pharmacokinetics (absorption, distribution, metabolism, excretion), known drug-drug interactions, and links to clinical literature. For structural bioinformatics researchers, DrugBank’s curated target annotations and binding data are most useful when studying approved drugs whose binding modes are known from crystal structures.</p>
+<p>ZINC is purpose-built for virtual screening <span class="citation" data-cites="irwin2012">(<a href="../../../references.html#ref-irwin2012" role="doc-biblioref">Irwin et al. 2012</a>)</span>. It catalogs commercially available and make-on-demand compounds in 3D conformations ready for docking, organized by drug-likeness, purchasability, and physicochemical properties.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> Unlike ChEMBL and PubChem, ZINC contains no bioactivity data. It is a library from which computational screens select candidates for experimental testing. The distinction matters: ChEMBL tells you what has been measured, while ZINC tells you what could be measured if you chose to buy and test the compounds.</p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;The name ZINC originated as a recursive acronym: “ZINC Is Not Commercial.” ZINC20 and its successor ZINC22 contain billions of enumerated compounds from make-on-demand chemical libraries.</p></div></div></section>
+<section id="ch12-drug-design-sec:data-quality" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:data-quality">Data Quality</h2>
+<p><strong>All of these databases</strong> face the same fundamental challenge: biological activity measurements are noisy. An IC<span class="math inline">\(_{50}\)</span> value reported by one laboratory may differ twofold or more from the same measurement repeated in a different laboratory with different reagents, different assay formats, or different compound purity. Kramer and colleagues analyzed replicate measurements in ChEMBL and found that the median absolute difference between duplicate <span class="math inline">\(\text{pIC}_{50}\)</span> values (where <span class="math inline">\(\text{pIC}_{50} = -\log_{10} \text{IC}_{50}\)</span>) was approximately 0.3&nbsp;log units, corresponding to a factor of two in IC<span class="math inline">\(_{50}\)</span>.<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> This noise is intrinsic to the experimental process and cannot be removed by curation alone.</p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;This roughly twofold uncertainty places a floor on the accuracy of any predictive model trained on public bioactivity data. A model that predicts IC<span class="math inline">\(_{50}\)</span> values within twofold of experiment is performing at the limit of the data’s reliability.</p></div></div><p>A related phenomenon is the <em>activity cliff</em>: a pair of structurally similar compounds with very different measured activities. Section&nbsp;<a href="#sec:activity-cliffs" data-reference-type="ref" data-reference="sec:activity-cliffs">3.2</a> formalizes activity cliffs; their existence matters here as a data quality concern. A single methyl group added to a lead compound can shift its IC<span class="math inline">\(_{50}\)</span> by three orders of magnitude if that methyl group picks up (or destroys) a critical interaction in the binding site. When these abrupt changes are real, they are among the most informative data points in a structure-activity study. When they arise from measurement errors or assay artifacts, they are misleading outliers that can corrupt machine learning models. Distinguishing the two cases often requires returning to the primary literature and examining the experimental protocols in detail.</p>
+</section>
+</section>
+<section id="ch12-drug-design-sec:sar" class="level1 page-columns page-full">
+<h1>Structure-Activity Relationships</h1>
+<p>The central question in medicinal chemistry is how changes to a molecule’s structure affect its biological activity. Given a set of compounds tested against a common target, can we identify which structural features drive potency, which are neutral, and which are detrimental? The field of structure-activity relationships (SAR) provides both qualitative and quantitative frameworks for answering these questions.</p>
+<section id="ch12-drug-design-sec:mmps" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:mmps">Matched Molecular Pairs</h2>
+<p><strong>The simplest way to study</strong> the effect of a structural change is to hold everything else constant and vary one piece. A matched molecular pair (MMP) consists of two compounds that differ by a single, well-defined chemical transformation: replacing a hydrogen with a fluorine, swapping a methyl for an ethyl, or exchanging one ring system for another.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> The key constraint is that the rest of the molecule remains identical. This eliminates confounding factors and allows the effect of the transformation to be attributed directly to the changed fragment.</p>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;The most widely used algorithm for MMP identification was described by Hussain and Rea (2010). It fragments molecules at single acyclic bonds and identifies pairs that share one fragment while differing in the other.</p></div></div><p>In practice, MMPs are extracted algorithmically from large databases. Given 100,000 compounds tested against the same target, the set of MMPs can contain millions of pairs, each providing a measurement of the effect of one specific structural change in one specific molecular context. Aggregating these measurements across many contexts reveals general trends. Replacing a phenyl ring with a pyridine, for instance, typically reduces <span class="math inline">\(\log P\)</span> by about 1.0 unit and often improves aqueous solubility, while the effect on target affinity depends on whether the introduced nitrogen participates in binding-site interactions. The power of MMP analysis is its ability to extract generalizable medicinal chemistry rules from large, heterogeneous datasets without assuming any particular functional form for the structure-activity relationship.</p>
+</section>
+<section id="ch12-drug-design-sec:activity-cliffs" class="level2">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:activity-cliffs">Activity Cliffs</h2>
+<p><strong>Activity cliffs are the exceptions</strong> that undermine the assumption that similar molecules have similar properties. An activity cliff is a pair of compounds with high structural similarity but a large difference in biological activity. The Structure-Activity Landscape Index (SALI) quantifies this as <span class="math display">\[\label{eq:sali}
+  \text{SALI}(i,j) = \frac{|A_i - A_j|}{1 - \text{sim}(i,j)},\]</span> where <span class="math inline">\(A_i\)</span> and <span class="math inline">\(A_j\)</span> are the activities of compounds <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> (typically expressed as <span class="math inline">\(\text{pIC}_{50}\)</span> values) and <span class="math inline">\(\text{sim}(i,j)\)</span> is their structural similarity, measured by a coefficient such as the Tanimoto index on molecular fingerprints (Section&nbsp;<a href="#sec:tanimoto" data-reference-type="ref" data-reference="sec:tanimoto">4.2</a>). When two compounds are very similar (<span class="math inline">\(\text{sim} \to 1\)</span>) but differ sharply in activity, the SALI score grows large.</p>
+<p>Activity cliffs are both informative and troublesome <span class="citation" data-cites="stumpfe2012">(<a href="../../../references.html#ref-stumpfe2012" role="doc-biblioref">Stumpfe et al. 2012</a>)</span>. On the informative side, they pinpoint structural features that strongly affect binding. If adding a single chlorine atom to a lead compound increases potency tenfold, the binding site must have a specific interaction with that chlorine, and crystal structures often confirm this. On the troublesome side, activity cliffs represent points where small perturbations in chemical space produce discontinuous jumps in activity, violating the smoothness assumptions that underlie most predictive models. Any QSAR method that assumes a continuous mapping from structure to activity will perform poorly near cliffs, and the highest-SALI pairs in a dataset deserve careful inspection during model development.</p>
+</section>
+<section id="ch12-drug-design-sec:qsar" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:qsar">Quantitative Structure-Activity Relationships</h2>
+<p><strong>The idea that biological activity</strong> can be predicted from molecular structure using mathematical equations dates to the 1960s. Corwin Hansch, working on plant growth regulators at Pomona College, proposed that the activity of a series of substituted compounds could be decomposed into contributions from lipophilicity, electronic effects, and steric effects. His equation, published with Toshio Fujita in 1964, takes the form <span class="math display">\[\label{eq:hansch}
+  \log(1/C) = a \cdot \log P + b \cdot \sigma + c \cdot E_s + d,\]</span> where <span class="math inline">\(C\)</span> is the molar concentration required to produce a standard biological response, <span class="math inline">\(\log P\)</span> is the partition coefficient measuring lipophilicity, <span class="math inline">\(\sigma\)</span> is the Hammett substituent constant measuring the electron-withdrawing or electron-donating character of a substituent, <span class="math inline">\(E_s\)</span> is the Taft steric parameter, and <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, <span class="math inline">\(c\)</span>, <span class="math inline">\(d\)</span> are coefficients determined by multiple linear regression on experimental data.<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> The Hansch equation separates the physical determinants of activity into roughly orthogonal contributions. A positive coefficient <span class="math inline">\(a\)</span> means more lipophilic compounds are more active (suggesting favorable membrane penetration or hydrophobic binding). A large <span class="math inline">\(|b|\)</span> means electronic effects dominate the SAR.</p>
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;Hansch and Fujita’s original paper applied the equation to substituted phenoxyacetic acids as plant growth regulators. Hansch later extended the approach to include a parabolic lipophilicity term, <span class="math inline">\(\log(1/C) = a (\log P) - b (\log P)^2 + \cdots\)</span>, reflecting the observation that biological activity often has an optimal <span class="math inline">\(\log P\)</span> value rather than increasing monotonically with lipophilicity.</p></div></div><p>An earlier and conceptually distinct approach came from Spencer Free and James Wilson, also in 1964. Where Hansch decomposed activity into physicochemical properties, Free and Wilson decomposed it into group contributions: <span class="math display">\[\label{eq:free-wilson}
+  \log(1/C) = \mu + \sum_{i} \sum_{j} a_{ij} \, x_{ij},\]</span> where <span class="math inline">\(\mu\)</span> is the average activity of the series, <span class="math inline">\(x_{ij}\)</span> is an indicator variable equal to 1 if substituent <span class="math inline">\(j\)</span> is present at position <span class="math inline">\(i\)</span> and 0 otherwise, and <span class="math inline">\(a_{ij}\)</span> is the additive contribution of substituent <span class="math inline">\(j\)</span> at position <span class="math inline">\(i\)</span>. The model assumes that substituent effects are additive and independent, an assumption that often holds for simple congeneric series but breaks down when substituents at different positions interact through intramolecular hydrogen bonding, steric clash, or conformational effects.</p>
+<p>Modern QSAR has moved well beyond Hansch and Free-Wilson. Contemporary models use hundreds or thousands of molecular descriptors and fingerprint features as inputs to random forests, gradient boosting machines, or neural networks. The fundamental challenge has not changed: predicting the activity of untested compounds from the activities of tested ones. What has changed is the scale of available data, the dimensionality of the feature space, and the flexibility of the models. The statistical principles remain those of supervised regression: the model must generalize to new compounds, not merely memorize the training set. Cross-validation, held-out test sets, and temporal splits (training on older data, testing on newer data) are standard evaluation protocols.<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn13"><p><sup>13</sup>&nbsp;Temporal splits are more realistic than random splits for drug discovery applications, because the goal is to predict the activity of <em>future</em> compounds, not to interpolate among known ones. Sheridan (2013) showed that temporal splits consistently give lower apparent model performance than random splits, reflecting the true difficulty of prospective prediction.</p></div></div></section>
+</section>
+<section id="ch12-drug-design-sec:mol-similarity" class="level1 page-columns page-full">
+<h1>Molecular Similarity and Fingerprints</h1>
+<p>Measuring the similarity between two molecules is a prerequisite for most of what we have discussed and for most of what follows: retrieving known actives related to a query compound, clustering a library by structural class, detecting the activity cliffs of Section&nbsp;<a href="#sec:activity-cliffs" data-reference-type="ref" data-reference="sec:activity-cliffs">3.2</a>, and selecting diverse screening sets. The question is what “similar” means in computational terms and how to quantify it.</p>
+<section id="ch12-drug-design-sec:fingerprints" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:fingerprints">Structural Fingerprints</h2>
+<p><strong>A molecular fingerprint</strong> is a bit vector (or, more generally, a vector of integer counts) that encodes the presence or absence of structural features in a molecule. Two fingerprint families dominate practice: MACCS structural keys and Extended Connectivity Fingerprints (ECFPs).</p>
+<p>MACCS keys define 166 specific substructural patterns, each corresponding to one bit in a 166-bit vector. Bit&nbsp;125, for example, is set to&nbsp;1 if the molecule contains an aromatic ring. Bit&nbsp;140 is set if the molecule contains a six-membered ring with nitrogen. The patterns were designed by medicinal chemists at Molecular Design Limited in the 1980s and reflect expert intuition about which structural features matter pharmacologically. Because the features are predefined, MACCS keys are easy to interpret: if two molecules share a set bit, you can look up exactly which substructure they have in common. The limitation is that 166 bits capture a coarse picture of molecular structure, and many chemically distinct molecules can have identical MACCS fingerprints.</p>
+<p>Extended Connectivity Fingerprints take a fundamentally different approach <span class="citation" data-cites="rogers2010">(<a href="../../../references.html#ref-rogers2010" role="doc-biblioref">Rogers and Hahn 2010</a>)</span>.<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> Instead of predefined patterns, ECFPs enumerate the local chemical environment around every atom in the molecule, out to a specified bond radius. The algorithm assigns each atom an initial integer identifier based on its atomic number, number of heavy-atom neighbors, number of hydrogens, formal charge, and ring membership. In the first iteration, each atom’s identifier is updated by hashing it together with the identifiers of its immediate neighbors. The second iteration repeats the process, extending each atom’s encoded neighborhood by one additional bond. After <span class="math inline">\(r\)</span> iterations, each atom’s identifier encodes its complete chemical environment out to radius <span class="math inline">\(r\)</span>. The ECFP4 fingerprint, the most commonly used variant, sets <span class="math inline">\(r = 2\)</span>, giving each atom a view of all atoms within two bonds. The complete fingerprint is the collection of all atom identifiers generated across all iterations. For storage and comparison, these identifiers are typically folded into a fixed-length bit vector of 1024 or 2048 bits by a modular hashing operation.</p>
+<div class="no-row-height column-margin column-container"><div id="fn14"><p><sup>14</sup>&nbsp;ECFPs are also called Morgan fingerprints, after the canonical atom-numbering algorithm published by H.&nbsp;L.&nbsp;Morgan in 1965. The modern ECFP formulation by Rogers and Hahn (2010) uses Morgan’s iterative neighborhood expansion for a different purpose: generating substructural descriptors rather than canonical numbering.</p></div></div><p>The hashing step introduces bit collisions: distinct substructural features can map to the same bit position. This is a practical tradeoff. Unhashed ECFPs (count-based fingerprints) preserve all information but produce variable-length, high-dimensional representations. Hashed ECFPs are fixed-length and compact, at the cost of some information loss. For most similarity searching and virtual screening applications, hashed ECFP4 fingerprints of 2048 bits perform well.</p>
+</section>
+<section id="ch12-drug-design-sec:tanimoto" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:tanimoto">The Tanimoto Coefficient</h2>
+<p><strong>Given two fingerprints,</strong> we need a number that quantifies how similar they are. The Tanimoto coefficient (also called the Jaccard index) is the standard choice <span class="citation" data-cites="willett1998">(<a href="../../../references.html#ref-willett1998" role="doc-biblioref">Willett 2008</a>)</span>. For two bit vectors <span class="math inline">\(\mathbf{a}\)</span> and <span class="math inline">\(\mathbf{b}\)</span>, let <span class="math inline">\(|\mathbf{a}|\)</span> and <span class="math inline">\(|\mathbf{b}|\)</span> denote the number of bits set to&nbsp;1 in each vector, and let <span class="math inline">\(|\mathbf{a} \cap \mathbf{b}|\)</span> denote the number of positions where both bits are&nbsp;1. The Tanimoto coefficient is <span class="math display">\[\label{eq:tanimoto}
+  T(\mathbf{a}, \mathbf{b}) = \frac{|\mathbf{a} \cap \mathbf{b}|}{|\mathbf{a} \cup \mathbf{b}|} = \frac{|\mathbf{a} \cap \mathbf{b}|}{|\mathbf{a}| + |\mathbf{b}| - |\mathbf{a} \cap \mathbf{b}|}.\]</span> The second equality follows from the inclusion-exclusion principle for sets. The coefficient ranges from 0 (no bits in common) to 1 (identical fingerprints).</p>
+<p>A small example makes the computation concrete. Suppose compound A has bits at positions <span class="math inline">\(\{1, 3, 5, 7, 9\}\)</span> set to&nbsp;1 in a 10-bit fingerprint, and compound B has bits at positions <span class="math inline">\(\{1, 2, 5, 7, 8\}\)</span> set. Then <span class="math inline">\(|\mathbf{a}| = 5\)</span>, <span class="math inline">\(|\mathbf{b}| = 5\)</span>, and <span class="math inline">\(|\mathbf{a} \cap \mathbf{b}| = 3\)</span> (positions 1, 5, and 7). The Tanimoto coefficient is <span class="math inline">\(T = 3 / (5 + 5 - 3) = 3/7 \approx 0.43\)</span>. In drug discovery, a Tanimoto threshold of 0.85 or higher on ECFP4 fingerprints is often used to define “similar” compounds, though this threshold is arbitrary and depends heavily on the fingerprint type.<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> An important subtlety is that the Tanimoto coefficient satisfies the axioms of a similarity measure but not those of a metric: <span class="math inline">\(1 - T\)</span> does not satisfy the triangle inequality, which limits its use in algorithms that assume a proper distance function.</p>
+<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;The appropriate similarity threshold depends on the fingerprint. MACCS keys tend to yield higher Tanimoto values than ECFPs for the same pair of molecules, because MACCS keys encode coarser features. A Tanimoto of 0.85 on MACCS keys corresponds roughly to a Tanimoto of 0.40 on ECFP4 fingerprints.</p></div></div></section>
+<section id="ch12-drug-design-sec:similarity-property" class="level2">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:similarity-property">The Similarity-Property Principle</h2>
+<p><strong>The theoretical justification</strong> for similarity searching in drug design is the similarity-property principle, stated by Johnson and Maggiora in 1990 <span class="citation" data-cites="johnson1990">(<a href="../../../references.html#ref-johnson1990" role="doc-biblioref">Johnson and Maggiora 1990</a>)</span>. The principle holds, informally, that structurally similar molecules tend to have similar biological properties. This is an empirical observation, not a mathematical theorem. It holds in aggregate: ranking a database by decreasing Tanimoto similarity to a known active compound enriches the top of the ranked list for other actives compared with random selection. But it fails in specific cases, as the existence of activity cliffs demonstrates.</p>
+<p>The practical consequence is that similarity-based methods are effective at finding additional actives within an established chemical series but unreliable for discovering actives with novel scaffolds. If the known active is a substituted pyrimidine, similarity searching will retrieve other substituted pyrimidines. It will not retrieve a structurally unrelated benzimidazole that happens to bind the same target through a different set of interactions. This limitation motivates the use of pharmacophore models and docking, which can bridge across scaffold boundaries because they encode the binding interaction rather than the chemical structure itself.</p>
+</section>
+</section>
+<section id="ch12-drug-design-sec:virtual-screening" class="level1 page-columns page-full">
+<h1>Virtual Screening</h1>
+<p>Virtual screening uses computational methods to search large compound libraries and identify molecules likely to be active against a biological target. The goal is to prioritize a small set of candidates for experimental testing, replacing the brute-force approach of testing every compound in the library. Virtual screens fall into two categories: ligand-based methods, which use known active compounds as templates, and structure-based methods, which use the three-dimensional structure of the target protein.</p>
+<section id="ch12-drug-design-sec:ligand-based" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:ligand-based">Ligand-Based Approaches</h2>
+<p><strong>When active compounds are known</strong> but no protein structure is available, ligand-based methods are the natural starting point. The simplest approach is the similarity search described in Section&nbsp;<a href="#sec:tanimoto" data-reference-type="ref" data-reference="sec:tanimoto">4.2</a>: compute the Tanimoto coefficient between a known active and every compound in the screening library, then test the top-ranked compounds experimentally. This works but has limited reach, because it retrieves only molecules resembling the query in fingerprint space.</p>
+<p>Pharmacophore modeling goes further by abstracting the important features of active compounds into a three-dimensional spatial arrangement. A pharmacophore is defined not in terms of specific atoms or bonds but in terms of functional features: hydrogen bond donors, hydrogen bond acceptors, hydrophobic centers, aromatic rings, and positively or negatively charged groups, along with the distances and angles between them. Given several known actives, a pharmacophore model identifies the common 3D arrangement of features shared across the set. Screening a library against the model selects compounds that can adopt a low-energy conformation matching the required feature arrangement, regardless of their underlying chemical structure. This abstraction allows retrieval of structurally diverse hits that make the same binding interactions as the known actives.</p>
+<p>Shape-based methods take a complementary approach. ROCS (Rapid Overlay of Chemical Structures) represents each molecule as a sum of atom-centered Gaussian functions and computes the volumetric overlap between a query molecule and each library compound, optimizing the relative orientation to maximize overlap <span class="citation" data-cites="mcgann2011">(<a href="../../../references.html#ref-mcgann2011" role="doc-biblioref">McGann 2011</a>)</span>.<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a> The premise is that a molecule occupying the same three-dimensional volume as a known active is likely to bind the same site. Shape-based screening can retrieve compounds with different scaffolds and functional groups that nonetheless fill the same region of space, making it complementary to fingerprint-based similarity searching.</p>
+<div class="no-row-height column-margin column-container"><div id="fn16"><p><sup>16</sup>&nbsp;ROCS is fast enough to screen millions of conformers per hour on a modern workstation. It is often combined with a “color score” that accounts for the chemical character (donor, acceptor, hydrophobic, etc.) of overlapping atoms, not just their spatial positions.</p></div></div></section>
+<section id="ch12-drug-design-sec:docking-screening" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:docking-screening">Structure-Based Docking</h2>
+<p><strong>When a crystal structure</strong> or homology model of the target protein is available, molecular docking provides a direct way to evaluate whether a candidate compound can fit into the binding site. The docking process, discussed in detail in Chapter&nbsp;<a href="#ch:docking" data-reference-type="ref" data-reference="ch:docking">[ch:docking]</a>, involves two computational steps: sampling possible orientations and conformations of the ligand within the binding site (the pose search), and estimating the binding affinity for each pose (the scoring function). In a virtual screening context, docking is applied to every compound in the library, compounds are ranked by predicted binding score, and the top-ranked molecules are selected for experimental testing.</p>
+<p>Scoring functions are the weak link in the docking workflow. Force-field-based functions compute the protein-ligand interaction energy as a sum of van der Waals and electrostatic terms, using the same functional forms as molecular dynamics force fields. Empirical scoring functions are weighted sums of contact terms (hydrogen bonds, hydrophobic contacts, desolvation penalties, rotatable-bond penalties) whose weights are fitted by regression against experimentally measured binding affinities of a training set of protein-ligand complexes. Knowledge-based scoring functions derive statistical potentials from the distributions of atom-atom distances observed across thousands of crystal structures in the PDB <span class="citation" data-cites="friesner2004">(<a href="../../../references.html#ref-friesner2004" role="doc-biblioref"><span class="nocase">Friesner et al.</span> 2004</a>)</span>. No current scoring function accurately accounts for the full thermodynamics of binding. The loss of translational and rotational entropy upon binding, the reorganization of water molecules in the binding site, and the conformational flexibility of the protein are all difficult to capture in a fast, approximate function.<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn17"><p><sup>17</sup>&nbsp;Water displacement is a particular challenge. A tightly bound water molecule making favorable hydrogen bonds with the protein can cost 2–5&nbsp;kcal/mol to displace, enough to eliminate an otherwise promising ligand. Conversely, displacing a “frustrated” water molecule that makes poor interactions with the protein is thermodynamically favorable and a legitimate design strategy. Correctly predicting which scenario applies requires explicit-solvent simulations or careful analysis of crystallographic water positions.</p></div></div><div id="ch12-drug-design-fig:water-binding" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch12_water_binding.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">Water-mediated interactions in protein-ligand binding.</figcaption>
+</figure>
+</div>
+</section>
+<section id="ch12-drug-design-sec:vs-evaluation" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:vs-evaluation">Evaluating Virtual Screens</h2>
+<p><strong>The success of a virtual screen</strong> is measured by its hit rate: the fraction of computationally selected compounds that show confirmed activity in experimental assays. For well-designed screens against validated targets, hit rates of 1–5% are typical. This sounds low, but it compares favorably to high-throughput screening of unbiased compound libraries, where hit rates of 0.01–0.1% are common.<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> The economic argument for virtual screening is straightforward: scoring a compound computationally is cheap, while testing it experimentally is not.</p>
+<div class="no-row-height column-margin column-container"><div id="fn18"><p><sup>18</sup>&nbsp;A hit rate of 5% from a virtual screen means that for every 20 compounds purchased and tested, one is active. At a cost of $100–500 per compound for synthesis or purchase and testing, a virtual screen that selects 200 compounds costs $20,000–100,000 to validate experimentally. High-throughput screening of 1&nbsp;million compounds at similar per-compound costs is orders of magnitude more expensive.</p></div></div><p>Retrospective evaluation (running screens against datasets where the true actives and inactives are already known) uses enrichment factors and the area under the receiver operating characteristic (ROC) curve as performance metrics. The enrichment factor at <span class="math inline">\(x\)</span>% measures how many times more actives appear in the top <span class="math inline">\(x\)</span>% of the ranked list compared with random selection. An enrichment factor of 20 at 1% means the top 1% of the ranked list contains 20 times more actives than expected by chance. The ROC curve plots the true positive rate against the false positive rate at varying score thresholds, and the area under it (AUC) measures overall ranking quality: 1.0 is perfect separation of actives from inactives, 0.5 is random ranking. A common pitfall in retrospective evaluations is the use of “decoy” inactive compounds that are trivially distinguishable from actives by simple property filters (molecular weight, charge), inflating apparent performance. The DUD-E benchmark set addresses this by selecting decoys that match the physical properties of the actives, providing a more realistic test <span class="citation" data-cites="mysinger2012">(<a href="../../../references.html#ref-mysinger2012" role="doc-biblioref">Mysinger et al. 2012</a>)</span>.</p>
+</section>
+</section>
+<section id="ch12-drug-design-sec:sbdd" class="level1 page-columns page-full">
+<h1>Structure-Based Drug Design</h1>
+<p>Virtual screening identifies starting points. The harder problem is converting a weak, imperfect hit into a potent, selective, drug-like molecule that can enter clinical trials. Structure-based drug design uses the three-dimensional structure of the protein-ligand complex to guide this conversion. A crystal structure tells the chemist which parts of the ligand contact the protein, which contacts are strong (hydrogen bonds, salt bridges), which parts of the ligand point toward solvent and can be modified freely, and where unoccupied space in the binding site offers opportunities for growing the molecule.</p>
+<section id="ch12-drug-design-sec:fbdd" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:fbdd">Fragment-Based Approaches</h2>
+<p><strong>Fragment-based drug discovery</strong> begins with very small molecules: compounds with molecular weight below 300&nbsp;Da, typically containing 10–20 heavy atoms. These fragments are too small to be drugs, and they bind their targets weakly, often with dissociation constants in the millimolar range. Their value lies in efficiency. Because fragments are small, they sample binding space more efficiently than larger, more complex molecules. A library of 1,000 fragments can cover a much larger fraction of the possible binding modes in a protein’s active site than a library of 100,000 drug-sized compounds <span class="citation" data-cites="erlanson2016">(<a href="../../../references.html#ref-erlanson2016" role="doc-biblioref">Erlanson et al. 2016</a>)</span>.</p>
+<p>The Rule of Three, proposed by Congreve and colleagues in 2003, provides guidelines for fragment libraries analogous to Lipinski’s Rule of Five for drugs: molecular weight below 300, <span class="math inline">\(\log P\)</span> at or below 3, and no more than 3 hydrogen bond donors or 3 hydrogen bond acceptors <span class="citation" data-cites="congreve2003">(<a href="../../../references.html#ref-congreve2003" role="doc-biblioref">Congreve et al. 2003</a>)</span>. Fragment hits are detected by biophysical methods sensitive to weak binding: X-ray crystallography of soaked crystals (which also reveals the binding pose), NMR chemical shift perturbation, or surface plasmon resonance. The standard metric for evaluating fragment quality is <em>ligand efficiency</em>, defined as the binding free energy per heavy atom: <span class="math display">\[\label{eq:ligand-efficiency}
+  \text{LE} = \frac{-\Delta G}{N_{\text{HA}}} \approx \frac{-RT \ln K_d}{N_{\text{HA}}},\]</span> where <span class="math inline">\(N_{\text{HA}}\)</span> is the number of non-hydrogen atoms and <span class="math inline">\(K_d\)</span> is the dissociation constant. A fragment with <span class="math inline">\(K_d = 1\)</span>&nbsp;mM and 15 heavy atoms has a ligand efficiency of approximately 0.29&nbsp;kcal/(mol<span class="math inline">\(\cdot\)</span>atom), which is considered good. Drug-sized molecules typically have lower ligand efficiencies (0.20–0.30) because not every atom contributes equally to binding.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../figures/ch12_ligand_efficiency.png" class="img-fluid figure-img"></p>
+<figcaption>Ligand efficiency indices for drug-target interactions.</figcaption>
+</figure>
+</div>
+</div><div id="fn19"><p><sup>19</sup>&nbsp;Vemurafenib, approved in 2011 for BRAF-mutant melanoma, was developed from a fragment hit identified by X-ray crystallographic screening. The fragment had a <span class="math inline">\(K_d\)</span> of 200&nbsp;<span class="math inline">\(\mu\)</span>M against BRAF V600E. Iterative fragment growing, guided by crystal structures at each stage, produced a clinical candidate with a <span class="math inline">\(K_d\)</span> of 31&nbsp;nM.</p></div></div><p>Once a fragment hit is identified and its binding mode determined by crystallography, the chemist has three strategies for building a larger, more potent molecule. Fragment growing extends the fragment by adding functional groups that reach into adjacent pockets of the binding site. Fragment linking connects two fragments that bind in adjacent, non-overlapping sites with a chemical tether. Fragment merging combines the key pharmacophoric features of two overlapping fragments into a single molecule.<a href="#fn19" class="footnote-ref" id="fnref19" role="doc-noteref"><sup>19</sup></a> All three approaches depend on crystallographic structures of the fragment bound to the target, which show where the fragment sits and where the surrounding protein provides opportunities for additional interactions.</p>
+</section>
+<section id="ch12-drug-design-sec:lead-opt" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:lead-opt">Lead Optimization</h2>
+<p><strong>The transition from a screening hit</strong> to a clinical candidate is called lead optimization, and it is the longest and most expensive phase of preclinical drug discovery. The medicinal chemist must simultaneously improve multiple properties: binding affinity (typically from micromolar to low nanomolar), selectivity against related targets (to minimize off-target toxicity), metabolic stability (resistance to degradation by liver enzymes), aqueous solubility, cell membrane permeability, and oral bioavailability. These properties are collectively referred to as ADMET (absorption, distribution, metabolism, excretion, and toxicity). Improving one property often worsens another. Increasing lipophilicity may improve membrane permeability but reduce solubility and increase the risk of promiscuous binding to off-target proteins.<a href="#fn20" class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn20"><p><sup>20</sup>&nbsp;Gleeson (2008) analyzed a large GSK dataset and found that compounds with <span class="math inline">\(\log P &gt; 4\)</span> were significantly more likely to show activity against off-target panels, particularly ion channels such as hERG. This observation led to the concept of “lipophilic ligand efficiency,” LLE <span class="math inline">\(= \text{pIC}_{50} - \log P\)</span>, which penalizes potency that is achieved by adding hydrophobic bulk.</p></div></div><p>Structural data contributes most directly to the affinity and selectivity objectives. Crystal structures of the lead compound bound to the target reveal which interactions contribute to binding and suggest modifications that could pick up additional contacts. If a structure shows a nearby backbone carbonyl that is not engaged by the lead, a chemist might introduce a hydrogen bond donor at the appropriate position on the ligand. If the lead inhibits a kinase but also hits a related kinase responsible for a toxic side effect, superimposing the two binding-site structures can reveal sequence differences that can be exploited for selectivity. Optimization typically proceeds through iterative cycles of computational design, chemical synthesis, biological testing, and crystallography, with each cycle informed by the structural data from the previous round.</p>
+</section>
+<section id="ch12-drug-design-sec:fep" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch12-drug-design-sec:fep">Free Energy Perturbation</h2>
+<p><strong>Predicting how a chemical modification</strong> will affect binding affinity is the central quantitative challenge in lead optimization. Docking scores are too coarse for this task: they can rank-order diverse compounds with moderate reliability, but they cannot predict the effect of adding a methyl group to a lead compound with the precision that a medicinal chemist needs. Free energy perturbation (FEP) calculations offer a more rigorous alternative, grounded in statistical mechanics rather than empirical scoring functions.</p>
+<p>The idea behind FEP is to compute the binding free energy difference between two closely related ligands by simulating a gradual, non-physical “alchemical” transformation of one into the other. The relative binding free energy is expressed through a thermodynamic cycle: <span class="math display">\[\label{eq:fep-cycle}
+  \Delta\Delta G_{\text{bind}} = \Delta G_{\text{bind}}(B) - \Delta G_{\text{bind}}(A) = \Delta G_{\text{complex}}(A \!\to\! B) - \Delta G_{\text{solvent}}(A \!\to\! B),\]</span> where <span class="math inline">\(\Delta G_{\text{complex}}(A \!\to\! B)\)</span> is the free energy of transforming ligand A into ligand B while A is bound to the protein, and <span class="math inline">\(\Delta G_{\text{solvent}}(A \!\to\! B)\)</span> is the same transformation carried out in bulk solvent. Neither individual binding free energy needs to be computed directly; only the difference matters. This cancellation of systematic errors is the principal advantage of relative FEP over absolute free energy calculations.</p>
+<p>The alchemical transformation is carried out through a series of molecular dynamics simulations in which a coupling parameter <span class="math inline">\(\lambda\)</span> varies from 0 (representing ligand A) to 1 (representing ligand B). At intermediate <span class="math inline">\(\lambda\)</span> values, the system is a non-physical hybrid of A and B. The free energy difference along the <span class="math inline">\(\lambda\)</span> path can be computed by thermodynamic integration, <span class="math display">\[\label{eq:thermodynamic-integration}
+  \Delta G(A \!\to\! B) = \int_0^1 \left\langle \frac{\partial H(\lambda)}{\partial \lambda} \right\rangle_\lambda \, d\lambda,\]</span> where <span class="math inline">\(H(\lambda)\)</span> is the Hamiltonian of the hybrid system and the angle brackets denote an ensemble average at fixed <span class="math inline">\(\lambda\)</span>.<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> Modern FEP implementations, such as FEP+ from Schrödinger, automate the setup for congeneric series: given a lead compound and a set of proposed analogs, the software constructs the alchemical transformation graph, runs the simulations at each <span class="math inline">\(\lambda\)</span> window, and reports predicted <span class="math inline">\(\Delta\Delta G_{\text{bind}}\)</span> values. Wang and colleagues reported in 2015 that FEP+ achieved a root-mean-square error of approximately 1&nbsp;kcal/mol across a benchmark of eight protein targets, corresponding to roughly fivefold accuracy in the binding constant.<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a> This level of accuracy is sufficient to guide medicinal chemistry decisions in late-stage optimization, where the practical question is whether analog B is better or worse than analog A by an order of magnitude, not whether it hits a specific <span class="math inline">\(K_d\)</span> target.</p>
+<div class="no-row-height column-margin column-container"><div id="fn21"><p><sup>21</sup>&nbsp;The Zwanzig equation (1954) provides an alternative estimator: <span class="math inline">\(\Delta G = -k_BT \ln \langle \exp(-\Delta H / k_BT) \rangle_0\)</span>, where the average is over configurations sampled from the <span class="math inline">\(\lambda = 0\)</span> state. In practice, Zwanzig’s formula converges poorly when the two end states differ substantially, which is why multi-window protocols with 10–20 intermediate <span class="math inline">\(\lambda\)</span> values are standard.</p></div><div id="fn22"><p><sup>22</sup>&nbsp;Since <span class="math inline">\(\Delta G = RT \ln K_d\)</span> and <span class="math inline">\(RT \approx 0.6\)</span>&nbsp;kcal/mol at 300&nbsp;K, an error of 1&nbsp;kcal/mol corresponds to a factor of <span class="math inline">\(e^{1/0.6} \approx 5.3\)</span> in <span class="math inline">\(K_d\)</span>.</p></div></div><p>FEP calculations are computationally expensive. Each <span class="math inline">\(\lambda\)</span> window requires nanoseconds to microseconds of molecular dynamics, and a complete transformation may need 12–20 windows. Computing relative binding energies for 50 analogs can require thousands of GPU-hours. The method is therefore applied selectively, typically to the most promising compound series in late-stage lead optimization, where the cost of computation is small relative to the cost of synthesizing and testing each compound. FEP has had notable prospective successes in recent years, with several pharmaceutical companies reporting that FEP predictions guided the synthesis of analogs that would not have been prioritized by traditional medicinal chemistry intuition alone <span class="citation" data-cites="wang2015">(<a href="../../../references.html#ref-wang2015" role="doc-biblioref"><span class="nocase">Wang et al.</span> 2015</a>)</span>.</p>
+</section>
+</section>
+<section id="ch12-drug-design-sec:ch12-notes" class="level1">
+<h1>Chapter Notes</h1>
+<p>The history of drug design is often told as a progression from phenotypic screening (testing compounds in cells or animals without knowing the molecular target) to target-based screening (testing against a purified protein) to structure-based design (using 3D structures to guide chemistry). This narrative is broadly correct but oversimplified. Phenotypic screening discovered aspirin, penicillin, and most drugs approved before 1980. Target-based approaches, enabled by recombinant protein technology in the 1980s and 1990s, produced imatinib and the kinase inhibitor revolution. Structure-based design became practical as the PDB grew through the 1990s and 2000s. But all three approaches coexist today. Swinney and Anthony’s 2011 analysis of first-in-class drugs approved by the FDA between 1999 and 2008 found that phenotypic approaches actually produced more first-in-class small molecules than target-based methods, a finding that surprised many advocates of rational drug design. The approaches are complementary, and in practice most successful programs use elements of all three.</p>
+<p>The computational methods described in this chapter have their intellectual roots in several distinct communities. Molecular fingerprints and similarity searching grew out of chemical information science, a field that predates computers and was originally concerned with indexing and retrieving chemical structures from paper catalogs. Morgan’s algorithm for canonical atom numbering was published in 1965, decades before ECFP fingerprints adapted its iterative neighborhood expansion for substructure encoding. QSAR traces back to physical organic chemistry, specifically the Hammett equation (1937) for electronic effects and its extensions by Taft (1952) for steric effects and by Hansch (1964) for biological activity. Free energy perturbation grew out of the molecular simulation community, building on Zwanzig’s 1954 perturbation formula and Kirkwood’s 1935 thermodynamic integration method. The convergence of these threads into a single discipline called computer-aided drug design occurred gradually during the 1980s and 1990s, driven largely by the increasing availability of protein crystal structures.</p>
+<p>Docking and scoring have been the subject of enormous methodological investment and equally persistent criticism. The Comparative Assessment of Scoring Functions (CASF) benchmarks provide standardized tests for docking accuracy and binding affinity prediction. The consistent finding across multiple CASF rounds is that docking programs reproduce experimental binding poses with reasonable reliability (median RMSD below 2&nbsp;Å for 70–80% of test cases) but predict binding affinities poorly (Pearson correlations of 0.5–0.6 between predicted and experimental <span class="math inline">\(\log K_d\)</span>). FEP calculations represent a qualitative step up in accuracy for relative binding affinities within congeneric series, but their computational cost restricts them to focused compound sets. The gap between pose prediction (which works) and affinity prediction (which remains difficult) is one of the defining open problems of the field.</p>
+<p>Machine learning is now entering every stage of the drug design pipeline. Generative models propose new molecular structures with specified property profiles. Graph neural networks predict binding affinities from protein-ligand interaction graphs. Diffusion models produce 3D ligand conformations conditioned on binding-site geometry, connecting to the generative modeling concepts developed in Chapter&nbsp;<a href="#ch:alphafold" data-reference-type="ref" data-reference="ch:alphafold">[ch:alphafold]</a>. Whether these methods will improve the overall success rate of drug discovery remains an open experimental question, not a settled one. The bottleneck has never been the rate at which candidate molecules can be proposed. It has been the rate at which they can be synthesized, tested for ADMET liabilities, and evaluated in clinical trials. Computational tools accelerate the first step; the remaining steps still depend on wet chemistry and human biology.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-congreve2003" class="csl-entry" role="listitem">
+Congreve, Miles, Rebecca Carr, Christopher Murray, and Harren Jhoti. 2003. <span>“A <span>‘Rule of Three’</span> for Fragment-Based Lead Discovery?”</span> <em>Drug Discovery Today</em> 8: 876–77. <a href="https://doi.org/10.1016/S1359-6446(03)02831-9">https://doi.org/10.1016/S1359-6446(03)02831-9</a>.
+</div>
+<div id="ref-druker2001" class="csl-entry" role="listitem">
+<span class="nocase">Druker, Brian J., Moshe Talpaz, David J. Resta, et al.</span> 2001. <span>“Efficacy and Safety of a Specific Inhibitor of the <span>BCR-ABL</span> Tyrosine Kinase in Chronic Myeloid Leukemia.”</span> <em>New England Journal of Medicine</em> 344: 1031–37. <a href="https://doi.org/10.1056/NEJM200104053441401">https://doi.org/10.1056/NEJM200104053441401</a>.
+</div>
+<div id="ref-erlanson2016" class="csl-entry" role="listitem">
+Erlanson, Daniel A., Stephen W. Fesik, Roderick E. Hubbard, Wolfgang Jahnke, and Harren Jhoti. 2016. <span>“Twenty Years on: The Impact of Fragments on Drug Discovery.”</span> <em>Nature Reviews Drug Discovery</em> 15: 605–19. <a href="https://doi.org/10.1038/nrd.2016.109">https://doi.org/10.1038/nrd.2016.109</a>.
+</div>
+<div id="ref-friesner2004" class="csl-entry" role="listitem">
+<span class="nocase">Friesner, Richard A., Jay L. Banks, Robert B. Murphy, et al.</span> 2004. <span>“Glide: A New Approach for Rapid, Accurate Docking and Scoring. Method and Assessment of Docking Accuracy.”</span> <em>Journal of Medicinal Chemistry</em> 47: 1739–49. <a href="https://doi.org/10.1021/jm0306440">https://doi.org/10.1021/jm0306440</a>.
+</div>
+<div id="ref-gaulton2012" class="csl-entry" role="listitem">
+Gaulton, Anna, Louisa J. Bellis, A. Patrícia Bento, et al. 2012. <span>“<span>ChEMBL</span>: A Large-Scale Bioactivity Database for Drug Discovery.”</span> <em>Nucleic Acids Research</em> 40: D1100–1107. <a href="https://doi.org/10.1093/nar/gkr777">https://doi.org/10.1093/nar/gkr777</a>.
+</div>
+<div id="ref-irwin2012" class="csl-entry" role="listitem">
+Irwin, John J., Teague Sterling, Michael M. Mysinger, Erin S. Bolstad, and Ryan G. Coleman. 2012. <span>“<span>ZINC</span>: A Free Tool to Discover Chemistry for Biology.”</span> <em>Journal of Chemical Information and Modeling</em> 52: 1757–68. <a href="https://doi.org/10.1021/ci3001277">https://doi.org/10.1021/ci3001277</a>.
+</div>
+<div id="ref-johnson1990" class="csl-entry" role="listitem">
+Johnson, Mark A., and Gerald M. Maggiora, eds. 1990. <em>Concepts and Applications of Molecular Similarity</em>. John Wiley &amp; Sons.
+</div>
+<div id="ref-kim2019" class="csl-entry" role="listitem">
+<span class="nocase">Kim, Sunghwan, Jie Chen, Tiejun Cheng, et al.</span> 2019. <span>“<span>PubChem</span> 2019 Update.”</span> <em>Nucleic Acids Research</em> 47: D1102–9. <a href="https://doi.org/10.1093/nar/gky971">https://doi.org/10.1093/nar/gky971</a>.
+</div>
+<div id="ref-lipinski2001" class="csl-entry" role="listitem">
+Lipinski, Christopher A., Frank Lombardo, Beryl W. Dominy, and Paul J. Feeney. 1997. <span>“Experimental and Computational Approaches to Estimate Solubility and Permeability in Drug Discovery and Development Settings.”</span> <em>Advanced Drug Delivery Reviews</em> 46: 3–26. <a href="https://doi.org/10.1016/S0169-409X(96)00423-1">https://doi.org/10.1016/S0169-409X(96)00423-1</a>.
+</div>
+<div id="ref-mcgann2011" class="csl-entry" role="listitem">
+McGann, Michael. 2011. <span>“<span>FRED</span> Pose Prediction and Virtual Screening Accuracy.”</span> <em>Journal of Chemical Information and Modeling</em> 51: 578–96. <a href="https://doi.org/10.1021/ci100436p">https://doi.org/10.1021/ci100436p</a>.
+</div>
+<div id="ref-mysinger2012" class="csl-entry" role="listitem">
+Mysinger, Michael M., Michael Carchia, John J. Irwin, and Brian K. Shoichet. 2012. <span>“Directory of Useful Decoys, Enhanced (<span>DUD-E</span>): Better Ligands and Decoys for Better Benchmarking.”</span> <em>Journal of Medicinal Chemistry</em> 55: 6582–94. <a href="https://doi.org/10.1021/jm300687e">https://doi.org/10.1021/jm300687e</a>.
+</div>
+<div id="ref-rogers2010" class="csl-entry" role="listitem">
+Rogers, David, and Mathew Hahn. 2010. <span>“Extended-Connectivity Fingerprints.”</span> <em>Journal of Chemical Information and Modeling</em> 50: 742–54. <a href="https://doi.org/10.1021/ci100050t">https://doi.org/10.1021/ci100050t</a>.
+</div>
+<div id="ref-schindler2000" class="csl-entry" role="listitem">
+Schindler, Thomas, Wilhelm Bornmann, Patricia Pellicena, William T. Miller, Bay Clarkson, and John Kuriyan. 2000. <span>“Structural Mechanism for <span>STI-571</span> Inhibition of <span>Abelson</span> Tyrosine Kinase.”</span> <em>Science</em> 289: 1938–42. <a href="https://doi.org/10.1126/science.289.5486.1938">https://doi.org/10.1126/science.289.5486.1938</a>.
+</div>
+<div id="ref-stumpfe2012" class="csl-entry" role="listitem">
+Stumpfe, Dagmar, Ye Hu, Dora Dimova, and Jürgen Bajorath. 2012. <span>“Recent Progress in Understanding Activity Cliffs and Their Utility in Medicinal Chemistry.”</span> <em>Journal of Chemical Information and Modeling</em> 52: 1499–512. <a href="https://doi.org/10.1021/ci300392q">https://doi.org/10.1021/ci300392q</a>.
+</div>
+<div id="ref-wang2015" class="csl-entry" role="listitem">
+<span class="nocase">Wang, Lingle, You Wu, Yuqing Deng, et al.</span> 2015. <span>“Accurate and Reliable Prediction of Relative Ligand Binding Potency in Prospective Drug Discovery by Way of a Modern Free-Energy Calculation Protocol and Force Field.”</span> <em>Journal of the American Chemical Society</em> 137: 2695–703. <a href="https://doi.org/10.1021/ja512751s">https://doi.org/10.1021/ja512751s</a>.
+</div>
+<div id="ref-weininger1988" class="csl-entry" role="listitem">
+Weininger, David. 1988. <span>“<span>SMILES</span>, a Chemical Language and Information System: Introduction to Methodology and Encoding Rules.”</span> <em>Journal of Chemical Information and Computer Sciences</em> 28: 31–36. <a href="https://doi.org/10.1021/ci00057a005">https://doi.org/10.1021/ci00057a005</a>.
+</div>
+<div id="ref-willett1998" class="csl-entry" role="listitem">
+Willett, Peter. 2008. <span>“Structural Similarity Searching Using Two-Dimensional Structural Fingerprints.”</span> In <em>Chemoinformatics in Drug Discovery</em>, edited by Tudor Öprea. Wiley-VCH. <a href="https://doi.org/10.1002/9783527628769.ch8">https://doi.org/10.1002/9783527628769.ch8</a>.
+</div>
+<div id="ref-wishart2018" class="csl-entry" role="listitem">
+<span class="nocase">Wishart, David S., Yannick D. Feunang, An Chi Guo, et al.</span> 2018. <span>“<span>DrugBank</span> 5.0: A Major Update to the <span>DrugBank</span> Database.”</span> <em>Nucleic Acids Research</em> 46: D1074–82. <a href="https://doi.org/10.1093/nar/gky1035">https://doi.org/10.1093/nar/gky1035</a>.
+</div>
+</div>
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/muhammadhasyim\.github\.io\/structural-bio-book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="pagination-link" aria-label="Intrinsically Disordered Proteins">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Intrinsically Disordered Proteins</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../../references.html" class="pagination-link" aria-label="---">
+        <span class="nav-page-text"><span class="chapter-title">—</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

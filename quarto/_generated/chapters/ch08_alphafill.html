@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Completing Predicted Structures – Structural Bioinformatics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../quarto/_generated/chapters/ch09_docking.html" rel="next">
+<link href="../../../quarto/_generated/chapters/ch07_alphafold.html" rel="prev">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../website/quarto-tufte-overrides.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html">Structure Prediction</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch08_alphafill.html"><span class="chapter-title">Completing Predicted Structures</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../../">Structural Bioinformatics</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/muhammadhasyim/structural-bio-book" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Bioinformatics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Biology: Physical Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch02_data_quality.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Sequence Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Pairwise Sequence Alignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Protein Classification</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Structure Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Homology Modeling and Threading</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch08_alphafill.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Completing Predicted Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactions and Dynamics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Docking</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Dynamics Simulations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Special Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Intrinsically Disordered Proteins</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch12_drug_design.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../references.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">—</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ch08-alphafill-sec:ligand-gap" id="toc-ch08-alphafill-sec:ligand-gap" class="nav-link active" data-scroll-target="#ch08-alphafill-sec\:ligand-gap">What predicted structures are missing</a></li>
+  <li><a href="#ch08-alphafill-sec:alphafill-pipeline" id="toc-ch08-alphafill-sec:alphafill-pipeline" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:alphafill-pipeline">The AlphaFill pipeline</a>
+  <ul class="collapse">
+  <li><a href="#ch08-alphafill-sec:sequence-search" id="toc-ch08-alphafill-sec:sequence-search" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:sequence-search">Sequence search</a></li>
+  <li><a href="#ch08-alphafill-sec:superposition" id="toc-ch08-alphafill-sec:superposition" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:superposition">Structure superposition</a></li>
+  <li><a href="#ch08-alphafill-sec:transplantation" id="toc-ch08-alphafill-sec:transplantation" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:transplantation">Ligand transplantation</a></li>
+  <li><a href="#ch08-alphafill-sec:quality-metrics" id="toc-ch08-alphafill-sec:quality-metrics" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:quality-metrics">Quality metrics</a></li>
+  </ul></li>
+  <li><a href="#ch08-alphafill-sec:alphafill-validation" id="toc-ch08-alphafill-sec:alphafill-validation" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:alphafill-validation">Validation</a></li>
+  <li><a href="#ch08-alphafill-sec:scale" id="toc-ch08-alphafill-sec:scale" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:scale">Scale of the database</a></li>
+  <li><a href="#ch08-alphafill-sec:alphabridge" id="toc-ch08-alphafill-sec:alphabridge" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:alphabridge">AlphaBridge: connecting predicted and experimental data</a></li>
+  <li><a href="#ch08-alphafill-sec:limitations" id="toc-ch08-alphafill-sec:limitations" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:limitations">Limitations and caveats</a>
+  <ul class="collapse">
+  <li><a href="#ch08-alphafill-sec:induced-fit" id="toc-ch08-alphafill-sec:induced-fit" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:induced-fit">Induced fit</a></li>
+  <li><a href="#ch08-alphafill-sec:allosteric" id="toc-ch08-alphafill-sec:allosteric" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:allosteric">Allosteric and non-canonical binding sites</a></li>
+  <li><a href="#ch08-alphafill-sec:confidence-filtering" id="toc-ch08-alphafill-sec:confidence-filtering" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:confidence-filtering">Confidence filtering</a></li>
+  <li><a href="#ch08-alphafill-sec:what-not" id="toc-ch08-alphafill-sec:what-not" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:what-not">What AlphaFill does not do</a></li>
+  </ul></li>
+  <li><a href="#ch08-alphafill-sec:alphafill-practical" id="toc-ch08-alphafill-sec:alphafill-practical" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:alphafill-practical">Practical considerations</a></li>
+  <li><a href="#ch08-alphafill-sec:ch08-notes" id="toc-ch08-alphafill-sec:ch08-notes" class="nav-link" data-scroll-target="#ch08-alphafill-sec\:ch08-notes">Chapter notes</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html">Structure Prediction</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch08_alphafill.html"><span class="chapter-title">Completing Predicted Structures</span></a></li></ol></nav><h1 class="title display-7"><span class="chapter-title">Completing Predicted Structures</span></h1></header>
+
+<header id="title-block-header">
+
+
+</header>
+
+
+<p>When DeepMind released the AlphaFold Protein Structure Database in 2021 with predictions for nearly every known protein sequence, one limitation was immediately apparent: the models contained no ligands, cofactors, or metal ions&nbsp;<span class="citation" data-cites="jumper2021">(<a href="../../../references.html#ref-jumper2021" role="doc-biblioref"><span class="nocase">Jumper et al.</span> 2021</a>)</span>. A kinase was predicted without its ATP. A heme protein appeared without its iron-porphyrin ring. An alcohol dehydrogenase sat empty-handed, its catalytic zinc missing from the active site. For anyone interested in how a protein actually works (how it binds a substrate, coordinates a metal, or gets switched on by a small molecule), these predicted structures were incomplete in a way that mattered.</p>
+<p><strong>The problem was not a failing</strong> of AlphaFold itself, but a consequence of the question AlphaFold was designed to answer. The network takes an amino acid sequence and returns 3D coordinates for backbone and side-chain atoms. It predicts protein structure, full stop. Ligands, cofactors, ions, water molecules, post-translational modifications, and lipid anchors are all absent from the prediction.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> They are absent not because the model failed to find them, but because it was never asked to look.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;AlphaFold2 predicts coordinates for standard amino acid atoms only. Newer variants like AlphaFold3 have begun to address small-molecule and nucleic acid interactions, but the AlphaFold Protein Structure Database models discussed here are AlphaFold2 outputs.</p></div></div><p>This absence matters more for some proteins than for others. A structural biologist studying the overall fold of a small globular domain may not care whether the model includes a bound phosphate. But for someone studying enzyme mechanisms, drug binding, or metalloprotein function, the missing pieces are the whole point. A cytochrome P450 without its heme is a shell. A zinc finger without zinc is a random loop. The fold may be correct in a geometric sense, but the functional context is gone.</p>
+<p>Hekkelman et al.&nbsp;at the Netherlands Cancer Institute set out to fill this gap&nbsp;<span class="citation" data-cites="hekkelman2023">(<a href="../../../references.html#ref-hekkelman2023" role="doc-biblioref">Hekkelman et al. 2023</a>)</span>. Their tool, AlphaFill, takes a conceptually simple approach: if AlphaFold does not predict ligands, borrow them from experimental structures that do contain them. Find a homologous protein in the Protein Data Bank that has a bound ligand, superpose the experimental structure onto the AlphaFold model, and copy the ligand coordinates over. The idea is old (homology transfer of functional annotations has been standard practice since the early days of bioinformatics), but the execution at database scale was new, and the results filled a gap that the structural biology community needed filled.</p>
+<section id="ch08-alphafill-sec:ligand-gap" class="level1 page-columns page-full">
+<h1>What predicted structures are missing</h1>
+<p>To appreciate why AlphaFill exists, it helps to take stock of what AlphaFold models actually contain and what they leave out. An AlphaFold prediction includes coordinates for all non-hydrogen atoms in the polypeptide chain: backbone N, C<span class="math inline">\(_\alpha\)</span>, C, and O atoms, plus the side-chain heavy atoms for each residue. Each residue also carries a per-residue confidence score, the predicted local distance difference test (pLDDT), which ranges from 0 to 100 and reports how confident the network is in the local structure around that residue.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;pLDDT scores above 90 indicate high confidence and typically correspond to well-resolved core regions. Scores below 50 usually indicate disordered or poorly predicted segments. The region between 70 and 90 is where careful judgment is required.</p></div><div id="fn3"><p><sup>3</sup>&nbsp;The fraction of metalloproteins varies depending on how you count. Estimates from the PDB suggest that 30–40% of deposited structures contain at least one metal ion, though many of these are crystallographic artifacts like crystal-packing contacts with buffer components.</p></div></div><p>What the model does not include falls into several categories. The most obvious are small-molecule ligands: substrates, products, inhibitors, cofactors like NAD<span class="math inline">\(^+\)</span>, FAD, pyridoxal phosphate, and other molecules that sit in binding pockets during catalysis or regulation. Then there are metal ions. Roughly a third of all proteins in the PDB contain at least one metal ion (zinc, iron, magnesium, manganese, calcium, copper), and these metals are often required for structural integrity (as in zinc fingers) or catalytic activity (as in metalloenzymes).<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> Post-translational modifications such as phosphorylation, glycosylation, acetylation, and ubiquitination are also absent. So are covalently bound prosthetic groups like the retinal in rhodopsin or the biotin in carboxylases.</p>
+<p>Water molecules deserve separate mention. Crystallographic structures routinely contain hundreds of ordered water molecules, some of which are functionally important: buried waters that mediate hydrogen bonds between protein and ligand, or structural waters that stabilize particular loops. AlphaFold predicts none of these.</p>
+<p>The practical consequence is that an AlphaFold model, viewed in a molecular viewer, looks like an empty building. The architecture is there, but the furniture is missing. For the roughly 200 million structures in the AlphaFold database, this means 200 million models that tell you what the protein looks like but not what it does.</p>
+</section>
+<section id="ch08-alphafill-sec:alphafill-pipeline" class="level1 page-columns page-full">
+<h1>The AlphaFill pipeline</h1>
+<p><strong>The core idea behind AlphaFill</strong> is homology-based ligand transplantation. Given an AlphaFold model of protein <span class="math inline">\(X\)</span>, the pipeline searches the PDB for experimentally determined structures of proteins similar in sequence to <span class="math inline">\(X\)</span>. When a homologous structure is found that contains a ligand, the experimental structure is superposed onto the AlphaFold model, and the ligand coordinates are transplanted, copied from the experimental frame of reference into the AlphaFold model’s coordinate system.</p>
+<p>The pipeline proceeds in several stages.</p>
+<section id="ch08-alphafill-sec:sequence-search" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:sequence-search">Sequence search</h2>
+<p>For each AlphaFold model, the amino acid sequence is searched against the sequences of all PDB entries using a fast sequence comparison method.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> The search returns a ranked list of PDB structures with sequence identity above a minimum threshold. Each hit that contains at least one non-polymer ligand, metal ion, or modified residue is retained as a potential donor.</p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;The original AlphaFill implementation uses a BLAST-like search, but conceptually any fast sequence search tool would work. The key requirement is speed: the pipeline must process hundreds of millions of models.</p></div></div><p>Sequence identity is computed over the aligned region, not the full sequence. This distinction matters because domain-level homology is often sufficient. A protein might share 60% identity with a PDB structure over a 150-residue kinase domain, even if the full-length sequences differ substantially outside that domain. The aligned region is what determines whether the binding site geometry is conserved, and so the aligned-region identity is the right quantity to use.</p>
+</section>
+<section id="ch08-alphafill-sec:superposition" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:superposition">Structure superposition</h2>
+<p>Once a donor structure is identified, the next step is to superpose it onto the AlphaFold model. The superposition is performed using the C<span class="math inline">\(_\alpha\)</span> atoms of residues that were aligned during the sequence comparison step.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> This produces a rigid-body transformation (a rotation matrix <span class="math inline">\(\bm{R}\in \mathrm{SO}(3)\)</span> and a translation vector <span class="math inline">\(\bm{t}\in \mathbb{R}^3\)</span>) that maps the donor structure’s coordinates into the AlphaFold model’s reference frame. The transformation minimizes the root-mean-square deviation (RMSD) between the aligned C<span class="math inline">\(_\alpha\)</span> positions: <span class="math display">\[\label{eq:rmsd-transplant}
+\text{RMSD} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} \|\bm{r}_i^{\text{AF}} - (\bm{R}\, \bm{r}_i^{\text{PDB}} + \bm{t})\|^2}\]</span> where <span class="math inline">\(\bm{r}_i^{\text{AF}}\)</span> and <span class="math inline">\(\bm{r}_i^{\text{PDB}}\)</span> are the C<span class="math inline">\(_\alpha\)</span> positions of residue <span class="math inline">\(i\)</span> in the AlphaFold model and the PDB structure, respectively, and <span class="math inline">\(N\)</span> is the number of aligned residues. The optimal rotation is found by the Kabsch algorithm, which solves a singular value decomposition of the cross-covariance matrix of the two coordinate sets.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;Using C<span class="math inline">\(_\alpha\)</span> atoms rather than all backbone atoms reduces the sensitivity to side-chain conformational differences. The superposition produces a rotation matrix <span class="math inline">\(\bm{R}\)</span> and translation vector <span class="math inline">\(\bm{t}\)</span> that minimize the RMSD between the aligned C<span class="math inline">\(_\alpha\)</span> positions.</p></div></div></section>
+<section id="ch08-alphafill-sec:transplantation" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:transplantation">Ligand transplantation</h2>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../figures/ch08_ligand_transplant.png" class="img-fluid figure-img"></p>
+<figcaption>Transplanted ligand (orange sticks) in an AlphaFold-predicted binding pocket (green).</figcaption>
+</figure>
+</div>
+</div></div><p>After superposition, the ligand coordinates from the donor structure are transformed using the same <span class="math inline">\((\bm{R}, \bm{t})\)</span> and placed into the AlphaFold model’s coordinate frame. The result is a new PDB file (or mmCIF file) containing both the original AlphaFold coordinates and the transplanted ligand.</p>
+<p>A critical check at this stage is whether the transplanted ligand clashes with the protein. If a ligand atom overlaps with a protein atom (distance below a van der Waals contact threshold), the transplant is either flagged or rejected. Minor clashes can occur because the AlphaFold model’s side-chain conformations may differ slightly from those in the experimental structure, and these are often tolerable. Severe clashes indicate that the binding mode is probably wrong, and the transplant should be discarded.</p>
+</section>
+<section id="ch08-alphafill-sec:quality-metrics" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:quality-metrics">Quality metrics</h2>
+<p><strong>Not all transplantations are created equal.</strong> A ligand borrowed from a close homolog at 95% sequence identity is far more likely to be correctly placed than one from a distant homolog at 30% identity. AlphaFill reports several quality metrics to help users judge reliability.</p>
+<p>The first and most important is the <em>sequence identity</em> of the donor. Hekkelman et al.&nbsp;found that transplants from donors with greater than 25% identity over the aligned region are generally geometrically reliable, in the sense that the transplanted ligand position agrees with experimental ligand positions when those are available for comparison. Below this threshold, the rate of incorrect placements rises sharply.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;The 25% threshold echoes a familiar boundary in structural biology: the twilight zone of sequence similarity, below which fold similarity can no longer be assumed. For ligand transplantation, the relevant question is not whether the fold is similar (AlphaFold has already predicted the fold) but whether the binding site is conserved. Binding site conservation tends to decay faster than overall fold conservation because even a few mutations in the binding pocket can alter ligand specificity.</p></div></div><p>The second metric is the <em>local RMSD</em> of the binding site residues. After superposition, the RMSD is recomputed using only the C<span class="math inline">\(_\alpha\)</span> atoms of residues that are within a specified distance (typically 6&nbsp;Å) of the transplanted ligand. A low local RMSD (below about 1.5&nbsp;Å) indicates that the binding site geometry in the AlphaFold model closely matches the donor, and the ligand is probably in a reasonable position. A high local RMSD means the binding site has shifted or rearranged, and the transplanted coordinates may be unreliable.</p>
+<p>The third metric is the <em>global RMSD</em> of the full superposition, which provides a coarser measure of structural agreement. And the fourth is the <em>AlphaFold pLDDT score</em> in the region around the transplanted ligand. If AlphaFold itself is not confident about the protein structure near the binding site, there is little reason to trust a ligand placed there.</p>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch08_alphafill_metrics.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p>Together, these metrics let a user filter the database and focus on high-confidence transplantations: those from close homologs, into well-predicted binding sites, with low local RMSD.</p>
+</section>
+</section>
+<section id="ch08-alphafill-sec:alphafill-validation" class="level1">
+<h1>Validation</h1>
+<p>The most direct way to validate AlphaFill is to test it on cases where the answer is already known. If a protein has both an AlphaFold model and an experimental structure with a bound ligand, one can run the AlphaFill pipeline on the AlphaFold model, transplant a ligand from a <em>different</em> homolog, and then compare the transplanted ligand position to the experimentally observed one. The distance between the two ligand positions (measured, for instance, as the RMSD of corresponding ligand atoms) gives a direct measure of transplantation accuracy.</p>
+<p>Hekkelman et al.&nbsp;performed exactly this test across a large set of proteins. For transplants from donors above 25% sequence identity, the median ligand RMSD was below 2&nbsp;Å, and the vast majority of transplants placed the ligand in the correct binding pocket. Below 25% identity, the error distribution broadened considerably, with a growing fraction of cases where the ligand ended up in the wrong location entirely.</p>
+<p>This validation establishes an operating envelope for the method. At high sequence identity, AlphaFill is reliable enough to use for functional annotation: if the pipeline says a particular AlphaFold model binds NAD<span class="math inline">\(^+\)</span> in a particular pocket, that assignment can be trusted with reasonable confidence. At low sequence identity, the transplantations are hypotheses rather than assertions, and independent verification (docking calculations, molecular dynamics simulations, or experiments) is needed before drawing conclusions.</p>
+<p><strong>One subtlety in the validation</strong> is the distinction between correct pocket identification and correct binding mode. A transplanted ligand might land in the right pocket (the same cleft in the protein surface) but with an incorrect orientation. For small symmetric ligands like metal ions, orientation is irrelevant: a zinc ion is a zinc ion regardless of how it got there. For larger ligands like ATP or FAD, the orientation matters because it determines which functional groups are exposed to solvent, which are buried, and which interact with specific protein residues. AlphaFill reports the overall ligand RMSD but does not separately evaluate the binding mode, so users who need binding-mode accuracy should examine the transplanted structures carefully.</p>
+</section>
+<section id="ch08-alphafill-sec:scale" class="level1 page-columns page-full">
+<h1>Scale of the database</h1>
+<p><strong>As of its initial publication,</strong> the AlphaFill database contained over 12 million individual ligand transplantations across hundreds of thousands of AlphaFold models&nbsp;<span class="citation" data-cites="hekkelman2023">(<a href="../../../references.html#ref-hekkelman2023" role="doc-biblioref">Hekkelman et al. 2023</a>)</span>. These transplants cover a wide range of ligand types: small organic molecules (substrates, products, drugs), metal ions (Zn<span class="math inline">\(^{2+}\)</span>, Mg<span class="math inline">\(^{2+}\)</span>, Fe<span class="math inline">\(^{2+/3+}\)</span>, Ca<span class="math inline">\(^{2+}\)</span>, Mn<span class="math inline">\(^{2+}\)</span>, Cu<span class="math inline">\(^{2+}\)</span>), nucleotide cofactors (ATP, ADP, GTP, NAD<span class="math inline">\(^+\)</span>, NADP<span class="math inline">\(^+\)</span>, FAD, FMN), coenzyme A and its derivatives, heme groups, and various modified residues.</p>
+<p>The sheer number of transplantations means that most proteins in commonly studied organisms have at least one AlphaFill entry. For model organisms like <em>E.&nbsp;coli</em>, <em>S.&nbsp;cerevisiae</em>, and <em>H.&nbsp;sapiens</em>, the coverage is dense: many enzymes have multiple transplanted ligands from different donors at different sequence identity levels, giving users a range of options to choose from. For less-studied organisms, coverage depends on whether close homologs with bound ligands exist in the PDB.</p>
+<div id="ch08-alphafill-fig:alphafill-model" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch08_alphafill_model.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">AlphaFill model page for a retinoic acid-binding protein, showing transplanted ligands with donor metadata.</figcaption>
+</figure>
+</div>
+<p>The database is searchable by UniProt accession, protein name, or organism. Each entry shows the AlphaFold model with its transplanted ligands color-coded by sequence identity, and users can toggle individual ligands on and off to examine alternative placements. The underlying data are also available for bulk download, making it possible to incorporate AlphaFill annotations into computational pipelines.</p>
+</section>
+<section id="ch08-alphafill-sec:alphabridge" class="level1 page-columns page-full">
+<h1>AlphaBridge: connecting predicted and experimental data</h1>
+<p><strong>AlphaFill addresses one direction</strong> of the relationship between predicted and experimental structures: it takes experimental ligand information and adds it to predicted models. But the relationship runs in both directions. Predicted structures can also inform the interpretation of experimental data, and this reverse flow has become increasingly important as cryo-electron microscopy generates maps at moderate resolution where model building is difficult.</p>
+<p>The concept behind AlphaBridge is to use AlphaFold models as starting points for interpreting experimental data. When a cryo-EM map is obtained at 4–6&nbsp;Å&nbsp;resolution, the density may be sufficient to identify the overall fold and domain arrangement but insufficient to place individual side chains or small ligands. An AlphaFold model of the same protein (or a homolog) can be docked into the density as a rigid body, providing atomic coordinates that would be difficult to build from the map alone. The predicted structure acts as a bridge between sequence and experimental density.</p>
+<p>This approach is not unique to AlphaFold. Homology models have been used for molecular replacement in X-ray crystallography for decades, and the concept of fitting a known structure into a cryo-EM map is standard practice. What changed with AlphaFold is the accuracy and coverage. Previous homology models were often too inaccurate for molecular replacement to succeed, especially for targets with low sequence identity to known structures. AlphaFold models are frequently accurate enough to work, and they exist for nearly every protein sequence.</p>
+<p>The practical workflow combines predicted structures with experimental restraints. An AlphaFold model is placed into the experimental density, then refined against the data. During refinement, the model coordinates are adjusted to better fit the observed density while maintaining reasonable stereochemistry. The refinement can incorporate AlphaFold’s confidence scores as restraint weights: regions with high pLDDT are held more tightly to their predicted positions, while regions with low pLDDT are allowed to move freely in response to the experimental data.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;This use of pLDDT as a refinement weight is an elegant inversion of its original purpose. AlphaFold produces pLDDT as a self-assessment of prediction quality. In the AlphaBridge context, it becomes a prior on how much to trust the predicted coordinates during experimental refinement.</p></div></div><p>The result is a hybrid structure that is neither purely predicted nor purely experimental. In well-resolved regions, the experimental data dominate and the structure reflects the true conformation in the crystal or vitrified sample. In poorly resolved regions, the AlphaFold prediction fills in details that the data alone cannot resolve. The boundary between data-driven and prediction-driven regions can be identified from the local correlation between the model and the map, giving users a residue-by-residue picture of which parts of the structure are experimental and which are predicted.</p>
+</section>
+<section id="ch08-alphafill-sec:limitations" class="level1 page-columns page-full">
+<h1>Limitations and caveats</h1>
+<p><strong>AlphaFill’s strength</strong> is its simplicity: superpose and copy. But that simplicity carries assumptions that fail in specific and instructive ways.</p>
+<section id="ch08-alphafill-sec:induced-fit" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:induced-fit">Induced fit</h2>
+<p>The most fundamental assumption in AlphaFill is that the protein conformation does not change upon ligand binding. The AlphaFold model represents an apo-like state (no ligand bound), and the transplanted ligand is dropped into this apo conformation. For many proteins, this is a reasonable approximation: the binding pocket is pre-formed, and ligand binding involves minimal structural rearrangement.</p>
+<p>But for proteins that undergo induced-fit conformational changes, the apo model may have a binding pocket that is the wrong shape for the ligand. A classic example is hexokinase, which undergoes a large domain closure upon glucose binding. The AlphaFold model of hexokinase may show the open conformation, with the two lobes of the enzyme separated. Transplanting glucose from an experimental structure of the closed conformation will place the substrate in a position that conflicts with the open-state geometry, because the residues that contact glucose in the closed state have moved.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;The magnitude of induced-fit motions varies enormously. Some enzymes show sub-Ångström rearrangements upon ligand binding (effectively rigid). Others, like kinases and polymerases, show domain motions of 5–15&nbsp;Å. AlphaFill works well for the first category and poorly for the second.</p></div></div><p>AlphaFold itself sometimes predicts the holo (ligand-bound) conformation even without the ligand present, presumably because the training data included more holo structures than apo structures. In these cases, AlphaFill may actually work better than expected, since the predicted conformation already accommodates the ligand. But this behavior is unpredictable and protein-dependent, so it cannot be relied upon in general.</p>
+</section>
+<section id="ch08-alphafill-sec:allosteric" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:allosteric">Allosteric and non-canonical binding sites</h2>
+<p>Orthosteric binding sites (the primary functional sites, such as the active site of an enzyme or the substrate-binding groove of a transporter) tend to be the most conserved across homologs and therefore the easiest to transplant. Allosteric sites, where regulatory molecules bind at locations distant from the active site, are more variable. Two homologous kinases may share the same ATP-binding site but differ in their allosteric pockets, so transplanting an allosteric modulator from one to the other is more likely to produce errors.</p>
+<p>Non-canonical binding sites present an even harder problem. Crystallographic structures sometimes contain ligands bound at crystal-packing interfaces or adventitious binding sites that are not biologically relevant.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> AlphaFill will transplant these artifacts as readily as it transplants genuine substrates, because the pipeline has no way to distinguish between a functionally important ligand and a crystallographic artifact. The sequence identity filter helps (artifacts tend to appear only in a single structure, while real binding sites show up across multiple homologs), but it does not eliminate the problem entirely.</p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;The PDB contains many instances of buffer molecules (glycerol, PEG, sulfate) bound at surface sites that are unlikely to have functional significance. AlphaFill can transplant these as readily as it transplants true substrates, so users must exercise judgment about which transplanted ligands are biologically meaningful.</p></div></div></section>
+<section id="ch08-alphafill-sec:confidence-filtering" class="level2">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:confidence-filtering">Confidence filtering</h2>
+<p>The safest transplantations are those where several independent quality indicators agree. A transplant is most trustworthy when the donor sequence identity is high (above 50%), the local binding-site RMSD is low (below 1&nbsp;Å), the AlphaFold pLDDT in the binding region is high (above 85), and multiple independent donors produce similar ligand placements. When all four conditions hold, the transplanted ligand position is likely to be close to what an experimental structure would show.</p>
+<p>As any of these indicators degrades, the reliability of the transplant drops. The conditions are not independent: low sequence identity often correlates with high binding-site RMSD, and disordered regions (low pLDDT) are less likely to have conserved binding sites. A reasonable strategy for using AlphaFill in practice is to set minimum thresholds on sequence identity and pLDDT, then visually inspect the remaining transplants for steric clashes and chemical plausibility.</p>
+</section>
+<section id="ch08-alphafill-sec:what-not" class="level2">
+<h2 class="anchored" data-anchor-id="ch08-alphafill-sec:what-not">What AlphaFill does not do</h2>
+<p>AlphaFill does not attempt several classes of prediction. It does not predict whether a protein binds a particular ligand. It only transplants ligands that are observed in homologous structures; if no homolog has been crystallized with a given ligand, AlphaFill will not suggest it. It does not refine the ligand position after transplantation; the coordinates are copied and placed, but no energy minimization or molecular dynamics is performed to relax the ligand into the AlphaFold model’s binding site. It does not model conformational changes in the protein upon ligand binding. And it does not provide binding affinity estimates or predict whether the transplanted ligand would actually bind to the target protein.</p>
+<p>These limitations define AlphaFill’s role in a structural biology workflow. It is a first-pass annotation tool, not a binding prediction method. It answers the question “where might a ligand sit in this protein?” rather than “does this protein bind this ligand?” The distinction is important, and users who conflate the two will overinterpret the results.</p>
+</section>
+</section>
+<section id="ch08-alphafill-sec:alphafill-practical" class="level1">
+<h1>Practical considerations</h1>
+<p><strong>Using AlphaFill outputs</strong> in downstream analyses requires some care. The transplanted ligand coordinates do not come with topology files, force field parameters, or bonding information beyond what is in the PDB chemical component dictionary. If the transplanted structure is to be used for molecular dynamics simulations, the user must generate appropriate parameters for the ligand, which is itself a non-trivial task for unusual cofactors or metal centers.</p>
+<p>For docking studies, AlphaFill-enriched models can be used as receptor structures. The transplanted ligand can define the binding site location, after which the transplanted coordinates are removed and new ligands are docked into the empty pocket. This use case is well-matched to AlphaFill’s strengths: it identifies the pocket but does not commit to a particular binding mode, leaving that determination to the docking algorithm.</p>
+<p>For homology modeling at moderate resolution, AlphaFill transplants can provide initial ligand placements that are then refined during model optimization. Many homology modeling programs expect the user to provide template structures with bound ligands, and AlphaFill-enriched AlphaFold models can fill this role.</p>
+<p>Metal ions are a particularly common and valuable use case. Metal ion positions are often conserved across highly divergent homologs (because the coordinating residues are under strong selective pressure), and the transplantation is geometrically simple since a metal ion is a single point. For metalloprotein studies (zinc finger classification, iron-sulfur cluster identification, calcium-binding site annotation), AlphaFill provides a fast way to add metals to the thousands of predicted metalloprotein structures in the AlphaFold database.</p>
+</section>
+<section id="ch08-alphafill-sec:ch08-notes" class="level1">
+<h1>Chapter notes</h1>
+<p>The AlphaFill method and database were published by Hekkelman et al.&nbsp;in Nature Methods in 2023&nbsp;<span class="citation" data-cites="hekkelman2023">(<a href="../../../references.html#ref-hekkelman2023" role="doc-biblioref">Hekkelman et al. 2023</a>)</span>. The database is freely available at <code>https://alphafill.eu</code> and is updated as new structures are deposited in the PDB and new AlphaFold models are released. The original AlphaFold method is described in Jumper et al.&nbsp;<span class="citation" data-cites="jumper2021">(<a href="../../../references.html#ref-jumper2021" role="doc-biblioref"><span class="nocase">Jumper et al.</span> 2021</a>)</span>, and the AlphaFold Protein Structure Database (maintained by the European Bioinformatics Institute) provides access to the underlying models.</p>
+<p>The problem of completing predicted structures has a longer history than AlphaFill. Earlier efforts to add ligands to homology models date to the template-based modeling programs of the 2000s, including SWISS-MODEL and Phyre2, which could optionally include template ligands in their output models. What made AlphaFill distinctive was the scale of the undertaking (processing the entire AlphaFold database), the systematic quality annotation, and the public availability of the results as a searchable resource.</p>
+<p>The use of predicted structures for molecular replacement in X-ray crystallography has been reviewed extensively since AlphaFold’s release. Several crystallographic software packages, including Phenix and CCP4, now incorporate AlphaFold models directly into their molecular replacement and refinement pipelines. The treatment of pLDDT as a refinement weight or B-factor prior has become standard practice in the structural biology community.</p>
+<p>Readers interested in the broader question of how to combine predicted and experimental structural data should consult the growing literature on integrative structural biology, which seeks to combine data from X-ray crystallography, cryo-EM, NMR, cross-linking mass spectrometry, small-angle scattering, and computational prediction into unified structural models. AlphaFill and AlphaBridge represent specific instances of this general program.</p>
+<p>For the computational details of structure superposition, the Kabsch algorithm remains the standard reference. The singular-value decomposition approach to optimal rotation was independently derived by Kabsch (1976, 1978) and has been reimplemented in virtually every structural biology software package. Modern implementations typically handle edge cases (degenerate point sets, reflections) that the original papers did not address, so readers implementing their own superposition code should consult both the original papers and a modern reference such as Coutsias et al.&nbsp;(2004).</p>
+<p>The distinction between apo and holo protein conformations, and the phenomenon of induced fit, were first described by Koshland in 1958. The implications for ligand transplantation are straightforward: if the protein changes shape when the ligand binds, placing the ligand into the unbound shape will produce clashes or geometric distortions. The extent to which AlphaFold models represent apo versus holo conformations varies by protein and is an active area of investigation.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-hekkelman2023" class="csl-entry" role="listitem">
+Hekkelman, Maarten L., Ida de Vries, Robbie P. Joosten, and Anastassis Perrakis. 2023. <span>“<span>AlphaFill</span>: Enriching <span>AlphaFold</span> Models with Ligands and Cofactors.”</span> <em>Nature Methods</em> 20: 205–13. <a href="https://doi.org/10.1038/s41592-022-01685-y">https://doi.org/10.1038/s41592-022-01685-y</a>.
+</div>
+<div id="ref-jumper2021" class="csl-entry" role="listitem">
+<span class="nocase">Jumper, John, Richard Evans, Alexander Pritzel, et al.</span> 2021. <span>“Highly Accurate Protein Structure Prediction with <span>AlphaFold</span>.”</span> <em>Nature</em> 596: 583–89. <a href="https://doi.org/10.1038/s41586-021-03819-2">https://doi.org/10.1038/s41586-021-03819-2</a>.
+</div>
+</div>
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/muhammadhasyim\.github\.io\/structural-bio-book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="pagination-link" aria-label="AlphaFold 2 and 3: Architecture and Mathematics">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="pagination-link" aria-label="Molecular Docking">
+        <span class="nav-page-text"><span class="chapter-title">Molecular Docking</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

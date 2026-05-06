@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Molecular Dynamics Simulations – Structural Bioinformatics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../quarto/_generated/chapters/ch11_disorder.html" rel="next">
+<link href="../../../quarto/_generated/chapters/ch09_docking.html" rel="prev">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../website/quarto-tufte-overrides.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch09_docking.html">Interactions and Dynamics</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html"><span class="chapter-title">Molecular Dynamics Simulations</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../../">Structural Bioinformatics</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/muhammadhasyim/structural-bio-book" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Bioinformatics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Biology: Physical Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch02_data_quality.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Sequence Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Pairwise Sequence Alignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Protein Classification</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Structure Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Homology Modeling and Threading</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch08_alphafill.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Completing Predicted Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactions and Dynamics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Docking</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Molecular Dynamics Simulations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Special Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Intrinsically Disordered Proteins</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch12_drug_design.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../references.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">—</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ch10-molecular-dynamics-sec:md-stat-mech" id="toc-ch10-molecular-dynamics-sec:md-stat-mech" class="nav-link active" data-scroll-target="#ch10-molecular-dynamics-sec\:md-stat-mech">Statistical Mechanics Foundations</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:force-fields" id="toc-ch10-molecular-dynamics-sec:force-fields" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:force-fields">Force Fields</a>
+  <ul class="collapse">
+  <li><a href="#ch10-molecular-dynamics-sec:ff-functional-form" id="toc-ch10-molecular-dynamics-sec:ff-functional-form" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:ff-functional-form">Functional Form</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:ff-families" id="toc-ch10-molecular-dynamics-sec:ff-families" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:ff-families">Parameterization and Force Field Families</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:combining-rules" id="toc-ch10-molecular-dynamics-sec:combining-rules" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:combining-rules">Combining Rules</a></li>
+  </ul></li>
+  <li><a href="#ch10-molecular-dynamics-sec:integrators" id="toc-ch10-molecular-dynamics-sec:integrators" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:integrators">Integration Algorithms</a>
+  <ul class="collapse">
+  <li><a href="#ch10-molecular-dynamics-sec:verlet" id="toc-ch10-molecular-dynamics-sec:verlet" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:verlet">The Verlet Algorithm</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:velocity-verlet" id="toc-ch10-molecular-dynamics-sec:velocity-verlet" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:velocity-verlet">Velocity Verlet</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:leapfrog" id="toc-ch10-molecular-dynamics-sec:leapfrog" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:leapfrog">The Leapfrog Algorithm</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:timestep" id="toc-ch10-molecular-dynamics-sec:timestep" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:timestep">Timestep Constraints</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:symplectic" id="toc-ch10-molecular-dynamics-sec:symplectic" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:symplectic">Symplectic Structure</a></li>
+  </ul></li>
+  <li><a href="#ch10-molecular-dynamics-sec:thermostats-barostats" id="toc-ch10-molecular-dynamics-sec:thermostats-barostats" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:thermostats-barostats">Thermostats and Barostats</a>
+  <ul class="collapse">
+  <li><a href="#ch10-molecular-dynamics-sec:velocity-rescaling" id="toc-ch10-molecular-dynamics-sec:velocity-rescaling" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:velocity-rescaling">Velocity Rescaling</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:berendsen-thermostat" id="toc-ch10-molecular-dynamics-sec:berendsen-thermostat" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:berendsen-thermostat">The Berendsen Thermostat</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:nose-hoover" id="toc-ch10-molecular-dynamics-sec:nose-hoover" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:nose-hoover">The Nosé-Hoover Thermostat</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:langevin" id="toc-ch10-molecular-dynamics-sec:langevin" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:langevin">Langevin Dynamics</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:barostats" id="toc-ch10-molecular-dynamics-sec:barostats" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:barostats">Barostats</a></li>
+  </ul></li>
+  <li><a href="#ch10-molecular-dynamics-sec:long-range" id="toc-ch10-molecular-dynamics-sec:long-range" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:long-range">Long-Range Electrostatics</a>
+  <ul class="collapse">
+  <li><a href="#ch10-molecular-dynamics-sec:ewald" id="toc-ch10-molecular-dynamics-sec:ewald" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:ewald">Ewald Summation</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:pme" id="toc-ch10-molecular-dynamics-sec:pme" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:pme">Particle Mesh Ewald</a></li>
+  </ul></li>
+  <li><a href="#ch10-molecular-dynamics-sec:enhanced-sampling" id="toc-ch10-molecular-dynamics-sec:enhanced-sampling" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:enhanced-sampling">Enhanced Sampling Methods</a>
+  <ul class="collapse">
+  <li><a href="#ch10-molecular-dynamics-sec:remd" id="toc-ch10-molecular-dynamics-sec:remd" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:remd">Replica Exchange Molecular Dynamics</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:metadynamics" id="toc-ch10-molecular-dynamics-sec:metadynamics" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:metadynamics">Metadynamics</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:umbrella-sampling" id="toc-ch10-molecular-dynamics-sec:umbrella-sampling" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:umbrella-sampling">Umbrella Sampling and WHAM</a></li>
+  </ul></li>
+  <li><a href="#ch10-molecular-dynamics-sec:analysis" id="toc-ch10-molecular-dynamics-sec:analysis" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:analysis">Trajectory Analysis</a>
+  <ul class="collapse">
+  <li><a href="#ch10-molecular-dynamics-sec:rmsd" id="toc-ch10-molecular-dynamics-sec:rmsd" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:rmsd">Root Mean Square Deviation</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:rmsf" id="toc-ch10-molecular-dynamics-sec:rmsf" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:rmsf">Root Mean Square Fluctuation</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:pca" id="toc-ch10-molecular-dynamics-sec:pca" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:pca">Principal Component Analysis of Trajectories</a></li>
+  </ul></li>
+  <li><a href="#ch10-molecular-dynamics-sec:md-practical" id="toc-ch10-molecular-dynamics-sec:md-practical" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:md-practical">Practical Considerations</a></li>
+  <li><a href="#ch10-molecular-dynamics-sec:md-notes" id="toc-ch10-molecular-dynamics-sec:md-notes" class="nav-link" data-scroll-target="#ch10-molecular-dynamics-sec\:md-notes">Chapter Notes</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch09_docking.html">Interactions and Dynamics</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html"><span class="chapter-title">Molecular Dynamics Simulations</span></a></li></ol></nav><h1 class="title display-7"><span class="chapter-title">Molecular Dynamics Simulations</span></h1></header>
+
+<header id="title-block-header">
+
+
+</header>
+
+
+<p>In the summer of 1957, Berni Alder and Tom Wainwright sat before the MANIAC computer at Los Alamos National Laboratory and watched 32 hard spheres bounce around a virtual box.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> The spheres had no attractive forces between them, no internal structure, no chemistry. They simply collided elastically according to Newton’s laws. Yet from this spartan model, Alder and Wainwright extracted a result that had eluded theorists for decades: hard spheres undergo a first-order phase transition from a disordered fluid to an ordered solid when compressed beyond a critical density. The crystallization was not programmed in. It emerged from the dynamics alone.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;The MANIAC (Mathematical Analyzer Numerical Integrator and Automatic Computer) was built in 1952 and could perform about 10,000 operations per second. A modern GPU performs <span class="math inline">\(10^{13}\)</span> floating point operations per second.</p></div></div><p>Within a few years, Aneesur Rahman at Argonne simulated 864 argon atoms interacting through a Lennard-Jones potential and computed the first realistic velocity autocorrelation functions for a liquid. By 1971, Rahman and Frank Stillinger had simulated liquid water with 216 molecules, reproducing radial distribution functions that matched X-ray scattering data. The trajectory from 32 structureless spheres to the million-atom, millisecond simulations that David Shaw’s group runs today on purpose-built hardware traces one of computational science’s great arcs. The method at the core has not changed: solve Newton’s equations of motion for a collection of particles interacting through an empirical potential energy function, and record the trajectory.</p>
+<p><strong>This chapter develops</strong> molecular dynamics simulation from its statistical mechanical foundations through the practical details of force fields, integration algorithms, temperature and pressure control, treatment of long-range electrostatics, and enhanced sampling methods. We close with trajectory analysis techniques that connect simulation output to experimentally measurable quantities.</p>
+<section id="ch10-molecular-dynamics-sec:md-stat-mech" class="level1 page-columns page-full">
+<h1>Statistical Mechanics Foundations</h1>
+<p>We begin with the canonical ensemble.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Consider a system of <span class="math inline">\(N\)</span> classical particles confined to a volume <span class="math inline">\(V\)</span> and in thermal equilibrium with a heat bath at temperature <span class="math inline">\(T\)</span>. The system explores its accessible microstates, each characterized by the positions <span class="math inline">\(\mathbf{r}^N = (\mathbf{r}_1, \ldots, \mathbf{r}_N)\)</span> and momenta <span class="math inline">\(\mathbf{p}^N = (\mathbf{p}_1, \ldots, \mathbf{p}_N)\)</span> of all particles. The set of all possible <span class="math inline">\((\mathbf{r}^N, \mathbf{p}^N)\)</span> constitutes the <em>phase space</em> of the system, a <span class="math inline">\(6N\)</span>-dimensional space in which the instantaneous state of the system is a single point.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;The canonical ensemble describes a system at constant number of particles <span class="math inline">\(N\)</span>, volume <span class="math inline">\(V\)</span>, and temperature <span class="math inline">\(T\)</span>. We call it the NVT ensemble.</p></div></div><p>The canonical partition function connects the microscopic states to macroscopic thermodynamics: <span class="math display">\[\label{eq:partition-function}
+Z = \frac{1}{N! h^{3N}} \int \exp\!\bigl(-\beta H(\mathbf{r}^N, \mathbf{p}^N)\bigr) \, d\mathbf{r}^N \, d\mathbf{p}^N\]</span> where <span class="math inline">\(\beta = 1/(k_B T)\)</span>, <span class="math inline">\(H\)</span> is the classical Hamiltonian, and the prefactors account for indistinguishability and the classical limit of quantum mechanics. The probability of finding the system in a particular microstate is given by the Boltzmann distribution: <span class="math display">\[\label{eq:boltzmann}
+P(\mathbf{r}^N, \mathbf{p}^N) = \frac{\exp\!\bigl(-\beta H(\mathbf{r}^N, \mathbf{p}^N)\bigr)}{Z}\]</span></p>
+<p>For systems where the Hamiltonian separates into kinetic and potential energy, <span class="math inline">\(H = K(\mathbf{p}^N) + V(\mathbf{r}^N)\)</span>, the partition function factors. The kinetic part integrates analytically (it is a product of Gaussian integrals), and the configurational partition function becomes <span class="math display">\[\label{eq:config-partition}
+Z_{\text{config}} = \int \exp\!\bigl(-\beta V(\mathbf{r}^N)\bigr) \, d\mathbf{r}^N\]</span> This integral cannot be evaluated analytically for systems of interacting particles. Molecular dynamics provides a numerical route.</p>
+<p><strong>The connection to thermodynamics</strong> is direct. The Helmholtz free energy is <span class="math display">\[\label{eq:helmholtz}
+F = -k_B T \ln Z\]</span> The average energy follows from differentiating the partition function: <span class="math display">\[\label{eq:avg-energy}
+\langle E \rangle = -\frac{\partial \ln Z}{\partial \beta}\]</span> and the pressure from <span class="math display">\[\label{eq:pressure}
+P = -\left(\frac{\partial F}{\partial V}\right)_{N,T} = k_B T \left(\frac{\partial \ln Z}{\partial V}\right)_{N,T}\]</span></p>
+<p><strong>The ergodic hypothesis</strong> states that for a sufficiently long trajectory, the time average of any observable <span class="math inline">\(A\)</span> equals its ensemble average: <span class="math display">\[\label{eq:ergodic}
+\langle A \rangle_{\text{time}} = \lim_{\tau \to \infty} \frac{1}{\tau} \int_0^\tau A\bigl(\mathbf{r}^N(t), \mathbf{p}^N(t)\bigr) \, dt = \langle A \rangle_{\text{ensemble}}\]</span> This is the central justification for molecular dynamics: by propagating trajectories long enough, we can compute thermodynamic averages from a single trajectory rather than sampling independently from the Boltzmann distribution. In practice, “long enough” means the trajectory must visit all relevant regions of phase space, which is the fundamental challenge of MD applied to biomolecules.</p>
+<p><strong>Liouville’s theorem</strong> places a constraint on how phase space evolves under Hamiltonian dynamics. Define the phase space density <span class="math inline">\(\rho(\mathbf{r}^N, \mathbf{p}^N, t)\)</span> as the probability density of finding the system at point <span class="math inline">\((\mathbf{r}^N, \mathbf{p}^N)\)</span> at time <span class="math inline">\(t\)</span>. Liouville’s theorem states that this density is conserved along trajectories: <span class="math display">\[\label{eq:liouville}
+\frac{d\rho}{dt} = \frac{\partial \rho}{\partial t} + \sum_{i=1}^{N} \left( \dot{\mathbf{r}}_i \cdot \frac{\partial \rho}{\partial \mathbf{r}_i} + \dot{\mathbf{p}}_i \cdot \frac{\partial \rho}{\partial \mathbf{p}_i} \right) = 0\]</span> Equivalently, the phase space volume occupied by an ensemble of trajectories is constant in time. This has a practical consequence: numerical integrators that preserve this property (symplectic integrators) do not exhibit systematic energy drift, making them essential for long MD simulations.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:force-fields" class="level1 page-columns page-full">
+<h1>Force Fields</h1>
+<p><strong>The Born-Oppenheimer approximation</strong> separates nuclear and electronic motion.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> Because electrons are roughly 2000 times lighter than protons, they respond to nuclear motion almost instantaneously. We can solve the electronic Schrödinger equation for fixed nuclear positions, obtaining an electronic energy <span class="math inline">\(E_{\text{elec}}(\mathbf{R})\)</span> that depends parametrically on the nuclear coordinates <span class="math inline">\(\mathbf{R}\)</span>. This electronic energy, together with the nuclear repulsion, defines the potential energy surface (PES) on which nuclei move: <span class="math display">\[\label{eq:pes}
+V(\mathbf{r}_1, \ldots, \mathbf{r}_N) = E_{\text{elec}}(\mathbf{r}_1, \ldots, \mathbf{r}_N) + V_{\text{nuc-nuc}}(\mathbf{r}_1, \ldots, \mathbf{r}_N)\]</span></p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;Max Born and J. Robert Oppenheimer published this in 1927. The mass ratio <span class="math inline">\(m_e/m_p \approx 1/1836\)</span> justifies the separation: electrons adjust instantaneously to nuclear positions.</p></div></div><p>Computing the true PES from quantum mechanics for every MD timestep is feasible only for small systems (tens of atoms, for picoseconds). For biomolecular simulations, we approximate <span class="math inline">\(V\)</span> with an analytical function whose parameters are fit to quantum mechanical calculations and experimental data. This analytical approximation is the <em>force field</em>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../figures/ch10_qmmm_regions.png" class="img-fluid figure-img"></p>
+<figcaption>QM/MM partitioning of a biomolecular system.</figcaption>
+</figure>
+</div>
+</div></div><section id="ch10-molecular-dynamics-sec:ff-functional-form" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:ff-functional-form">Functional Form</h2>
+<p>The standard biomolecular force field decomposes the potential energy into bonded (intramolecular) and nonbonded (intermolecular) terms: <span class="math display">\[\label{eq:ff-total}
+V_{\text{total}} = V_{\text{bond}} + V_{\text{angle}} + V_{\text{dihedral}} + V_{\text{vdW}} + V_{\text{elec}}\]</span></p>
+<section id="bond-stretching." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="bond-stretching.">Bond stretching.</h4>
+<p>We model covalent bonds as harmonic springs: <span class="math display">\[\label{eq:bond}
+V_{\text{bond}} = \sum_{\text{bonds}} \frac{1}{2} k_b (r - r_0)^2\]</span> where <span class="math inline">\(r\)</span> is the instantaneous bond length, <span class="math inline">\(r_0\)</span> is the equilibrium bond length, and <span class="math inline">\(k_b\)</span> is the force constant.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> The harmonic form is the leading term in a Taylor expansion of the true bond potential around its minimum. The force on atom <span class="math inline">\(i\)</span> from this term is <span class="math inline">\(F_i = -k_b(r - r_0) \hat{r}_{ij}\)</span>, directed along the bond.</p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;Typical values: for a C–C single bond, <span class="math inline">\(r_0 \approx 1.53\)</span>&nbsp;Å&nbsp;and <span class="math inline">\(k_b \approx 600\)</span>&nbsp;kcal/(mol&nbsp;Å<span class="math inline">\(^2\)</span>). The harmonic approximation breaks down far from equilibrium, but covalent bonds rarely stretch more than 0.1&nbsp;Å&nbsp;at 300&nbsp;K.</p></div></div></section>
+<section id="angle-bending." class="level4">
+<h4 class="anchored" data-anchor-id="angle-bending.">Angle bending.</h4>
+<p>Three consecutively bonded atoms form a valence angle <span class="math inline">\(\theta\)</span>, modeled as <span class="math display">\[\label{eq:angle}
+V_{\text{angle}} = \sum_{\text{angles}} \frac{1}{2} k_\theta (\theta - \theta_0)^2\]</span> where <span class="math inline">\(\theta_0\)</span> is the equilibrium angle (e.g., <span class="math inline">\(109.5^\circ\)</span> for <span class="math inline">\(sp^3\)</span> carbon) and <span class="math inline">\(k_\theta\)</span> is the bending force constant.</p>
+</section>
+<section id="dihedral-torsional-angles." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="dihedral-torsional-angles.">Dihedral (torsional) angles.</h4>
+<p>Four consecutively bonded atoms define a dihedral angle <span class="math inline">\(\phi\)</span>. Unlike bonds and angles, the torsional potential must be periodic because rotation by <span class="math inline">\(360^\circ\)</span> returns the same configuration: <span class="math display">\[\label{eq:dihedral}
+V_{\text{dihedral}} = \sum_{\text{dihedrals}} k_\phi \bigl[1 + \cos(n\phi - \delta)\bigr]\]</span> Here <span class="math inline">\(n\)</span> is the multiplicity (number of minima per full rotation), <span class="math inline">\(\delta\)</span> is the phase offset, and <span class="math inline">\(k_\phi\)</span> is the barrier height.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> The cosine form arises naturally from the overlap of adjacent <span class="math inline">\(p\)</span>-orbitals as a function of the torsion angle. Some force fields use improper dihedrals (defined by four atoms not in a consecutive chain) to maintain planarity at <span class="math inline">\(sp^2\)</span> centers.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;For the <span class="math inline">\(\phi\)</span> backbone dihedral of alanine in AMBER ff14SB, this is a Fourier series with terms at <span class="math inline">\(n=1,2,3\)</span>, reflecting the complex electronic interactions that govern backbone conformational preferences.</p></div></div></section>
+<section id="van-der-waals-interactions." class="level4">
+<h4 class="anchored" data-anchor-id="van-der-waals-interactions.">Van der Waals interactions.</h4>
+<p>Nonbonded atoms interact through short-range repulsion (Pauli exclusion) and long-range dispersion (London forces). The Lennard-Jones 12-6 potential captures both: <span class="math display">\[\label{eq:lj}
+V_{\text{vdW}} = \sum_{i&lt;j} 4\epsilon_{ij} \left[ \left(\frac{\sigma_{ij}}{r_{ij}}\right)^{12} - \left(\frac{\sigma_{ij}}{r_{ij}}\right)^6 \right]\]</span> The <span class="math inline">\(r^{-6}\)</span> attractive term has theoretical justification from second-order perturbation theory of induced dipole interactions. The <span class="math inline">\(r^{-12}\)</span> repulsive term is computationally convenient (it is the square of <span class="math inline">\(r^{-6}\)</span>) but has no deep physical basis. The parameter <span class="math inline">\(\epsilon_{ij}\)</span> sets the well depth and <span class="math inline">\(\sigma_{ij}\)</span> sets the distance at which the potential crosses zero. The minimum occurs at <span class="math inline">\(r_{\min} = 2^{1/6} \sigma_{ij} \approx 1.12\,\sigma_{ij}\)</span>.</p>
+</section>
+<section id="electrostatic-interactions." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="electrostatic-interactions.">Electrostatic interactions.</h4>
+<p>Each atom carries a fixed partial charge <span class="math inline">\(q_i\)</span>, and pairs interact through the Coulomb potential: <span class="math display">\[\label{eq:coulomb}
+V_{\text{elec}} = \sum_{i&lt;j} \frac{q_i q_j}{4\pi\epsilon_0 r_{ij}}\]</span> These partial charges are not integer electron charges but fractional values determined by fitting to the quantum mechanical electrostatic potential around the molecule.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> The Coulomb interaction decays slowly (<span class="math inline">\(1/r\)</span>), creating both computational and conceptual challenges that we address in Section&nbsp;<a href="#sec:long-range" data-reference-type="ref" data-reference="sec:long-range">5</a>.</p>
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;The RESP (Restrained Electrostatic Potential) method used in AMBER fits atomic point charges to reproduce the HF/6-31G* electrostatic potential on a grid surrounding the molecule.</p></div></div></section>
+</section>
+<section id="ch10-molecular-dynamics-sec:ff-families" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:ff-families">Parameterization and Force Field Families</h2>
+<p>The numbers that enter Equations&nbsp;<a href="#eq:bond" data-reference-type="ref" data-reference="eq:bond">[eq:bond]</a>–<a href="#eq:coulomb" data-reference-type="ref" data-reference="eq:coulomb">[eq:coulomb]</a> must come from somewhere. The parameterization strategy differs for bonded and nonbonded terms.</p>
+<p>Bonded parameters (<span class="math inline">\(k_b\)</span>, <span class="math inline">\(r_0\)</span>, <span class="math inline">\(k_\theta\)</span>, <span class="math inline">\(\theta_0\)</span>, <span class="math inline">\(k_\phi\)</span>, <span class="math inline">\(n\)</span>, <span class="math inline">\(\delta\)</span>) are typically derived from quantum mechanical calculations on small model compounds. One computes the energy as a function of the internal coordinate at a high level of theory (MP2 or DFT with a large basis set), then fits the force field functional form to reproduce this energy profile.</p>
+<p>Nonbonded Lennard-Jones parameters (<span class="math inline">\(\epsilon\)</span>, <span class="math inline">\(\sigma\)</span>) are fit to reproduce experimental properties of the bulk liquid: density, heat of vaporization, and free energy of hydration. This empirical fitting is necessary because dispersion interactions are difficult to compute accurately from first principles, and because the effective pair potential in a condensed phase differs from the gas-phase pair interaction.</p>
+<p>Three major force field families dominate biomolecular simulation. AMBER (Assisted Model Building with Energy Refinement) originated from Peter Kollman’s group at UCSF; its current protein force field is ff19SB. CHARMM (Chemistry at HARvard Macromolecular Mechanics) was developed by Martin Karplus and colleagues; the current generation is CHARMM36m. OPLS-AA (Optimized Potentials for Liquid Simulations, All Atom) from William Jorgensen’s group places particular emphasis on reproducing liquid-state thermodynamics. These force fields differ in their functional forms (CHARMM includes a Urey-Bradley term and CMAP corrections for backbone dihedrals), their charge derivation methods, and their LJ parameter sets, but all share the basic structure of Equation&nbsp;<a href="#eq:ff-total" data-reference-type="ref" data-reference="eq:ff-total">[eq:ff-total]</a>.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:combining-rules" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:combining-rules">Combining Rules</h2>
+<p>The Lennard-Jones potential requires parameters <span class="math inline">\(\epsilon_{ij}\)</span> and <span class="math inline">\(\sigma_{ij}\)</span> for every pair of atom types. Rather than tabulating all <span class="math inline">\(n(n-1)/2\)</span> pair interactions explicitly, force fields use combining rules to generate unlike-pair parameters from the self-interaction parameters. The Lorentz-Berthelot rules are standard:<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> <span class="math display">\[\begin{aligned}
+\label{eq:combining-sigma}
+\sigma_{ij} &amp;= \frac{\sigma_{ii} + \sigma_{jj}}{2} \\[4pt]
+\label{eq:combining-epsilon}
+\epsilon_{ij} &amp;= \sqrt{\epsilon_{ii} \cdot \epsilon_{jj}}
+\end{aligned}\]</span> The arithmetic mean for <span class="math inline">\(\sigma\)</span> (Lorentz rule) and geometric mean for <span class="math inline">\(\epsilon\)</span> (Berthelot rule) have limited physical justification but work well in practice for most organic systems.</p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;OPLS uses geometric mean for both <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\epsilon\)</span>. These choices affect the balance of interactions and are part of what distinguishes force field families.</p></div></div></section>
+</section>
+<section id="ch10-molecular-dynamics-sec:integrators" class="level1 page-columns page-full">
+<h1>Integration Algorithms</h1>
+<p><strong>With the force field defined,</strong> we must propagate Newton’s equations of motion: <span class="math display">\[\label{eq:newton}
+m_i \frac{d^2 \mathbf{r}_i}{dt^2} = \mathbf{F}_i = -\nabla_i V(\mathbf{r}^N)\]</span> for <span class="math inline">\(i = 1, \ldots, N\)</span>. This is a system of <span class="math inline">\(3N\)</span> coupled second-order ordinary differential equations. Because the potential <span class="math inline">\(V\)</span> depends on all particle positions simultaneously (through the nonbonded terms), analytical solutions do not exist for <span class="math inline">\(N &gt; 2\)</span>. We must integrate numerically.</p>
+<section id="ch10-molecular-dynamics-sec:verlet" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:verlet">The Verlet Algorithm</h2>
+<p>Loup Verlet introduced this algorithm in his 1967 simulation of liquid argon.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> The derivation starts from two Taylor expansions of the position around time <span class="math inline">\(t\)</span>: <span class="math display">\[\begin{aligned}
+\label{eq:taylor-forward}
+\mathbf{r}(t + \Delta t) &amp;= \mathbf{r}(t) + \mathbf{v}(t)\Delta t + \frac{1}{2}\mathbf{a}(t)\Delta t^2 + \frac{1}{6}\mathbf{b}(t)\Delta t^3 + \mathcal{O}(\Delta t^4) \\[4pt]
+\label{eq:taylor-backward}
+\mathbf{r}(t - \Delta t) &amp;= \mathbf{r}(t) - \mathbf{v}(t)\Delta t + \frac{1}{2}\mathbf{a}(t)\Delta t^2 - \frac{1}{6}\mathbf{b}(t)\Delta t^3 + \mathcal{O}(\Delta t^4)
+\end{aligned}\]</span> where <span class="math inline">\(\mathbf{a}(t) = \mathbf{F}(t)/m\)</span> is the acceleration and <span class="math inline">\(\mathbf{b}(t)\)</span> is the jerk (<span class="math inline">\(d^3\mathbf{r}/dt^3\)</span>). Adding these two equations cancels the odd-order terms: <span class="math display">\[\label{eq:verlet}
+\mathbf{r}(t + \Delta t) = 2\mathbf{r}(t) - \mathbf{r}(t - \Delta t) + \frac{\mathbf{F}(t)}{m}\Delta t^2 + \mathcal{O}(\Delta t^4)\]</span></p>
+<div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;Verlet’s paper&nbsp;<span class="citation" data-cites="verlet1967">(<a href="../../../references.html#ref-verlet1967" role="doc-biblioref">Verlet 1967</a>)</span> simulated 864 argon atoms with a Lennard-Jones potential, essentially repeating Rahman’s earlier calculation but with a new integration scheme that proved superior to the predictor-corrector methods then in use.</p></div></div><p>The Verlet algorithm is fourth-order accurate in position (the local truncation error is <span class="math inline">\(\mathcal{O}(\Delta t^4)\)</span>) while requiring only one force evaluation per timestep. It is time-reversible: swapping <span class="math inline">\(\mathbf{r}(t+\Delta t)\)</span> and <span class="math inline">\(\mathbf{r}(t-\Delta t)\)</span> gives the same equation. Velocities do not appear explicitly but can be estimated from finite differences: <span class="math display">\[\label{eq:verlet-velocity}
+\mathbf{v}(t) = \frac{\mathbf{r}(t + \Delta t) - \mathbf{r}(t - \Delta t)}{2\Delta t} + \mathcal{O}(\Delta t^2)\]</span></p>
+<p>The practical difficulty with the original Verlet scheme is that it computes <span class="math inline">\(\mathbf{r}(t+\Delta t)\)</span> as the sum of a large number (<span class="math inline">\(2\mathbf{r}(t)\)</span>) and a small number (<span class="math inline">\((\mathbf{F}/m)\Delta t^2\)</span>), leading to loss of numerical precision. The velocity Verlet reformulation avoids this.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:velocity-verlet" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:velocity-verlet">Velocity Verlet</h2>
+<p>The velocity Verlet algorithm computes positions and velocities at the same time, avoiding the precision issue:<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> <span class="math display">\[\begin{aligned}
+\label{eq:vv-position}
+\mathbf{r}(t + \Delta t) &amp;= \mathbf{r}(t) + \mathbf{v}(t)\Delta t + \frac{1}{2}\frac{\mathbf{F}(t)}{m}\Delta t^2 \\[4pt]
+\label{eq:vv-velocity}
+\mathbf{v}(t + \Delta t) &amp;= \mathbf{v}(t) + \frac{1}{2}\frac{\mathbf{F}(t) + \mathbf{F}(t+\Delta t)}{m}\Delta t
+\end{aligned}\]</span></p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;Swope, Andersen, Berens, and Wilson introduced velocity Verlet in 1982. It is mathematically equivalent to the original Verlet algorithm but numerically superior.</p></div></div><p>In practice, the algorithm proceeds in three stages within each timestep. First, update positions using current velocities and forces (Equation&nbsp;<a href="#eq:vv-position" data-reference-type="ref" data-reference="eq:vv-position">[eq:vv-position]</a>). Second, compute forces at the new positions to obtain <span class="math inline">\(\mathbf{F}(t+\Delta t)\)</span>. Third, complete the velocity update using both old and new forces (Equation&nbsp;<a href="#eq:vv-velocity" data-reference-type="ref" data-reference="eq:vv-velocity">[eq:vv-velocity]</a>). This requires storing forces from the current step, but the memory overhead is modest.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:leapfrog" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:leapfrog">The Leapfrog Algorithm</h2>
+<p>An equivalent formulation stores velocities at half-integer timesteps: <span class="math display">\[\begin{aligned}
+\label{eq:leapfrog-v}
+\mathbf{v}\!\left(t + \tfrac{\Delta t}{2}\right) &amp;= \mathbf{v}\!\left(t - \tfrac{\Delta t}{2}\right) + \frac{\mathbf{F}(t)}{m}\Delta t \\[4pt]
+\label{eq:leapfrog-r}
+\mathbf{r}(t + \Delta t) &amp;= \mathbf{r}(t) + \mathbf{v}\!\left(t + \tfrac{\Delta t}{2}\right)\Delta t
+\end{aligned}\]</span> Positions and velocities “leap” over each other in time. The leapfrog is algebraically identical to velocity Verlet (one can derive each from the other by variable substitution) and is the default integrator in GROMACS.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:timestep" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:timestep">Timestep Constraints</h2>
+<p>The timestep <span class="math inline">\(\Delta t\)</span> must be small enough to resolve the fastest motions in the system. For an all-atom simulation, the fastest vibration is the O–H stretch in water, with a period of roughly 10&nbsp;fs.<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> Stable integration requires <span class="math inline">\(\Delta t\)</span> to be at most one-tenth of this period, giving the standard <span class="math inline">\(\Delta t = 1\)</span>–2&nbsp;fs for all-atom MD.</p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;The vibrational frequency <span class="math inline">\(\nu = (1/2\pi)\sqrt{k/\mu}\)</span> where <span class="math inline">\(\mu\)</span> is the reduced mass. For O–H: <span class="math inline">\(k \approx 4600\)</span>&nbsp;kJ/(mol&nbsp;nm<span class="math inline">\(^2\)</span>), <span class="math inline">\(\mu \approx 0.97\)</span>&nbsp;Da, giving a period of about 9.5&nbsp;fs.</p></div><div id="fn11"><p><sup>11</sup>&nbsp;SHAKE&nbsp;solves the constraint equations iteratively; LINCS (LINear Constraint Solver) uses a matrix formulation that is faster and parallelizes well.</p></div></div><p>Two strategies permit larger timesteps. The SHAKE algorithm (and its faster successor LINCS, used in GROMACS) constrains all bonds involving hydrogen to their equilibrium lengths.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> This removes the fastest oscillations and permits <span class="math inline">\(\Delta t = 2\)</span>&nbsp;fs. Hydrogen mass repartitioning (HMR) redistributes mass from heavy atoms to their bonded hydrogens, slowing the fastest remaining vibrations (angle bending) and permitting <span class="math inline">\(\Delta t = 4\)</span>&nbsp;fs without changing thermodynamic properties.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:symplectic" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:symplectic">Symplectic Structure</h2>
+<p>The Verlet family of integrators shares a property that predictor-corrector and Runge-Kutta methods lack: they are <em>symplectic</em>. A symplectic integrator exactly preserves the phase space volume at each step (satisfying a discrete analog of Liouville’s theorem). The consequence is that the total energy does not drift systematically over time. It oscillates around the true value with bounded fluctuations proportional to <span class="math inline">\(\Delta t^2\)</span>, but never creeps upward or downward. For simulations running billions of timesteps, this property is essential for physical correctness.</p>
+<p>The formal statement is that the Verlet map <span class="math inline">\((\mathbf{r}^n, \mathbf{v}^n) \to (\mathbf{r}^{n+1}, \mathbf{v}^{n+1})\)</span> preserves the symplectic two-form <span class="math inline">\(\omega = \sum_i d\mathbf{r}_i \wedge d\mathbf{p}_i\)</span>. One can prove this by showing that the Jacobian of the Verlet map has determinant 1, which follows from its decomposition into successive shear transformations (the Trotter splitting of the Liouville operator).</p>
+</section>
+</section>
+<section id="ch10-molecular-dynamics-sec:thermostats-barostats" class="level1 page-columns page-full">
+<h1>Thermostats and Barostats</h1>
+<p><strong>Newtonian dynamics conserves total energy.</strong> It generates the microcanonical (NVE) ensemble. To simulate at constant temperature (NVT) or constant pressure (NPT), we must couple the system to external baths that supply or remove energy. The algorithms that accomplish this are thermostats and barostats.</p>
+<section id="ch10-molecular-dynamics-sec:velocity-rescaling" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:velocity-rescaling">Velocity Rescaling</h2>
+<p>The simplest approach: compute the instantaneous kinetic temperature <span class="math display">\[\label{eq:kinetic-temp}
+T_{\text{inst}} = \frac{2 K}{(3N - N_c) k_B} = \frac{1}{(3N - N_c)k_B} \sum_{i=1}^N m_i v_i^2\]</span> where <span class="math inline">\(N_c\)</span> is the number of constraints, and rescale all velocities by <span class="math inline">\(\lambda = \sqrt{T_0/T_{\text{inst}}}\)</span> to set the temperature exactly to <span class="math inline">\(T_0\)</span>. This generates the correct average temperature but suppresses kinetic energy fluctuations. The resulting ensemble is not canonical: the kinetic energy distribution is a delta function rather than the chi-squared distribution required by the equipartition theorem. Velocity rescaling is useful only for equilibration, never for production.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:berendsen-thermostat" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:berendsen-thermostat">The Berendsen Thermostat</h2>
+<p>Berendsen’s weak-coupling method rescales velocities gradually rather than instantaneously:<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> <span class="math display">\[\label{eq:berendsen-t}
+\frac{dT}{dt} = \frac{T_0 - T}{\tau_T}\]</span> The instantaneous temperature relaxes exponentially toward <span class="math inline">\(T_0\)</span> with time constant <span class="math inline">\(\tau_T\)</span> (typically 0.1–1&nbsp;ps). At each step, velocities are rescaled by <span class="math display">\[\label{eq:berendsen-lambda}
+\lambda = \sqrt{1 + \frac{\Delta t}{\tau_T}\left(\frac{T_0}{T_{\text{inst}}} - 1\right)}\]</span> The Berendsen thermostat is stable and efficient for equilibration, but it suffers from the “flying ice cube” effect in some implementations and does not generate correct canonical fluctuations. It should not be used for production runs where thermodynamic properties are computed from fluctuations.</p>
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;Berendsen et al.&nbsp;(1984) introduced both the thermostat and barostat that bear their name. The approach is simple and stable but does not produce correct fluctuations.</p></div></div></section>
+<section id="ch10-molecular-dynamics-sec:nose-hoover" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:nose-hoover">The Nosé-Hoover Thermostat</h2>
+<p>Nosé (1984)<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> introduced an extended-system approach that generates the correct canonical ensemble. The idea is to augment the physical system with a fictitious degree of freedom <span class="math inline">\(s\)</span> (a “thermostat variable”) that acts as a heat reservoir. Hoover reformulated Nosé’s equations into a more practical form. The equations of motion become: <span class="math display">\[\begin{aligned}
+\label{eq:nh-r}
+\dot{\mathbf{r}}_i &amp;= \frac{\mathbf{p}_i}{m_i} \\[4pt]
+\label{eq:nh-p}
+\dot{\mathbf{p}}_i &amp;= \mathbf{F}_i - \xi \mathbf{p}_i \\[4pt]
+\label{eq:nh-xi}
+\dot{\xi} &amp;= \frac{1}{Q}\left(\sum_{i=1}^N \frac{\mathbf{p}_i^2}{m_i} - (3N - N_c)k_B T_0\right)
+\end{aligned}\]</span> where <span class="math inline">\(\xi\)</span> is the thermostat friction coefficient and <span class="math inline">\(Q\)</span> is the thermostat “mass” that controls the coupling strength.<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn13"><p><sup>13</sup>&nbsp;<span class="citation" data-cites="nose1984">(<a href="../../../references.html#ref-nose1984" role="doc-biblioref">Nosé 1984</a>)</span></p></div><div id="fn14"><p><sup>14</sup>&nbsp;The thermostat mass <span class="math inline">\(Q\)</span> has dimensions of energy<span class="math inline">\(\times\)</span>time<span class="math inline">\(^2\)</span>. A common choice is <span class="math inline">\(Q = (3N-N_c)k_BT_0\tau_T^2\)</span> where <span class="math inline">\(\tau_T\)</span> is the desired oscillation period of the thermostat, typically 0.5–2&nbsp;ps.</p></div></div><p>The friction term <span class="math inline">\(-\xi\mathbf{p}_i\)</span> in Equation&nbsp;<a href="#eq:nh-p" data-reference-type="ref" data-reference="eq:nh-p">[eq:nh-p]</a> either drains kinetic energy (when <span class="math inline">\(\xi &gt; 0\)</span>, the system is too hot) or injects it (when <span class="math inline">\(\xi &lt; 0\)</span>, the system is too cold). The dynamics of <span class="math inline">\(\xi\)</span> itself (Equation&nbsp;<a href="#eq:nh-xi" data-reference-type="ref" data-reference="eq:nh-xi">[eq:nh-xi]</a>) ensures that it responds to deviations of the kinetic energy from its canonical expectation value.</p>
+<p>We can verify that this extended system conserves a modified Hamiltonian: <span class="math display">\[\label{eq:nh-conserved}
+H_{\text{NH}} = \sum_{i=1}^N \frac{\mathbf{p}_i^2}{2m_i} + V(\mathbf{r}^N) + \frac{1}{2}Q\xi^2 + (3N-N_c)k_BT_0 \int_0^t \xi(t')\,dt'\]</span> and that the Boltzmann distribution for the physical degrees of freedom is a stationary solution of the Liouville equation for the extended system. The Nosé-Hoover thermostat thus generates the correct canonical ensemble, making it suitable for production simulations.</p>
+<p>For small or stiff systems, a single Nosé-Hoover thermostat can exhibit non-ergodic behavior (periodic oscillations rather than proper thermalization). Nosé-Hoover chains, where a sequence of thermostats each thermostats the previous one, resolve this issue.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:langevin" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:langevin">Langevin Dynamics</h2>
+<p>An alternative route to the canonical ensemble replaces the explicit thermostat variable with stochastic forces. In Langevin dynamics, each particle experiences friction and random kicks: <span class="math display">\[\label{eq:langevin}
+m_i \dot{\mathbf{v}}_i = \mathbf{F}_i - \gamma m_i \mathbf{v}_i + \mathbf{R}_i(t)\]</span> where <span class="math inline">\(\gamma\)</span> is the friction coefficient (in units of inverse time) and <span class="math inline">\(\mathbf{R}_i(t)\)</span> is a random force satisfying the fluctuation-dissipation theorem: <span class="math display">\[\label{eq:fluct-dissip}
+\langle \mathbf{R}_i(t) \cdot \mathbf{R}_j(t') \rangle = 6 m_i \gamma k_B T \, \delta_{ij} \, \delta(t-t')\]</span></p>
+<p>The friction removes kinetic energy and the random force injects it; their balance (guaranteed by Equation&nbsp;<a href="#eq:fluct-dissip" data-reference-type="ref" data-reference="eq:fluct-dissip">[eq:fluct-dissip]</a>) maintains the system at temperature <span class="math inline">\(T\)</span>. Langevin dynamics generates the canonical ensemble and is simple to implement. The friction term damps dynamical correlations, so transport properties (diffusion coefficients, viscosities) depend on <span class="math inline">\(\gamma\)</span> and do not correspond to Newtonian dynamics. Thermodynamic averages, however, are independent of <span class="math inline">\(\gamma\)</span>.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:barostats" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:barostats">Barostats</h2>
+<p><strong>Constant-pressure simulation</strong> requires a barostat that adjusts the simulation box volume in response to the instantaneous pressure. The virial expression for pressure in a periodic system is <span class="math display">\[\label{eq:virial-pressure}
+P = \frac{Nk_BT}{V} + \frac{1}{3V}\sum_{i&lt;j} \mathbf{r}_{ij} \cdot \mathbf{F}_{ij}\]</span> where the sum runs over all interacting pairs.</p>
+<p>The Berendsen barostat couples the pressure to a bath analogously to the thermostat: <span class="math display">\[\label{eq:berendsen-p}
+\frac{dP}{dt} = \frac{P_0 - P}{\tau_P}\]</span> Box vectors are scaled at each step by a factor <span class="math inline">\(\mu = [1 - (\Delta t/\tau_P)\kappa(P_0 - P)]^{1/3}\)</span>, where <span class="math inline">\(\kappa\)</span> is the isothermal compressibility. Like its thermostat counterpart, the Berendsen barostat gives the correct average pressure but incorrect fluctuations. The volume distribution is too narrow, and properties that depend on volume fluctuations (isothermal compressibility) will be wrong.</p>
+<p>The Parrinello-Rahman barostat<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> treats the box vectors as dynamical variables with their own equations of motion: <span class="math display">\[\label{eq:pr-box}
+W\ddot{\mathbf{h}} = V(\mathbf{P} - P_0\mathbf{I})\boldsymbol{\sigma}\]</span> where <span class="math inline">\(\mathbf{h}\)</span> is the matrix of box vectors, <span class="math inline">\(W\)</span> is a fictitious mass, <span class="math inline">\(\mathbf{P}\)</span> is the instantaneous pressure tensor, <span class="math inline">\(P_0\)</span> is the reference pressure, and <span class="math inline">\(\boldsymbol{\sigma}\)</span> is related to the inverse of <span class="math inline">\(\mathbf{h}\)</span>. The particle equations of motion acquire additional terms from the changing box. This extended Lagrangian approach generates the correct NPT ensemble and is the standard choice for production simulations.</p>
+<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;Parrinello and Rahman (1981) extended Andersen’s constant-pressure method to allow changes in box shape, not just volume. This is essential for simulating crystal phase transitions.</p></div></div></section>
+</section>
+<section id="ch10-molecular-dynamics-sec:long-range" class="level1 page-columns page-full">
+<h1>Long-Range Electrostatics</h1>
+<p><strong>The Coulomb interaction</strong> poses a computational challenge that the Lennard-Jones potential does not. The LJ potential decays as <span class="math inline">\(r^{-6}\)</span>, so its contribution from atoms beyond a cutoff of 10–12&nbsp;Å&nbsp;is negligible and can be corrected analytically. The Coulomb potential decays only as <span class="math inline">\(r^{-1}\)</span>: the contribution from a shell of thickness <span class="math inline">\(dr\)</span> at distance <span class="math inline">\(r\)</span> scales as <span class="math inline">\(\rho \cdot 4\pi r^2 \cdot r^{-1} \, dr \propto r\,dr\)</span>, which diverges. Simply truncating Coulomb interactions at a cutoff introduces serious artifacts: artificial surface tension at the cutoff boundary, distorted radial distribution functions, and discontinuous forces that violate energy conservation.<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn16"><p><sup>16</sup>&nbsp;Simulations of ionic systems with simple cutoffs can produce completely wrong answers, such as incorrect crystal structures or artifactual phase transitions.</p></div></div><section id="ch10-molecular-dynamics-sec:ewald" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:ewald">Ewald Summation</h2>
+<p>Paul Ewald solved this problem in 1921 for computing electrostatic energies of ionic crystals. The central idea is to split the <span class="math inline">\(1/r\)</span> potential into two parts: <span class="math display">\[\label{eq:ewald-split}
+\frac{1}{r} = \frac{\text{erfc}(\alpha r)}{r} + \frac{\text{erf}(\alpha r)}{r}\]</span> where <span class="math inline">\(\text{erfc}(x) = 1 - \text{erf}(x)\)</span> is the complementary error function and <span class="math inline">\(\alpha\)</span> is a free parameter that controls the partition.<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn17"><p><sup>17</sup>&nbsp;The function <span class="math inline">\(\text{erfc}(\alpha r)/r\)</span> decays as a Gaussian-screened Coulomb interaction and converges rapidly in real space. The remainder <span class="math inline">\(\text{erf}(\alpha r)/r\)</span> is smooth and slowly varying, ideal for Fourier treatment.</p></div></div><p>The first term, <span class="math inline">\(\text{erfc}(\alpha r)/r\)</span>, is short-ranged (it decays exponentially for large <span class="math inline">\(r\)</span>) and can be summed directly in real space with a finite cutoff. Physically, this corresponds to surrounding each point charge with a Gaussian charge distribution of opposite sign, which screens the interaction.</p>
+<p>The second term, <span class="math inline">\(\text{erf}(\alpha r)/r\)</span>, is long-ranged but smooth. We compute it in reciprocal (Fourier) space, where smoothness translates to rapid convergence of the Fourier series. The reciprocal-space contribution to the energy is: <span class="math display">\[\label{eq:ewald-recip}
+E_{\text{recip}} = \frac{1}{2\pi V} \sum_{\mathbf{k} \neq 0} \frac{\exp(-k^2/4\alpha^2)}{k^2} |S(\mathbf{k})|^2\]</span> where <span class="math inline">\(S(\mathbf{k}) = \sum_{j=1}^N q_j \exp(i\mathbf{k}\cdot\mathbf{r}_j)\)</span> is the structure factor and the sum runs over reciprocal lattice vectors <span class="math inline">\(\mathbf{k}\)</span>.</p>
+<p>We must also subtract the spurious self-interaction of each Gaussian with its own point charge: <span class="math display">\[\label{eq:ewald-self}
+E_{\text{self}} = -\frac{\alpha}{\sqrt{\pi}} \sum_{i=1}^N q_i^2\]</span></p>
+<p>The total electrostatic energy in Ewald summation is: <span class="math display">\[\label{eq:ewald-total}
+E_{\text{elec}} = E_{\text{real}} + E_{\text{recip}} - E_{\text{self}}\]</span></p>
+<p>The parameter <span class="math inline">\(\alpha\)</span> controls the tradeoff between real-space and reciprocal-space work. Large <span class="math inline">\(\alpha\)</span> makes the real-space sum converge rapidly (small cutoff needed) but requires more reciprocal-space terms. The optimal choice balances the two, and for <span class="math inline">\(N\)</span> particles the total complexity of direct Ewald summation is <span class="math inline">\(\mathcal{O}(N^{3/2})\)</span>.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:pme" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:pme">Particle Mesh Ewald</h2>
+<p>Darden, York, and Pedersen (1993)<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> introduced the Particle Mesh Ewald (PME) method, which reduces the complexity to <span class="math inline">\(\mathcal{O}(N \log N)\)</span> by exploiting the Fast Fourier Transform. The key insight is that the structure factor <span class="math inline">\(S(\mathbf{k})\)</span> can be computed efficiently if the charges are first interpolated onto a regular grid.</p>
+<div class="no-row-height column-margin column-container"><div id="fn18"><p><sup>18</sup>&nbsp;<span class="citation" data-cites="darden1993">(<a href="../../../references.html#ref-darden1993" role="doc-biblioref">Darden et al. 1993</a>)</span></p></div></div><p>The PME algorithm proceeds in four steps:</p>
+<p><em>Step 1: Charge assignment.</em> Each atomic charge <span class="math inline">\(q_j\)</span> is spread onto nearby grid points using B-spline interpolation of order <span class="math inline">\(p\)</span> (typically <span class="math inline">\(p = 4\)</span> or 6). The interpolated charge at grid point <span class="math inline">\(\mathbf{n}\)</span> is <span class="math display">\[\label{eq:pme-charge}
+\tilde{\rho}(\mathbf{n}) = \sum_{j=1}^N q_j \prod_{d=1}^3 M_p\!\left(\frac{n_d L_d}{K_d} - r_{j,d}\right)\]</span> where <span class="math inline">\(M_p\)</span> is the B-spline of order <span class="math inline">\(p\)</span>, <span class="math inline">\(K_d\)</span> is the number of grid points in dimension <span class="math inline">\(d\)</span>, and <span class="math inline">\(L_d\)</span> is the box length.</p>
+<p><em>Step 2: Forward FFT.</em> Compute the discrete Fourier transform <span class="math inline">\(\hat{\rho}(\mathbf{k})\)</span> of the gridded charge density using a 3D FFT. This costs <span class="math inline">\(\mathcal{O}(K^3 \log K^3)\)</span> where <span class="math inline">\(K\)</span> is the total number of grid points.</p>
+<p><em>Step 3: Reciprocal-space energy.</em> Multiply <span class="math inline">\(|\hat{\rho}(\mathbf{k})|^2\)</span> by the Green’s function (the <span class="math inline">\(\exp(-k^2/4\alpha^2)/k^2\)</span> kernel, corrected for the B-spline interpolation) and sum over all <span class="math inline">\(\mathbf{k}\)</span>-vectors to obtain the reciprocal-space energy.</p>
+<p><em>Step 4: Inverse FFT and force computation.</em> Compute the reciprocal-space potential on the grid via inverse FFT, then interpolate forces back to particle positions using the same B-spline functions.</p>
+<p>The total cost is dominated by the FFT: <span class="math inline">\(\mathcal{O}(N \log N)\)</span>. In practice, PME with a grid spacing of about 1&nbsp;Å&nbsp;and a real-space cutoff of 10&nbsp;Å&nbsp;gives electrostatic energies accurate to <span class="math inline">\(10^{-5}\)</span> relative error. PME is the default electrostatics method in all major MD codes (GROMACS, AMBER, NAMD, OpenMM).</p>
+</section>
+</section>
+<section id="ch10-molecular-dynamics-sec:enhanced-sampling" class="level1 page-columns page-full">
+<h1>Enhanced Sampling Methods</h1>
+<p><strong>The fundamental limitation</strong> of conventional MD is timescale. A protein folds in microseconds to seconds; a drug unbinds in milliseconds; a conformational change in a signaling protein takes microseconds. Standard MD with a 2&nbsp;fs timestep produces <span class="math inline">\(5 \times 10^8\)</span> steps per microsecond. Even on modern GPU hardware, an all-atom simulation of a solvated protein (<span class="math inline">\(\sim\)</span><!-- -->50,000 atoms total) runs at roughly 100–500&nbsp;ns/day. Reaching the millisecond timescale requires purpose-built hardware (Anton) or years of GPU time.</p>
+<div id="ch10-molecular-dynamics-fig:binding-free-energy" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch10_binding_free_energy.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">Binding free energy from MD simulations.</figcaption>
+</figure>
+</div>
+<p>The problem is not merely computational speed. Biomolecular free energy landscapes contain many metastable states separated by barriers much larger than <span class="math inline">\(k_BT\)</span>. A conventional trajectory becomes trapped in local minima, waiting exponentially long (in barrier height) for a rare thermal fluctuation to kick it over the barrier. Enhanced sampling methods modify the simulation to accelerate barrier crossing while preserving the ability to recover correct equilibrium properties.</p>
+<section id="ch10-molecular-dynamics-sec:remd" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:remd">Replica Exchange Molecular Dynamics</h2>
+<p>Replica Exchange MD (REMD), also called parallel tempering, runs <span class="math inline">\(M\)</span> independent copies (replicas) of the system simultaneously at a ladder of temperatures <span class="math inline">\(T_1 &lt; T_2 &lt; \cdots &lt; T_M\)</span>.<a href="#fn19" class="footnote-ref" id="fnref19" role="doc-noteref"><sup>19</sup></a> High-temperature replicas cross barriers easily because <span class="math inline">\(k_BT\)</span> is large compared to the barrier heights. Periodically (every few hundred steps), adjacent replicas attempt to exchange their configurations. The exchange is accepted with the Metropolis probability: <span class="math display">\[\label{eq:remd-acceptance}
+P(\text{swap}\; i \leftrightarrow j) = \min\!\left(1, \; \exp\bigl[(\beta_i - \beta_j)(E_i - E_j)\bigr]\right)\]</span> where <span class="math inline">\(\beta_i = 1/(k_B T_i)\)</span> and <span class="math inline">\(E_i\)</span> is the potential energy of the configuration currently at temperature <span class="math inline">\(T_i\)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="fn19"><p><sup>19</sup>&nbsp;Sugita and Okamoto (1999) adapted the parallel tempering Monte Carlo method of Swendsen and Wang (1986) to molecular dynamics. REMD has become one of the most widely used enhanced sampling methods for small proteins and peptides.</p></div></div><p>We can verify that this satisfies detailed balance with respect to the product of canonical distributions at each temperature. If <span class="math inline">\(E_i &gt; E_j\)</span> and <span class="math inline">\(T_i &lt; T_j\)</span> (the colder replica has higher energy), the swap moves the high-energy configuration to higher temperature and the low-energy configuration to lower temperature, which is energetically favorable and has high acceptance probability.</p>
+<p>The practical challenge is choosing the temperature ladder. Adjacent temperatures must be close enough that their energy distributions overlap, giving reasonable acceptance rates (typically 20–30%). For a system of <span class="math inline">\(N\)</span> particles, the energy variance scales as <span class="math inline">\(N\)</span>, so the required temperature spacing scales as <span class="math inline">\(1/\sqrt{N}\)</span>. The number of replicas needed grows as <span class="math inline">\(\sqrt{N}\)</span>, making REMD impractical for large systems (beyond <span class="math inline">\(\sim\)</span><!-- -->25,000 atoms) without modifications such as replica exchange with solute tempering (REST2).</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:metadynamics" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:metadynamics">Metadynamics</h2>
+<p>Laio and Parrinello (2002) introduced metadynamics as a method to escape free energy minima by progressively filling them with a history-dependent bias potential. The user defines one or more collective variables (CVs) <span class="math inline">\(s(\mathbf{r})\)</span> that describe the slow degrees of freedom of interest (a dihedral angle, a distance, a coordination number). During the simulation, Gaussian bias potentials are deposited at the current value of the CV at regular intervals <span class="math inline">\(\tau_G\)</span>: <span class="math display">\[\label{eq:metad-bias}
+V_{\text{bias}}(s, t) = \sum_{t' = \tau_G, 2\tau_G, \ldots}^{t' &lt; t} w \exp\!\left(-\frac{(s - s(t'))^2}{2\sigma^2}\right)\]</span> where <span class="math inline">\(w\)</span> is the Gaussian height and <span class="math inline">\(\sigma\)</span> is the Gaussian width.</p>
+<p>As the simulation progresses, the accumulated bias fills free energy basins, pushing the system over barriers into new regions of CV space. In the long-time limit, the bias potential converges to the negative of the free energy surface:<a href="#fn20" class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a> <span class="math display">\[\label{eq:metad-fes}
+\lim_{t \to \infty} V_{\text{bias}}(s, t) = -F(s) + C\]</span> where <span class="math inline">\(F(s)\)</span> is the free energy as a function of the CV and <span class="math inline">\(C\)</span> is an immaterial constant.</p>
+<div class="no-row-height column-margin column-container"><div id="fn20"><p><sup>20</sup>&nbsp;Metadynamics is self-limiting for this reason: once a basin is filled, the bias stops growing there (because the system no longer visits) and exploration moves to unfilled regions.</p></div></div><p>Standard metadynamics has a convergence problem: the bias continues to fluctuate around <span class="math inline">\(-F(s)\)</span> even after the landscape is filled, because Gaussians of constant height keep being deposited. Well-tempered metadynamics (Barducci, Bussi, and Parrinello, 2008) resolves this by decreasing the Gaussian height as the bias grows: <span class="math display">\[\label{eq:well-tempered}
+w(t) = w_0 \exp\!\left(-\frac{V_{\text{bias}}(s(t), t)}{k_B \Delta T}\right)\]</span> where <span class="math inline">\(\Delta T\)</span> is a parameter controlling the bias deposition rate. The bias converges smoothly to <span class="math inline">\(-((\Delta T)/(T + \Delta T))F(s)\)</span>, from which <span class="math inline">\(F(s)\)</span> is recovered by rescaling.</p>
+<p>The choice of CVs is the art of metadynamics. Good CVs must distinguish the relevant metastable states and capture the slow motions. If important slow degrees of freedom are missing from the CV set, the simulation will still be trapped along those orthogonal directions. Dimensionality reduction methods (PCA, diffusion maps) and machine learning approaches are increasingly used to identify optimal CVs.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:umbrella-sampling" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:umbrella-sampling">Umbrella Sampling and WHAM</h2>
+<p>Umbrella sampling, introduced by Torrie and Valleau in 1977, predates both REMD and metadynamics. The idea is to divide the reaction coordinate <span class="math inline">\(s\)</span> into overlapping windows and run separate simulations in each window with a biasing potential that confines the system near a target value <span class="math inline">\(s_i\)</span>: <span class="math display">\[\label{eq:umbrella-bias}
+w_i(s) = \frac{1}{2}k(s - s_i)^2\]</span> where <span class="math inline">\(k\)</span> is chosen large enough to keep the system near <span class="math inline">\(s_i\)</span> but small enough to allow overlap with neighboring windows.</p>
+<p>Each window <span class="math inline">\(i\)</span> produces a biased probability distribution <span class="math inline">\(P_i^{\text{bias}}(s)\)</span>. The unbiased free energy <span class="math inline">\(F(s)\)</span> is recovered by combining data from all windows using the Weighted Histogram Analysis Method (WHAM). The WHAM equations are derived by maximizing the likelihood of the combined data. The key self-consistent equations are: <span class="math display">\[\begin{aligned}
+\label{eq:wham-prob}
+P(s) &amp;= \frac{\sum_{i=1}^{N_w} n_i P_i^{\text{bias}}(s)}{\sum_{i=1}^{N_w} n_i \exp\bigl[\beta(f_i - w_i(s))\bigr]} \\[6pt]
+\label{eq:wham-f}
+\exp(-\beta f_i) &amp;= \int P(s) \exp\bigl(-\beta w_i(s)\bigr) \, ds
+\end{aligned}\]</span> where <span class="math inline">\(N_w\)</span> is the number of windows, <span class="math inline">\(n_i\)</span> is the number of samples from window <span class="math inline">\(i\)</span>, and <span class="math inline">\(f_i\)</span> is the free energy of the biased system in window <span class="math inline">\(i\)</span>. These equations are coupled (the <span class="math inline">\(f_i\)</span> depend on <span class="math inline">\(P(s)\)</span> and vice versa) and must be solved iteratively until convergence. The unbiased free energy is then <span class="math inline">\(F(s) = -k_BT \ln P(s)\)</span>.</p>
+<p>The derivation proceeds as follows. In window <span class="math inline">\(i\)</span>, the biased probability of observing the system at CV value <span class="math inline">\(s\)</span> is <span class="math display">\[\label{eq:wham-deriv1}
+P_i^{\text{bias}}(s) = \frac{P(s)\exp(-\beta w_i(s))}{\int P(s')\exp(-\beta w_i(s'))\,ds'} = P(s)\exp\bigl(-\beta w_i(s) + \beta f_i\bigr)\]</span> where <span class="math inline">\(\exp(-\beta f_i) = \int P(s)\exp(-\beta w_i(s))\,ds\)</span> is the normalization constant. Inverting this relation for <span class="math inline">\(P(s)\)</span> from each window and combining the estimates with optimal (minimum-variance) weights yields Equations&nbsp;<a href="#eq:wham-prob" data-reference-type="ref" data-reference="eq:wham-prob">[eq:wham-prob]</a>–<a href="#eq:wham-f" data-reference-type="ref" data-reference="eq:wham-f">[eq:wham-f]</a>.</p>
+<p>In practice, umbrella sampling requires careful setup: the windows must overlap sufficiently in CV space, the spring constant must be tuned, and each window must be equilibrated before collecting statistics. Despite this overhead, umbrella sampling remains the gold standard for computing free energy profiles along well-defined reaction coordinates because the statistical error is straightforward to estimate and systematic errors from poor CV choice are easier to diagnose than in adaptive methods.</p>
+</section>
+</section>
+<section id="ch10-molecular-dynamics-sec:analysis" class="level1 page-columns page-full">
+<h1>Trajectory Analysis</h1>
+<p><strong>A molecular dynamics simulation</strong> produces a trajectory: a time series of atomic coordinates (and optionally velocities) saved at regular intervals (typically every 1–10&nbsp;ps). For a solvated protein of 50,000 atoms saved every 2&nbsp;ps for 1&nbsp;<span class="math inline">\(\mu\)</span>s, this amounts to 500,000 frames of <span class="math inline">\(50{,}000 \times 3\)</span> coordinates each. Extracting biological insight from this deluge of data requires systematic analysis tools.</p>
+<div id="ch10-molecular-dynamics-fig:dna-topoisomers" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch10_dna_topoisomers.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">DNA topoisomers sampled by MD simulation.</figcaption>
+</figure>
+</div>
+<section id="ch10-molecular-dynamics-sec:rmsd" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:rmsd">Root Mean Square Deviation</h2>
+<p>The RMSD quantifies how much a structure has deviated from a reference (usually the starting structure or an experimental crystal structure). Given a set of <span class="math inline">\(N\)</span> atoms with positions <span class="math inline">\(\mathbf{r}_i^{\text{ref}}\)</span> in the reference and <span class="math inline">\(\mathbf{r}_i(t)\)</span> at time <span class="math inline">\(t\)</span>, the RMSD after optimal rigid-body superposition is: <span class="math display">\[\label{eq:rmsd-trajectory}
+\text{RMSD}(t) = \sqrt{\frac{1}{N}\sum_{i=1}^N \bigl|\mathbf{r}_i(t) - \mathbf{r}_i^{\text{ref}}\bigr|^2}\]</span> where the positions have been optimally aligned to minimize the RMSD. The optimal rotation matrix is found by the Kabsch algorithm, which computes the singular value decomposition of the cross-covariance matrix <span class="math inline">\(\mathbf{H} = \sum_i (\mathbf{r}_i - \bar{\mathbf{r}})(\mathbf{r}_i^{\text{ref}} - \bar{\mathbf{r}}^{\text{ref}})^T\)</span> and constructs the rotation as <span class="math inline">\(\mathbf{U} = \mathbf{V}\mathbf{S}\mathbf{W}^T\)</span> where <span class="math inline">\(\mathbf{H} = \mathbf{W}\boldsymbol{\Sigma}\mathbf{V}^T\)</span> and <span class="math inline">\(\mathbf{S}\)</span> corrects for reflection.</p>
+<p>A stable RMSD (plateau) indicates the system has equilibrated around a particular conformation. A drifting RMSD suggests ongoing conformational change. Typical RMSD values for well-behaved protein simulations are 1–3&nbsp;Å&nbsp;for backbone atoms relative to the crystal structure.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:rmsf" class="level2">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:rmsf">Root Mean Square Fluctuation</h2>
+<p>While RMSD measures global structural deviation at each time point, the RMSF measures the mobility of each residue averaged over the trajectory: <span class="math display">\[\label{eq:rmsf}
+\text{RMSF}_i = \sqrt{\langle |\mathbf{r}_i(t) - \langle \mathbf{r}_i \rangle|^2 \rangle_t}\]</span> where <span class="math inline">\(\langle \cdot \rangle_t\)</span> denotes a time average. Residues in loops and termini show high RMSF; those in the hydrophobic core show low RMSF.</p>
+<p>The RMSF connects directly to crystallographic B-factors (temperature factors) through the Debye-Waller relation: <span class="math display">\[\label{eq:bfactor-rmsf}
+B_i = \frac{8\pi^2}{3}\langle \Delta r_i^2 \rangle = \frac{8\pi^2}{3}(\text{RMSF}_i)^2\]</span> Comparing computed and experimental B-factors provides a validation of the simulation: good agreement indicates that the force field correctly captures the relative flexibility of different protein regions.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:pca" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch10-molecular-dynamics-sec:pca">Principal Component Analysis of Trajectories</h2>
+<p>The collective motions of a protein span a wide range of timescales, from femtosecond bond vibrations to microsecond domain motions. Principal Component Analysis (PCA) separates these motions by finding the directions in configuration space along which the system fluctuates most. We construct the <span class="math inline">\(3N \times 3N\)</span> covariance matrix from the trajectory:<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> <span class="math display">\[\label{eq:covariance}
+C_{ij} = \langle (r_i - \langle r_i \rangle)(r_j - \langle r_j \rangle) \rangle\]</span> where <span class="math inline">\(r_i\)</span> and <span class="math inline">\(r_j\)</span> run over all <span class="math inline">\(3N\)</span> Cartesian coordinates (after removing overall translation and rotation by alignment to the average structure).</p>
+<div class="no-row-height column-margin column-container"><div id="fn21"><p><sup>21</sup>&nbsp;In practice we compute PCA on the C<span class="math inline">\(\alpha\)</span> atoms only (reducing to a <span class="math inline">\(3N_{C\alpha} \times 3N_{C\alpha}\)</span> matrix) to focus on backbone motions and reduce noise from side-chain fluctuations.</p></div></div><p>Eigenvalue decomposition of <span class="math inline">\(\mathbf{C}\)</span> yields <span class="math display">\[\label{eq:pca-decomp}
+\mathbf{C} = \mathbf{U}\boldsymbol{\Lambda}\mathbf{U}^T\]</span> where the columns of <span class="math inline">\(\mathbf{U}\)</span> are the principal components (eigenvectors) and the diagonal elements of <span class="math inline">\(\boldsymbol{\Lambda}\)</span> are the corresponding eigenvalues (variances along each direction). The eigenvectors are sorted by decreasing eigenvalue.</p>
+<p>Protein dynamics are often low-dimensional in practice: typically 90% of the positional variance is captured by the first 10–20 principal components out of thousands. These “essential dynamics” modes correspond to the slowest, largest-amplitude collective motions: domain closures, hinge bending, loop rearrangements. Projecting the trajectory onto the first two or three PCs provides a low-dimensional view of conformational space that reveals metastable states, transitions, and the overall landscape explored by the simulation.</p>
+<p>The covariance matrix <span class="math inline">\(\mathbf{C}\)</span> is related to the inverse of the Hessian of the free energy surface in the harmonic approximation: if the system is confined to a single free energy basin, <span class="math inline">\(\mathbf{C} = k_BT \mathbf{H}^{-1}\)</span> where <span class="math inline">\(\mathbf{H}_{ij} = \partial^2 F / \partial r_i \partial r_j\)</span>. This connects PCA to the normal modes of the system and to elastic network models.</p>
+</section>
+</section>
+<section id="ch10-molecular-dynamics-sec:md-practical" class="level1 page-columns page-full">
+<h1>Practical Considerations</h1>
+<p><strong>Running a molecular dynamics simulation</strong> of a biomolecule involves a series of preparation and validation steps that we summarize here for completeness.</p>
+<p>System preparation begins with an experimental structure (X-ray or cryo-EM). Missing residues and atoms are modeled, protonation states are assigned (typically at pH 7), and the protein is placed in a box of explicit water molecules (TIP3P or TIP4P-Ew are common choices). Counterions are added to neutralize the system, and additional salt (typically 150&nbsp;mM NaCl) is included to mimic physiological conditions. The resulting system size for a typical globular protein is 30,000–100,000 atoms.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../figures/ch10_solvated_system.png" class="img-fluid figure-img"></p>
+<figcaption>Solvated protein system in a simulation box.</figcaption>
+</figure>
+</div>
+</div><div class="">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../figures/ch10_periodic_boundary.png" class="img-fluid figure-img"></p>
+<figcaption>Periodic boundary conditions in MD.</figcaption>
+</figure>
+</div>
+</div></div>
+<p>Energy minimization (steepest descent or conjugate gradient) removes steric clashes introduced by solvation. Equilibration proceeds in two phases: NVT equilibration (100&nbsp;ps with position restraints on protein heavy atoms) to stabilize temperature, followed by NPT equilibration (100&nbsp;ps–1&nbsp;ns) to adjust the box size to the target pressure (1&nbsp;bar). Position restraints are gradually released during equilibration.</p>
+<p>Production simulations run in the NPT ensemble with the velocity Verlet or leapfrog integrator, a 2&nbsp;fs timestep (with LINCS constraints on H-bonds), PME electrostatics (grid spacing <span class="math inline">\(\sim\)</span><!-- -->1.2&nbsp;Å, real-space cutoff 10–12&nbsp;Å), Nosé-Hoover or velocity-rescaling thermostat (with stochastic velocity rescaling being particularly popular in GROMACS), and Parrinello-Rahman barostat. Coordinates are saved every 10–100&nbsp;ps.</p>
+<p>Validation checks during and after the simulation include: conservation of the extended Hamiltonian, stability of temperature, pressure, density, and box volume, convergence of RMSD, absence of unphysical bond lengths, and comparison of computed properties (B-factors, NMR order parameters, radial distribution functions) with experimental data.</p>
+</section>
+<section id="ch10-molecular-dynamics-sec:md-notes" class="level1">
+<h1>Chapter Notes</h1>
+<p>The foundations of molecular dynamics are treated thoroughly in the textbook by Frenkel and Smit&nbsp;<span class="citation" data-cites="frenkel2002">(<a href="../../../references.html#ref-frenkel2002" role="doc-biblioref">Frenkel and Smit 2002</a>)</span>, which remains the standard reference for computational statistical mechanics. Allen and Tildesley’s <em>Computer Simulation of Liquids</em> (1987, revised 2017) covers implementation details. For force fields, the review by Ponder and Case (2003) in <em>Advances in Protein Chemistry</em> provides historical context on how parameters are derived and validated.</p>
+<p>The story of the first MD simulations at Los Alamos and Argonne is told in Alder and Wainwright’s original 1957 paper in the <em>Journal of Chemical Physics</em> and Rahman’s 1964 paper on liquid argon. Verlet’s 1967 paper&nbsp;<span class="citation" data-cites="verlet1967">(<a href="../../../references.html#ref-verlet1967" role="doc-biblioref">Verlet 1967</a>)</span> introduced both the integration algorithm and the neighbor list that bears his name. The development of the Nosé-Hoover thermostat&nbsp;<span class="citation" data-cites="nose1984">(<a href="../../../references.html#ref-nose1984" role="doc-biblioref">Nosé 1984</a>)</span> was a breakthrough in extended-system methods; Martyna, Klein, and Tuckerman (1992) generalized it to Nosé-Hoover chains.</p>
+<p>The Particle Mesh Ewald method&nbsp;<span class="citation" data-cites="darden1993">(<a href="../../../references.html#ref-darden1993" role="doc-biblioref">Darden et al. 1993</a>)</span> transformed biomolecular simulation by making proper long-range electrostatics affordable. Before PME, most simulations used cutoffs of 8–10&nbsp;Å&nbsp;with various switching functions, leading to artifacts that we now know were responsible for incorrect folding thermodynamics and unstable protein simulations.</p>
+<p>Enhanced sampling remains an active research area. Laio and Parrinello’s original metadynamics paper (2002) in <em>PNAS</em> has been cited over 5000 times. The well-tempered variant (Barducci, Bussi, and Parrinello, 2008) solved the convergence problem. Modern developments include funnel metadynamics for binding free energies, on-the-fly probability enhanced sampling (OPES), and machine-learning approaches to collective variable discovery (including methods based on autoencoders and time-lagged independent component analysis).</p>
+<p>The connection between MD trajectories and experimental observables is discussed in the reviews by Lindorff-Larsen et al.&nbsp;(2005) on NMR validation and by Hub et al.&nbsp;(2010) on comparison with SAXS data. The principal component analysis approach to protein dynamics was formalized as “essential dynamics” by Amadei, Linssen, and Berendsen (1993).</p>
+<p>The Anton special-purpose computer, designed by David Shaw and colleagues (2008), achieved millisecond-timescale simulations of small proteins, demonstrating for the first time that force fields could fold proteins from extended states to their native structures. This milestone validated both the MD methodology and the accuracy of modern force fields, while simultaneously revealing their remaining deficiencies in secondary structure balance and solvation.</p>
+<p>For readers implementing MD codes, we recommend beginning with a simple Lennard-Jones fluid in two dimensions and progressively adding features: periodic boundary conditions, the Verlet neighbor list, velocity Verlet integration, the Berendsen thermostat, and finally PME electrostatics. The OpenMM toolkit provides a Python-accessible GPU-accelerated platform for prototyping new methods without writing low-level code.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-darden1993" class="csl-entry" role="listitem">
+Darden, Tom, Darrin York, and Lee Pedersen. 1993. <span>“Particle Mesh <span>Ewald</span>: An <span>N</span><span class="math inline">\(\cdot\)</span>log(<span>N</span>) Method for <span>Ewald</span> Sums in Large Systems.”</span> <em>The Journal of Chemical Physics</em> 98: 10089–92. <a href="https://doi.org/10.1063/1.464397">https://doi.org/10.1063/1.464397</a>.
+</div>
+<div id="ref-frenkel2002" class="csl-entry" role="listitem">
+Frenkel, Daan, and Berend Smit. 2002. <em>Understanding Molecular Simulation: From Algorithms to Applications</em>. 2nd ed. Academic Press.
+</div>
+<div id="ref-nose1984" class="csl-entry" role="listitem">
+Nosé, Shuichi. 1984. <span>“A Unified Formulation of the Constant Temperature Molecular Dynamics Methods.”</span> <em>The Journal of Chemical Physics</em> 81: 511–19. <a href="https://doi.org/10.1063/1.447334">https://doi.org/10.1063/1.447334</a>.
+</div>
+<div id="ref-verlet1967" class="csl-entry" role="listitem">
+Verlet, Loup. 1967. <span>“Computer <span>‘Experiments’</span> on Classical Fluids. <span>I</span>. <span>Thermodynamical</span> Properties of <span>Lennard-Jones</span> Molecules.”</span> <em>Physical Review</em> 159: 98–103. <a href="https://doi.org/10.1103/PhysRev.159.98">https://doi.org/10.1103/PhysRev.159.98</a>.
+</div>
+</div>
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/muhammadhasyim\.github\.io\/structural-bio-book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="pagination-link" aria-label="Molecular Docking">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Molecular Docking</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="pagination-link" aria-label="Intrinsically Disordered Proteins">
+        <span class="nav-page-text"><span class="chapter-title">Intrinsically Disordered Proteins</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

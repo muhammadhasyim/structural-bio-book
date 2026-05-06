@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Sequence Profiles and Hidden Markov Models – Structural Bioinformatics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../quarto/_generated/chapters/ch05_classification.html" rel="next">
+<link href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" rel="prev">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../website/quarto-tufte-overrides.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html">Sequence Analysis</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../../">Structural Bioinformatics</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/muhammadhasyim/structural-bio-book" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Bioinformatics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Biology: Physical Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch02_data_quality.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Sequence Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Pairwise Sequence Alignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Protein Classification</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Structure Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Homology Modeling and Threading</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch08_alphafill.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Completing Predicted Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactions and Dynamics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Docking</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Dynamics Simulations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Special Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Intrinsically Disordered Proteins</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch12_drug_design.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../references.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">—</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ch04-profile-hmm-sec:msa" id="toc-ch04-profile-hmm-sec:msa" class="nav-link active" data-scroll-target="#ch04-profile-hmm-sec\:msa">Multiple Sequence Alignment</a>
+  <ul class="collapse">
+  <li><a href="#ch04-profile-hmm-sec:progressive-alignment" id="toc-ch04-profile-hmm-sec:progressive-alignment" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:progressive-alignment">Progressive Alignment</a></li>
+  <li><a href="#ch04-profile-hmm-sec:consistency" id="toc-ch04-profile-hmm-sec:consistency" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:consistency">Consistency-Based Methods</a></li>
+  </ul></li>
+  <li><a href="#ch04-profile-hmm-sec:pssm" id="toc-ch04-profile-hmm-sec:pssm" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:pssm">Position-Specific Scoring Matrices</a>
+  <ul class="collapse">
+  <li><a href="#ch04-profile-hmm-sec:pssm-construction" id="toc-ch04-profile-hmm-sec:pssm-construction" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:pssm-construction">Construction from MSA Columns</a></li>
+  <li><a href="#ch04-profile-hmm-sec:pseudocounts" id="toc-ch04-profile-hmm-sec:pseudocounts" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:pseudocounts">Pseudocounts and Dirichlet Priors</a></li>
+  <li><a href="#ch04-profile-hmm-sec:psi-blast" id="toc-ch04-profile-hmm-sec:psi-blast" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:psi-blast">PSI-BLAST and Iterative Profile Construction</a></li>
+  </ul></li>
+  <li><a href="#ch04-profile-hmm-sec:hmm" id="toc-ch04-profile-hmm-sec:hmm" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:hmm">Hidden Markov Models</a>
+  <ul class="collapse">
+  <li><a href="#ch04-profile-hmm-sec:hmm-definition" id="toc-ch04-profile-hmm-sec:hmm-definition" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:hmm-definition">Formal Definition</a></li>
+  <li><a href="#ch04-profile-hmm-sec:cpg-example" id="toc-ch04-profile-hmm-sec:cpg-example" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:cpg-example">A Concrete Example: CpG Islands</a></li>
+  </ul></li>
+  <li><a href="#ch04-profile-hmm-sec:hmm-problems" id="toc-ch04-profile-hmm-sec:hmm-problems" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:hmm-problems">The Three Canonical HMM Problems</a>
+  <ul class="collapse">
+  <li><a href="#ch04-profile-hmm-sec:forward" id="toc-ch04-profile-hmm-sec:forward" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:forward">Problem 1: Evaluation (The Forward Algorithm)</a></li>
+  <li><a href="#ch04-profile-hmm-sec:viterbi" id="toc-ch04-profile-hmm-sec:viterbi" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:viterbi">Problem 2: Decoding (The Viterbi Algorithm)</a></li>
+  <li><a href="#ch04-profile-hmm-sec:viterbi-example" id="toc-ch04-profile-hmm-sec:viterbi-example" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:viterbi-example">Worked Example: Viterbi on the CpG Model</a></li>
+  <li><a href="#ch04-profile-hmm-sec:baum-welch" id="toc-ch04-profile-hmm-sec:baum-welch" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:baum-welch">Problem 3: Training (The Baum–Welch Algorithm)</a></li>
+  </ul></li>
+  <li><a href="#ch04-profile-hmm-sec:profile-hmm" id="toc-ch04-profile-hmm-sec:profile-hmm" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:profile-hmm">Profile HMMs for Protein Families</a>
+  <ul class="collapse">
+  <li><a href="#ch04-profile-hmm-sec:profile-architecture" id="toc-ch04-profile-hmm-sec:profile-architecture" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:profile-architecture">Architecture</a></li>
+  <li><a href="#ch04-profile-hmm-sec:profile-vs-pssm" id="toc-ch04-profile-hmm-sec:profile-vs-pssm" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:profile-vs-pssm">Relationship to PSSMs</a></li>
+  <li><a href="#ch04-profile-hmm-sec:build-profile" id="toc-ch04-profile-hmm-sec:build-profile" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:build-profile">Building a Profile HMM from an MSA</a></li>
+  </ul></li>
+  <li><a href="#ch04-profile-hmm-sec:hmmer3" id="toc-ch04-profile-hmm-sec:hmmer3" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:hmmer3">The HMMER3 Acceleration Pipeline</a>
+  <ul class="collapse">
+  <li><a href="#ch04-profile-hmm-sec:msv" id="toc-ch04-profile-hmm-sec:msv" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:msv">Stage 1: The MSV Filter</a></li>
+  <li><a href="#ch04-profile-hmm-sec:viterbi-filter" id="toc-ch04-profile-hmm-sec:viterbi-filter" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:viterbi-filter">Stage 2: The Viterbi Filter</a></li>
+  <li><a href="#ch04-profile-hmm-sec:forward-filter" id="toc-ch04-profile-hmm-sec:forward-filter" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:forward-filter">Stage 3: The Forward Filter</a></li>
+  <li><a href="#ch04-profile-hmm-sec:wing-folding" id="toc-ch04-profile-hmm-sec:wing-folding" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:wing-folding">The Wing-Folding Trick</a></li>
+  </ul></li>
+  <li><a href="#ch04-profile-hmm-sec:ch4-exercises" id="toc-ch04-profile-hmm-sec:ch4-exercises" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:ch4-exercises">Exercises</a></li>
+  <li><a href="#ch04-profile-hmm-sec:ch4-notes" id="toc-ch04-profile-hmm-sec:ch4-notes" class="nav-link" data-scroll-target="#ch04-profile-hmm-sec\:ch4-notes">Chapter Notes</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html">Sequence Analysis</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a></li></ol></nav><h1 class="title display-7"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></h1></header>
+
+<header id="title-block-header">
+
+
+</header>
+
+
+<p>In 1994, Anders Krogh, Michael Brown, I.&nbsp;Saira Mian, Kimmen Sjölander, and David Haussler published a paper in the <em>Journal of Molecular Biology</em> that changed the way bioinformaticians think about protein families.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> They took a formalism that had been developed two decades earlier for speech recognition and applied it to protein sequences. Their argument was that a protein family is not a single sequence but a statistical process, one that generates sequences according to position-specific rules. Some positions are nearly invariant across all family members, perhaps because they form the catalytic site; other positions accept almost any amino acid. Insertions and deletions are tolerated at some positions and forbidden at others. A hidden Markov model captures all of this in a single probabilistic architecture.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;A.&nbsp;Krogh, M.&nbsp;Brown, I.&nbsp;S.&nbsp;Mian, K.&nbsp;Sjölander, and D.&nbsp;Haussler. Hidden Markov models in computational biology: Applications to protein modeling. <em>J.&nbsp;Mol.&nbsp;Biol.</em>, 235(5):1501–1531, 1994.</p></div><div id="fn2"><p><sup>2</sup>&nbsp;The Pfam database, now in its 36th release, contains over 20,000 profile HMM families. Every protein in UniProt is annotated against Pfam using HMMER.</p></div></div><p>What made the Krogh et al.&nbsp;paper so striking was not just the formalism but the results. On the globin family and on the kinase family, their HMMs detected remote homologs that pairwise methods missed entirely. Four years later, Sean Eddy built HMMER, a software package that made profile HMMs practical for database searches at genome scale&nbsp;<span class="citation" data-cites="eddy2011">(<a href="../../../references.html#ref-eddy2011" role="doc-biblioref">Eddy 2011</a>)</span>. Eddy’s key insight was that the Forward algorithm, which sums over all possible alignments rather than picking a single best one, gives a more sensitive measure of homology than any single-alignment score. The machinery we develop in this chapter leads directly to HMMER and its descendants, which today support Pfam, InterPro, and most large-scale protein annotation pipelines.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>This chapter builds toward profile HMMs in layers. We begin with multiple sequence alignment, the data from which profiles are constructed. We then develop position-specific scoring matrices, the simplest form of a sequence profile. With that foundation, we introduce hidden Markov models as a general framework, develop the three canonical algorithms on a concrete biological example, and finally specialize the framework to the profile HMM architecture used in practice.</p>
+<section id="ch04-profile-hmm-sec:msa" class="level1 page-columns page-full">
+<h1>Multiple Sequence Alignment</h1>
+<p><strong>Pairwise alignment, the subject of the previous chapter,</strong> compares two sequences at a time. But proteins evolve in families, and a collection of related sequences contains far more information than any single pair. A multiple sequence alignment (MSA) arranges three or more sequences in a matrix where each column represents a putatively homologous position. Gaps are inserted so that residues believed to share common ancestry line up vertically.</p>
+<div id="ch04-profile-hmm-fig:msa-result" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch04_msa_result.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">Clustal Omega alignment of three Parkin orthologs (<em>Drosophila</em>, human, mouse). Conserved positions are highlighted; dashes indicate gaps.</figcaption>
+</figure>
+</div>
+<p>The difficulty is computational. For two sequences of lengths <span class="math inline">\(m\)</span> and <span class="math inline">\(n\)</span>, the Needleman–Wunsch algorithm runs in <span class="math inline">\(O(mn)\)</span> time. For <span class="math inline">\(k\)</span> sequences, exact dynamic programming requires a <span class="math inline">\(k\)</span>-dimensional table, giving <span class="math inline">\(O(L^k)\)</span> time and space where <span class="math inline">\(L\)</span> is a typical sequence length. This is NP-hard in general&nbsp;<span class="citation" data-cites="durbin1998">(<a href="../../../references.html#ref-durbin1998" role="doc-biblioref">Durbin et al. 1998</a>)</span>.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> No one aligns more than a handful of sequences exactly.</p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;The NP-hardness of MSA was proven by L.&nbsp;Wang and T.&nbsp;Jiang in 1994 for the sum-of-pairs objective.</p></div></div><section id="ch04-profile-hmm-sec:progressive-alignment" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:progressive-alignment">Progressive Alignment</h2>
+<p>The workhorse approximation is progressive alignment, the strategy behind CLUSTAL&nbsp;W and its successor CLUSTAL&nbsp;<span class="math inline">\(\Omega\)</span>. The idea is straightforward. First, compute all <span class="math inline">\(\binom{k}{2}\)</span> pairwise alignments and extract a distance matrix from the pairwise scores. Second, build a guide tree from the distance matrix, typically by neighbor-joining or UPGMA. Third, align the sequences following the guide tree from leaves to root: align the two closest sequences first, then successively align each next-closest sequence or group to the growing alignment.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;J.&nbsp;D.&nbsp;Thompson, D.&nbsp;G.&nbsp;Higgins, and T.&nbsp;J.&nbsp;Gibson. CLUSTAL&nbsp;W: improving the sensitivity of progressive multiple sequence alignment through sequence weighting, position-specific gap penalties, and weight matrix choice. <em>Nucleic Acids Res.</em>, 22(22):4673–4680, 1994.</p></div></div><p>Progressive alignment is fast, <span class="math inline">\(O(k^2 L^2)\)</span> in practice, but it has a well-known flaw: errors made at early stages propagate upward and are never corrected. If the guide tree is wrong, or if two sequences are misaligned at the first merge, every subsequent addition inherits that error.</p>
+</section>
+<section id="ch04-profile-hmm-sec:consistency" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:consistency">Consistency-Based Methods</h2>
+<p>T-Coffee addresses the error-propagation problem by incorporating information from all pairwise alignments into each progressive step&nbsp;<span class="citation" data-cites="notredame2000">(<a href="../../../references.html#ref-notredame2000" role="doc-biblioref">Notredame et al. 2000</a>)</span>. The key idea is <em>consistency</em>, which holds that if residue <span class="math inline">\(x_i\)</span> aligns with <span class="math inline">\(z_k\)</span>, and <span class="math inline">\(z_k\)</span> aligns with <span class="math inline">\(y_j\)</span>, then <span class="math inline">\(x_i\)</span> and <span class="math inline">\(y_j\)</span> should also align. T-Coffee builds a library of pairwise alignments and uses this three-way consistency to re-weight alignment scores before running progressive alignment.</p>
+<p>In practice, T-Coffee and its extension 3D-Coffee (which incorporates structural information) produce more accurate alignments than CLUSTAL&nbsp;W on benchmarks like BAliBASE, especially in the “twilight zone” below 25% sequence identity where progressive methods struggle most. The tradeoff is speed: T-Coffee is considerably slower than CLUSTAL&nbsp;<span class="math inline">\(\Omega\)</span> and does not scale well beyond a few hundred sequences. For building profile HMMs from large families, CLUSTAL&nbsp;<span class="math inline">\(\Omega\)</span> or MAFFT are the more common choices.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;MAFFT uses a fast Fourier transform to identify homologous segments, achieving accuracy comparable to T-Coffee at a fraction of the cost.</p></div></div></section>
+</section>
+<section id="ch04-profile-hmm-sec:pssm" class="level1 page-columns page-full">
+<h1>Position-Specific Scoring Matrices</h1>
+<p><strong>Given a multiple sequence alignment, the simplest summary</strong> of a protein family is a position-specific scoring matrix (PSSM), also called a sequence profile. Each column of the MSA becomes a column of the PSSM. The matrix has <span class="math inline">\(L\)</span> columns (one per alignment position) and 20 rows (one per amino acid).</p>
+<section id="ch04-profile-hmm-sec:pssm-construction" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:pssm-construction">Construction from MSA Columns</h2>
+<p>Consider column <span class="math inline">\(j\)</span> of the MSA. Let <span class="math inline">\(n_{ja}\)</span> denote the number of times amino acid <span class="math inline">\(a\)</span> appears in that column, and let <span class="math inline">\(N_j = \sum_a n_{ja}\)</span> be the total number of (non-gap) residues. The observed frequency is <span class="math inline">\(f_{ja} = n_{ja}/N_j\)</span>. We compare this to a background frequency <span class="math inline">\(p_a\)</span> representing the expected frequency of amino acid <span class="math inline">\(a\)</span> in random protein sequence. The PSSM entry is the log-odds score: <span class="math display">\[\label{eq:pssm-entry}
+  S(j, a) = \log_2 \frac{f_{ja}}{p_a}.\]</span> A positive score means amino acid <span class="math inline">\(a\)</span> is enriched at position <span class="math inline">\(j\)</span> relative to background; a negative score means it is depleted. To score a new sequence <span class="math inline">\(x_1 x_2 \cdots x_L\)</span> against the PSSM, we simply sum the entries: <span class="math display">\[\label{eq:pssm-score}
+  \text{Score}(x) = \sum_{j=1}^{L} S(j, x_j).\]</span> This is equivalent to computing the log-likelihood ratio between a model in which each position is drawn independently from the column frequencies and a null model in which each position is drawn from the background distribution.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;The independence assumption across positions is a simplification. Real proteins have correlated positions, a fact that direct coupling analysis (DCA) and related methods attempt to capture. We discuss these in Chapter&nbsp;<a href="#ch:alphafold" data-reference-type="ref" data-reference="ch:alphafold">[ch:alphafold]</a>.</p></div></div></section>
+<section id="ch04-profile-hmm-sec:pseudocounts" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:pseudocounts">Pseudocounts and Dirichlet Priors</h2>
+<p>Raw frequency estimates fail when data is limited. If an MSA has only 10 sequences and tryptophan never appears at position <span class="math inline">\(j\)</span>, the raw estimate gives <span class="math inline">\(f_{jW} = 0\)</span>, which produces <span class="math inline">\(S(j, W) = -\infty\)</span>. This is absurd: a single tryptophan at that position should not make the score infinitely bad. The problem is that we are estimating a 20-dimensional probability distribution from a small sample.</p>
+<p>The standard fix is to add pseudocounts.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> The simplest approach replaces <span class="math inline">\(n_{ja}\)</span> with <span class="math inline">\(n_{ja} + \alpha_a\)</span>, where <span class="math inline">\(\alpha_a &gt; 0\)</span> is a pseudocount for amino acid <span class="math inline">\(a\)</span>. The estimated probability becomes: <span class="math display">\[\label{eq:pseudocounts}
+  \hat{p}_{ja} = \frac{n_{ja} + \alpha_a}{N_j + \sum_{a'} \alpha_{a'}}.\]</span> If we set <span class="math inline">\(\alpha_a = p_a\)</span> (the background frequencies) and choose the total pseudocount weight to be small compared to <span class="math inline">\(N_j\)</span>, we get a gentle regularization: unobserved amino acids receive a small positive probability proportional to their background frequency, while the estimates for well-sampled amino acids are barely changed.</p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;Pseudocounts are the frequentist analog of a Bayesian prior. The distinction is mostly philosophical for our purposes; the formulas are identical.</p></div><div id="fn8"><p><sup>8</sup>&nbsp;The Dirichlet mixture parameters are estimated by maximum likelihood from a large training set of alignment columns. This is a form of empirical Bayes.</p></div></div><p>The Bayesian interpretation makes this more principled. We place a Dirichlet prior on the probability vector <span class="math inline">\(\bm{\theta}_j = (\theta_{j1}, \ldots, \theta_{j,20})\)</span> for column <span class="math inline">\(j\)</span>: <span class="math display">\[\label{eq:dirichlet-prior}
+  p(\bm{\theta}_j) = \text{Dir}(\bm{\theta}_j \mid \bm{\alpha}) = \frac{\Gamma(\sum_a \alpha_a)}{\prod_a \Gamma(\alpha_a)} \prod_{a=1}^{20} \theta_{ja}^{\alpha_a - 1}.\]</span> The Dirichlet is conjugate to the multinomial, so after observing counts <span class="math inline">\(\{n_{ja}\}\)</span>, the posterior is also Dirichlet: <span class="math display">\[\label{eq:dirichlet-posterior}
+  p(\bm{\theta}_j \mid \{n_{ja}\}) = \text{Dir}(\bm{\theta}_j \mid \alpha_1 + n_{j1}, \ldots, \alpha_{20} + n_{j,20}).\]</span> The posterior mean gives exactly <a href="#eq:pseudocounts" data-reference-type="ref" data-reference="eq:pseudocounts">[eq:pseudocounts]</a>. The art lies in choosing <span class="math inline">\(\bm{\alpha}\)</span>. Durbin et al.&nbsp;describe mixtures of Dirichlet distributions, where each component captures a different “type” of amino acid distribution (hydrophobic core positions, surface positions, conserved catalytic sites, etc.)&nbsp;<span class="citation" data-cites="durbin1998">(<a href="../../../references.html#ref-durbin1998" role="doc-biblioref">Durbin et al. 1998</a>)</span>. The software HMMER uses a nine-component Dirichlet mixture trained on Blocks, a curated database of ungapped alignments.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a></p>
+</section>
+<section id="ch04-profile-hmm-sec:psi-blast" class="level2">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:psi-blast">PSI-BLAST and Iterative Profile Construction</h2>
+<p>PSI-BLAST (Position-Specific Iterated BLAST) automates the construction and use of PSSMs for database searching&nbsp;<span class="citation" data-cites="altschul1997">(<a href="../../../references.html#ref-altschul1997" role="doc-biblioref">Altschul et al. 1997</a>)</span>. The procedure works as follows. Run a standard BLAST search with a query sequence. From the significant hits, construct an MSA and compute a PSSM. Use the PSSM to search the database again, this time scoring each target position by the profile rather than a fixed substitution matrix. From the expanded set of hits, build a new PSSM. Repeat until convergence or for a fixed number of iterations.</p>
+<p>Each iteration typically detects more distant homologs, because the profile captures family-specific patterns that a single query sequence cannot. But there is a danger: if a false positive enters the profile at iteration <span class="math inline">\(k\)</span>, it corrupts all subsequent iterations and the profile “drifts” away from the true family. In practice, PSI-BLAST works well for 3–5 iterations with a stringent inclusion threshold (e.g., <span class="math inline">\(E &lt; 0.001\)</span>), but requires care and manual inspection of the growing hit list.</p>
+</section>
+</section>
+<section id="ch04-profile-hmm-sec:hmm" class="level1 page-columns page-full">
+<h1>Hidden Markov Models</h1>
+<p><strong>A PSSM treats each alignment column independently</strong> and has no mechanism for insertions or deletions. If a new family member has an extra residue between positions 7 and 8 of the profile, the PSSM has no way to accommodate it: the insertion pushes all downstream residues out of register, and the score collapses. Hidden Markov models solve this problem by treating alignment as a probabilistic process that moves through a sequence of states, some of which emit residues and some of which do not.</p>
+<section id="ch04-profile-hmm-sec:hmm-definition" class="level2">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:hmm-definition">Formal Definition</h2>
+<p>A hidden Markov model consists of the following components:</p>
+<ol type="1">
+<li><p>A set of <span class="math inline">\(K\)</span> states <span class="math inline">\(Q = \{q_1, q_2, \ldots, q_K\}\)</span>.</p></li>
+<li><p>An observation alphabet <span class="math inline">\(\mathcal{O}\)</span>. For DNA, <span class="math inline">\(\mathcal{O} = \{A, C, G, T\}\)</span>; for proteins, <span class="math inline">\(|\mathcal{O}| = 20\)</span>.</p></li>
+<li><p>Transition probabilities <span class="math inline">\(a_{ij} = P(s_t = q_j \mid s_{t-1} = q_i)\)</span> for all <span class="math inline">\(i, j \in \{1, \ldots, K\}\)</span>, where <span class="math inline">\(s_t\)</span> denotes the state at time <span class="math inline">\(t\)</span>. These satisfy <span class="math inline">\(\sum_j a_{ij} = 1\)</span> for each <span class="math inline">\(i\)</span>.</p></li>
+<li><p>Emission probabilities <span class="math inline">\(b_j(k) = P(o_t = k \mid s_t = q_j)\)</span> for each state <span class="math inline">\(q_j\)</span> and each symbol <span class="math inline">\(k \in \mathcal{O}\)</span>.</p></li>
+<li><p>Initial state probabilities <span class="math inline">\(\pi_j = P(s_1 = q_j)\)</span> for each state <span class="math inline">\(q_j\)</span>.</p></li>
+</ol>
+<p>We denote the full model by <span class="math inline">\(\lambda = (\bm{A}, \bm{B}, \bm{\pi})\)</span> where <span class="math inline">\(\bm{A} = [a_{ij}]\)</span>, <span class="math inline">\(\bm{B} = [b_j(k)]\)</span>, and <span class="math inline">\(\bm{\pi} = [\pi_j]\)</span>.</p>
+<p>The “hidden” in HMM refers to the fact that we observe the output sequence <span class="math inline">\(O = o_1, o_2, \ldots, o_T\)</span> but do not observe the state sequence <span class="math inline">\(S = s_1, s_2, \ldots, s_T\)</span>. The state sequence is a latent variable. The probability of a particular observation sequence given a particular state sequence factors as: <span class="math display">\[\label{eq:hmm-joint}
+  P(O, S \mid \lambda) = \pi_{s_1} \, b_{s_1}(o_1) \prod_{t=2}^{T} a_{s_{t-1}, s_t} \, b_{s_t}(o_t).\]</span> This factorization is the Markov property: the future state depends only on the current state, not on the full history.</p>
+</section>
+<section id="ch04-profile-hmm-sec:cpg-example" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:cpg-example">A Concrete Example: CpG Islands</h2>
+<p>Before working with abstract states and symbols, we ground the formalism in a biological example that appears in many computational biology courses.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> In vertebrate genomes, the dinucleotide CG (written CpG to distinguish it from the base pair C–G) is underrepresented because cytosines in CpG contexts are frequently methylated and subsequently deaminated to thymine. But certain regions near gene promoters, called CpG islands, escape this methylation and retain the expected CpG frequency. We want a model that, given a DNA sequence, labels each position as belonging to a CpG island (<span class="math inline">\(+\)</span>) or to normal genome (<span class="math inline">\(-\)</span>).</p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;This example is adapted from the MIT course 7.91J / 7.36J, Foundations of Computational and Systems Biology, taught by C.&nbsp;Burge, D.&nbsp;Gifford, and E.&nbsp;Fraenkel.</p></div></div><p>We define a two-state HMM with states <span class="math inline">\(Q = \{I, G\}\)</span> (Island, Genome) and alphabet <span class="math inline">\(\mathcal{O} = \{A, C, G, T\}\)</span>. The transition matrix is: <span class="math display">\[\label{eq:cpg-transition}
+  \bm{A} = \begin{pmatrix} a_{II} &amp; a_{IG} \\ a_{GI} &amp; a_{GG} \end{pmatrix} = \begin{pmatrix} 0.95 &amp; 0.05 \\ 0.10 &amp; 0.90 \end{pmatrix}.\]</span> The emission probabilities are: <span class="math display">\[\label{eq:cpg-emission}
+\begin{aligned}
+  b_I(A) &amp;= 0.15, &amp; b_I(C) &amp;= 0.35, &amp; b_I(G) &amp;= 0.35, &amp; b_I(T) &amp;= 0.15, \\
+  b_G(A) &amp;= 0.30, &amp; b_G(C) &amp;= 0.20, &amp; b_G(G) &amp;= 0.20, &amp; b_G(T) &amp;= 0.30.
+\end{aligned}\]</span> The island state emits C and G with higher probability (reflecting the high GC content of CpG islands), while the genome state favors A and T. The transition probabilities encode the fact that both islands and non-islands are extended regions: once you enter an island, you tend to stay for many positions (<span class="math inline">\(a_{II} = 0.95\)</span>), and similarly for the genome state (<span class="math inline">\(a_{GG} = 0.90\)</span>).</p>
+<p>We set initial probabilities <span class="math inline">\(\pi_I = 0.5\)</span> and <span class="math inline">\(\pi_G = 0.5\)</span>, reflecting ignorance about whether the sequence starts in an island or not. This is our running example for the rest of the section.</p>
+</section>
+</section>
+<section id="ch04-profile-hmm-sec:hmm-problems" class="level1 page-columns page-full">
+<h1>The Three Canonical HMM Problems</h1>
+<p><strong>Three problems arise naturally for any HMM,</strong> and their solutions constitute the algorithmic core of the field&nbsp;<span class="citation" data-cites="rabiner1989">(<a href="../../../references.html#ref-rabiner1989" role="doc-biblioref">Rabiner 1989</a>)</span>. Rabiner’s 1989 tutorial, still one of the clearest expositions, called them the evaluation problem, the decoding problem, and the training problem. We treat each in turn.</p>
+<section id="ch04-profile-hmm-sec:forward" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:forward">Problem 1: Evaluation (The Forward Algorithm)</h2>
+<p>Given a model <span class="math inline">\(\lambda\)</span> and an observation sequence <span class="math inline">\(O = o_1, \ldots, o_T\)</span>, compute <span class="math inline">\(P(O \mid \lambda)\)</span>, the probability that the model generated the sequence.</p>
+<p>The naive approach sums over all possible state sequences: <span class="math display">\[\label{eq:naive-eval}
+  P(O \mid \lambda) = \sum_{S} P(O, S \mid \lambda) = \sum_{s_1, \ldots, s_T} \pi_{s_1} b_{s_1}(o_1) \prod_{t=2}^{T} a_{s_{t-1}, s_t} b_{s_t}(o_t).\]</span> There are <span class="math inline">\(K^T\)</span> possible state sequences, so this sum is intractable for any but the shortest sequences. The forward algorithm computes the same quantity in <span class="math inline">\(O(K^2 T)\)</span> time by dynamic programming.</p>
+<p>Define the <em>forward variable</em>: <span class="math display">\[\label{eq:forward-def}
+  \alpha_t(i) = P(o_1, o_2, \ldots, o_t, s_t = q_i \mid \lambda).\]</span> This is the joint probability of having observed the first <span class="math inline">\(t\)</span> symbols <em>and</em> being in state <span class="math inline">\(q_i\)</span> at time <span class="math inline">\(t\)</span>. We compute it recursively.</p>
+<section id="initialization." class="level4">
+<h4 class="anchored" data-anchor-id="initialization.">Initialization.</h4>
+<p>At <span class="math inline">\(t = 1\)</span>: <span class="math display">\[\label{eq:forward-init}
+  \alpha_1(i) = \pi_i \, b_i(o_1), \quad i = 1, \ldots, K.\]</span></p>
+</section>
+<section id="recursion." class="level4">
+<h4 class="anchored" data-anchor-id="recursion.">Recursion.</h4>
+<p>For <span class="math inline">\(t = 2, 3, \ldots, T\)</span>: <span class="math display">\[\label{eq:forward-recursion}
+  \alpha_t(j) = \left[ \sum_{i=1}^{K} \alpha_{t-1}(i) \, a_{ij} \right] b_j(o_t), \quad j = 1, \ldots, K.\]</span> The intuition is that to be in state <span class="math inline">\(q_j\)</span> at time <span class="math inline">\(t\)</span>, we could have arrived from any state <span class="math inline">\(q_i\)</span> at time <span class="math inline">\(t-1\)</span>. We sum over all such predecessors, weighting each by the transition probability <span class="math inline">\(a_{ij}\)</span>, and then multiply by the probability of emitting the observed symbol <span class="math inline">\(o_t\)</span> in state <span class="math inline">\(q_j\)</span>.</p>
+</section>
+<section id="termination." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="termination.">Termination.</h4>
+<p>The total probability of the observation sequence is: <span class="math display">\[\label{eq:forward-termination}
+  P(O \mid \lambda) = \sum_{i=1}^{K} \alpha_T(i).\]</span> This works because the events “observed <span class="math inline">\(O\)</span> and ended in state <span class="math inline">\(q_i\)</span>” for <span class="math inline">\(i = 1, \ldots, K\)</span> are mutually exclusive and exhaustive.</p>
+<p>The time complexity is <span class="math inline">\(O(K^2 T)\)</span>: at each of <span class="math inline">\(T\)</span> time steps, we compute <span class="math inline">\(K\)</span> forward variables, each requiring a sum over <span class="math inline">\(K\)</span> predecessors. The space complexity is <span class="math inline">\(O(KT)\)</span> if we store the full <span class="math inline">\(\alpha\)</span> table, or <span class="math inline">\(O(K)\)</span> if we only need the final probability and overwrite as we go.<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;In practice we always store the full table, because we need it for the backward algorithm and for parameter estimation.</p></div></div></section>
+</section>
+<section id="ch04-profile-hmm-sec:viterbi" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:viterbi">Problem 2: Decoding (The Viterbi Algorithm)</h2>
+<p>Given a model <span class="math inline">\(\lambda\)</span> and an observation sequence <span class="math inline">\(O\)</span>, find the state sequence <span class="math inline">\(S^* = s_1^*, \ldots, s_T^*\)</span> that maximizes <span class="math inline">\(P(S \mid O, \lambda)\)</span>. This is the most likely explanation of the observed data.</p>
+<p>The structure is almost identical to the forward algorithm, but with <span class="math inline">\(\max\)</span> replacing <span class="math inline">\(\sum\)</span>. Define: <span class="math display">\[\label{eq:viterbi-def}
+  \delta_t(i) = \max_{s_1, \ldots, s_{t-1}} P(s_1, \ldots, s_{t-1}, s_t = q_i, o_1, \ldots, o_t \mid \lambda).\]</span> This is the probability of the most probable path ending in state <span class="math inline">\(q_i\)</span> at time <span class="math inline">\(t\)</span>.</p>
+<section id="initialization.-1" class="level4">
+<h4 class="anchored" data-anchor-id="initialization.-1">Initialization.</h4>
+<p><span class="math display">\[\label{eq:viterbi-init}
+  \delta_1(i) = \pi_i \, b_i(o_1), \quad \psi_1(i) = 0.\]</span></p>
+</section>
+<section id="recursion.-1" class="level4">
+<h4 class="anchored" data-anchor-id="recursion.-1">Recursion.</h4>
+<p>For <span class="math inline">\(t = 2, \ldots, T\)</span>: <span class="math display">\[\label{eq:viterbi-recursion}
+  \delta_t(j) = \max_{1 \le i \le K} \left[ \delta_{t-1}(i) \, a_{ij} \right] \cdot b_j(o_t),\]</span> <span class="math display">\[\label{eq:viterbi-backtrack}
+  \psi_t(j) = \mathop{\mathrm{arg\,max}}_{1 \le i \le K} \left[ \delta_{t-1}(i) \, a_{ij} \right].\]</span> The array <span class="math inline">\(\psi_t(j)\)</span> records which predecessor state achieved the maximum, enabling us to reconstruct the optimal path.</p>
+</section>
+<section id="termination.-1" class="level4">
+<h4 class="anchored" data-anchor-id="termination.-1">Termination.</h4>
+<p><span class="math display">\[\label{eq:viterbi-termination}
+  P^* = \max_{1 \le i \le K} \delta_T(i), \qquad s_T^* = \mathop{\mathrm{arg\,max}}_{1 \le i \le K} \delta_T(i).\]</span></p>
+</section>
+<section id="backtracking." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="backtracking.">Backtracking.</h4>
+<p>For <span class="math inline">\(t = T-1, T-2, \ldots, 1\)</span>: <span class="math display">\[\label{eq:viterbi-path}
+  s_t^* = \psi_{t+1}(s_{t+1}^*).\]</span></p>
+<p>In practice, we work in log space to avoid numerical underflow, replacing products with sums and <span class="math inline">\(\max\)</span> over sums.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;Working in log space converts <span class="math inline">\(\delta_t(j) = \max_i [\delta_{t-1}(i) \cdot a_{ij}] \cdot b_j(o_t)\)</span> into <span class="math inline">\(\log \delta_t(j) = \max_i [\log \delta_{t-1}(i) + \log a_{ij}] + \log b_j(o_t)\)</span>.</p></div></div></section>
+</section>
+<section id="ch04-profile-hmm-sec:viterbi-example" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:viterbi-example">Worked Example: Viterbi on the CpG Model</h2>
+<p>We illustrate the Viterbi algorithm on a short sequence using the CpG island model from <a href="#sec:cpg-example" data-reference-type="ref" data-reference="sec:cpg-example">3.2</a>. Consider the observed sequence <span class="math inline">\(O = C, G, C, G\)</span> (that is, <span class="math inline">\(o_1 = C\)</span>, <span class="math inline">\(o_2 = G\)</span>, <span class="math inline">\(o_3 = C\)</span>, <span class="math inline">\(o_4 = G\)</span>). We work in log base 2 for readability.</p>
+<section id="initialization-t-1-o_1-c." class="level4">
+<h4 class="anchored" data-anchor-id="initialization-t-1-o_1-c.">Initialization (<span class="math inline">\(t = 1\)</span>, <span class="math inline">\(o_1 = C\)</span>).</h4>
+<p><span class="math display">\[\begin{aligned}
+  \log_2 \delta_1(I) &amp;= \log_2 \pi_I + \log_2 b_I(C) = \log_2(0.5) + \log_2(0.35) = -1.00 + (-1.51) = -2.51, \notag \\
+  \log_2 \delta_1(G) &amp;= \log_2 \pi_G + \log_2 b_G(C) = \log_2(0.5) + \log_2(0.20) = -1.00 + (-2.32) = -3.32. \notag
+\end{aligned}\]</span> State <span class="math inline">\(I\)</span> is already more probable.</p>
+</section>
+<section id="recursion-t-2-o_2-g." class="level4">
+<h4 class="anchored" data-anchor-id="recursion-t-2-o_2-g.">Recursion (<span class="math inline">\(t = 2\)</span>, <span class="math inline">\(o_2 = G\)</span>).</h4>
+<p>For state <span class="math inline">\(I\)</span>: <span class="math display">\[\begin{aligned}
+  \text{from } I&amp;: \log_2 \delta_1(I) + \log_2 a_{II} = -2.51 + \log_2(0.95) = -2.51 + (-0.07) = -2.58, \notag \\
+  \text{from } G&amp;: \log_2 \delta_1(G) + \log_2 a_{GI} = -3.32 + \log_2(0.10) = -3.32 + (-3.32) = -6.64. \notag
+\end{aligned}\]</span> Maximum is <span class="math inline">\(-2.58\)</span> from <span class="math inline">\(I\)</span>, so <span class="math inline">\(\psi_2(I) = I\)</span>. Then <span class="math inline">\(\log_2 \delta_2(I) = -2.58 + \log_2(0.35) = -2.58 + (-1.51) = -4.10\)</span>.</p>
+<p>For state <span class="math inline">\(G\)</span>: <span class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -2.51 + \log_2(0.05) = -2.51 + (-4.32) = -6.83, \notag \\
+  \text{from } G&amp;: -3.32 + \log_2(0.90) = -3.32 + (-0.15) = -3.47. \notag
+\end{aligned}\]</span> Maximum is <span class="math inline">\(-3.47\)</span> from <span class="math inline">\(G\)</span>, so <span class="math inline">\(\psi_2(G) = G\)</span>. Then <span class="math inline">\(\log_2 \delta_2(G) = -3.47 + \log_2(0.20) = -3.47 + (-2.32) = -5.79\)</span>.</p>
+</section>
+<section id="recursion-t-3-o_3-c." class="level4">
+<h4 class="anchored" data-anchor-id="recursion-t-3-o_3-c.">Recursion (<span class="math inline">\(t = 3\)</span>, <span class="math inline">\(o_3 = C\)</span>).</h4>
+<p>For state <span class="math inline">\(I\)</span>: <span class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -4.10 + (-0.07) = -4.17, \notag \\
+  \text{from } G&amp;: -5.79 + (-3.32) = -9.11. \notag
+\end{aligned}\]</span> Maximum from <span class="math inline">\(I\)</span>, <span class="math inline">\(\psi_3(I) = I\)</span>. <span class="math inline">\(\log_2 \delta_3(I) = -4.17 + (-1.51) = -5.69\)</span>.</p>
+<p>For state <span class="math inline">\(G\)</span>: <span class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -4.10 + (-4.32) = -8.42, \notag \\
+  \text{from } G&amp;: -5.79 + (-0.15) = -5.94. \notag
+\end{aligned}\]</span> Maximum from <span class="math inline">\(G\)</span>, <span class="math inline">\(\psi_3(G) = G\)</span>. <span class="math inline">\(\log_2 \delta_3(G) = -5.94 + (-2.32) = -8.27\)</span>.</p>
+</section>
+<section id="recursion-t-4-o_4-g." class="level4">
+<h4 class="anchored" data-anchor-id="recursion-t-4-o_4-g.">Recursion (<span class="math inline">\(t = 4\)</span>, <span class="math inline">\(o_4 = G\)</span>).</h4>
+<p>For state <span class="math inline">\(I\)</span>: <span class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -5.69 + (-0.07) = -5.76, \notag \\
+  \text{from } G&amp;: -8.27 + (-3.32) = -11.59. \notag
+\end{aligned}\]</span> Maximum from <span class="math inline">\(I\)</span>, <span class="math inline">\(\psi_4(I) = I\)</span>. <span class="math inline">\(\log_2 \delta_4(I) = -5.76 + (-1.51) = -7.27\)</span>.</p>
+<p>For state <span class="math inline">\(G\)</span>: <span class="math display">\[\begin{aligned}
+  \text{from } I&amp;: -5.69 + (-4.32) = -10.01, \notag \\
+  \text{from } G&amp;: -8.27 + (-0.15) = -8.42. \notag
+\end{aligned}\]</span> Maximum from <span class="math inline">\(G\)</span>, <span class="math inline">\(\psi_4(G) = G\)</span>. <span class="math inline">\(\log_2 \delta_4(G) = -8.42 + (-2.32) = -10.73\)</span>.</p>
+</section>
+<section id="termination-and-backtracking." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="termination-and-backtracking.">Termination and backtracking.</h4>
+<p><span class="math inline">\(s_4^* = I\)</span> (since <span class="math inline">\(-7.27 &gt; -10.73\)</span>). Backtracking: <span class="math inline">\(s_3^* = \psi_4(I) = I\)</span>, <span class="math inline">\(s_2^* = \psi_3(I) = I\)</span>, <span class="math inline">\(s_1^* = \psi_2(I) = I\)</span>. The Viterbi path is <span class="math inline">\(I, I, I, I\)</span>. The model assigns the entire CGCG sequence to the CpG island state, which makes sense: the sequence is CG-rich, and switching to the genome state incurs transition penalties that outweigh any benefit.</p>
+<p>If we ran the same computation on a sequence like <span class="math inline">\(A, T, A, T\)</span>, we would find the Viterbi path is <span class="math inline">\(G, G, G, G\)</span>, assigning it to normal genome. Sequences with mixed composition would produce paths that switch between states, identifying island boundaries.<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;In real applications, the two-state CpG model is too simple. More sophisticated models use duration states or semi-Markov structures to enforce minimum island lengths.</p></div></div></section>
+</section>
+<section id="ch04-profile-hmm-sec:baum-welch" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:baum-welch">Problem 3: Training (The Baum–Welch Algorithm)</h2>
+<p>Given observation sequences (but not state sequences), estimate the model parameters <span class="math inline">\(\lambda = (\bm{A}, \bm{B}, \bm{\pi})\)</span> that maximize <span class="math inline">\(P(O \mid \lambda)\)</span>. This is the learning problem. If we could observe the state sequences directly, parameter estimation would be simple counting. We cannot, so we use expectation-maximization (EM), which in the HMM context is called the Baum–Welch algorithm.</p>
+<section id="the-backward-variable." class="level4">
+<h4 class="anchored" data-anchor-id="the-backward-variable.">The backward variable.</h4>
+<p>We need a companion to the forward variable. Define: <span class="math display">\[\label{eq:backward-def}
+  \beta_t(i) = P(o_{t+1}, o_{t+2}, \ldots, o_T \mid s_t = q_i, \lambda).\]</span> This is the probability of the future observations given that we are in state <span class="math inline">\(q_i\)</span> at time <span class="math inline">\(t\)</span>.</p>
+</section>
+<section id="initialization.-2" class="level4">
+<h4 class="anchored" data-anchor-id="initialization.-2">Initialization.</h4>
+<p><span class="math display">\[\label{eq:backward-init}
+  \beta_T(i) = 1, \quad i = 1, \ldots, K.\]</span></p>
+</section>
+<section id="recursion.-2" class="level4">
+<h4 class="anchored" data-anchor-id="recursion.-2">Recursion.</h4>
+<p>For <span class="math inline">\(t = T-1, T-2, \ldots, 1\)</span>: <span class="math display">\[\label{eq:backward-recursion}
+  \beta_t(i) = \sum_{j=1}^{K} a_{ij} \, b_j(o_{t+1}) \, \beta_{t+1}(j).\]</span> The logic mirrors the forward algorithm but runs backward in time: to compute the probability of future observations from state <span class="math inline">\(q_i\)</span> at time <span class="math inline">\(t\)</span>, we consider all possible next states <span class="math inline">\(q_j\)</span>, weighted by the transition probability, the emission at <span class="math inline">\(t+1\)</span>, and the backward probability from <span class="math inline">\(q_j\)</span> at <span class="math inline">\(t+1\)</span>.</p>
+</section>
+<section id="posterior-state-and-transition-probabilities." class="level4">
+<h4 class="anchored" data-anchor-id="posterior-state-and-transition-probabilities.">Posterior state and transition probabilities.</h4>
+<p>With both <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> in hand, we can compute the posterior probability of being in state <span class="math inline">\(q_i\)</span> at time <span class="math inline">\(t\)</span>: <span class="math display">\[\label{eq:gamma}
+  \gamma_t(i) = P(s_t = q_i \mid O, \lambda) = \frac{\alpha_t(i) \, \beta_t(i)}{P(O \mid \lambda)} = \frac{\alpha_t(i) \, \beta_t(i)}{\sum_{j=1}^{K} \alpha_t(j) \, \beta_t(j)}.\]</span> We can also compute the posterior probability of transitioning from <span class="math inline">\(q_i\)</span> to <span class="math inline">\(q_j\)</span> between times <span class="math inline">\(t\)</span> and <span class="math inline">\(t+1\)</span>: <span class="math display">\[\label{eq:xi}
+  \xi_t(i, j) = P(s_t = q_i, s_{t+1} = q_j \mid O, \lambda) = \frac{\alpha_t(i) \, a_{ij} \, b_j(o_{t+1}) \, \beta_{t+1}(j)}{P(O \mid \lambda)}.\]</span> These two quantities are related by <span class="math inline">\(\gamma_t(i) = \sum_j \xi_t(i, j)\)</span>.</p>
+</section>
+<section id="re-estimation-formulas." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="re-estimation-formulas.">Re-estimation formulas.</h4>
+<p>The M-step of EM uses <span class="math inline">\(\gamma\)</span> and <span class="math inline">\(\xi\)</span> as soft counts to update the parameters. The new transition probabilities are: <span class="math display">\[\label{eq:reestimate-a}
+  \hat{a}_{ij} = \frac{\sum_{t=1}^{T-1} \xi_t(i, j)}{\sum_{t=1}^{T-1} \gamma_t(i)}.\]</span> The numerator is the expected number of transitions from <span class="math inline">\(q_i\)</span> to <span class="math inline">\(q_j\)</span>; the denominator is the expected number of times we are in state <span class="math inline">\(q_i\)</span> (excluding the last time step, since there is no transition from <span class="math inline">\(t = T\)</span>). The new emission probabilities are: <span class="math display">\[\label{eq:reestimate-b}
+  \hat{b}_j(k) = \frac{\sum_{t=1}^{T} \gamma_t(j) \, \mathbf{1}[o_t = k]}{\sum_{t=1}^{T} \gamma_t(j)}.\]</span> The numerator is the expected number of times we emit symbol <span class="math inline">\(k\)</span> from state <span class="math inline">\(q_j\)</span>; the denominator is the expected number of times we are in state <span class="math inline">\(q_j\)</span>. The new initial probabilities are: <span class="math display">\[\label{eq:reestimate-pi}
+  \hat{\pi}_i = \gamma_1(i).\]</span> Each iteration of Baum–Welch (one E-step computing <span class="math inline">\(\gamma\)</span> and <span class="math inline">\(\xi\)</span>, followed by one M-step applying the re-estimation formulas) is guaranteed to increase <span class="math inline">\(P(O \mid \lambda)\)</span>, or leave it unchanged if we are at a fixed point.<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> The algorithm converges when the change in log-likelihood falls below a threshold.</p>
+<div class="no-row-height column-margin column-container"><div id="fn13"><p><sup>13</sup>&nbsp;This monotonicity follows from the general EM convergence theorem. Baum–Welch converges to a local maximum, not necessarily the global one, so initialization matters. In practice, multiple random restarts or informed initialization from a related model is standard.</p></div></div></section>
+</section>
+</section>
+<section id="ch04-profile-hmm-sec:profile-hmm" class="level1 page-columns page-full">
+<h1>Profile HMMs for Protein Families</h1>
+<p><strong>We now specialize the general HMM framework</strong> to the problem that motivated this chapter: modeling protein families. A profile HMM is an HMM with a particular architecture designed to represent a multiple sequence alignment. The architecture was introduced by Krogh et al.&nbsp;in 1994 and refined by Eddy and others over the following decade.</p>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch04_domain_architecture.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<section id="ch04-profile-hmm-sec:profile-architecture" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:profile-architecture">Architecture</h2>
+<p>A profile HMM for a family with <span class="math inline">\(L\)</span> consensus positions has three types of states arranged in <span class="math inline">\(L\)</span> columns, plus flanking states for entry and exit.</p>
+<section id="match-states-m_1-m_2-ldots-m_l." class="level4">
+<h4 class="anchored" data-anchor-id="match-states-m_1-m_2-ldots-m_l.">Match states <span class="math inline">\(M_1, M_2, \ldots, M_L\)</span>.</h4>
+<p>Each match state corresponds to a consensus column of the alignment. <span class="math inline">\(M_j\)</span> emits amino acids according to a position-specific distribution: <span class="math inline">\(b_{M_j}(a)\)</span> is the probability of amino acid <span class="math inline">\(a\)</span> at position <span class="math inline">\(j\)</span>. These emission distributions are the probabilistic analog of PSSM columns.</p>
+</section>
+<section id="insert-states-i_0-i_1-ldots-i_l." class="level4">
+<h4 class="anchored" data-anchor-id="insert-states-i_0-i_1-ldots-i_l.">Insert states <span class="math inline">\(I_0, I_1, \ldots, I_L\)</span>.</h4>
+<p>Insert states model residues that appear between consensus positions. <span class="math inline">\(I_j\)</span> sits between match states <span class="math inline">\(M_j\)</span> and <span class="math inline">\(M_{j+1}\)</span> and emits amino acids with a distribution that is typically close to the background frequency. Self-transitions <span class="math inline">\(a_{I_j \to I_j}\)</span> allow multiple inserted residues at the same position.</p>
+</section>
+<section id="delete-states-d_1-d_2-ldots-d_l." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="delete-states-d_1-d_2-ldots-d_l.">Delete states <span class="math inline">\(D_1, D_2, \ldots, D_L\)</span>.</h4>
+<p>Delete states are <em>silent</em>: they emit nothing. <span class="math inline">\(D_j\)</span> represents the event that a sequence skips consensus position <span class="math inline">\(j\)</span>. Passing through <span class="math inline">\(D_j\)</span> instead of <span class="math inline">\(M_j\)</span> means the sequence has a deletion at position <span class="math inline">\(j\)</span> relative to the family consensus.</p>
+<p>The transitions between these states follow a specific pattern. From each column’s match state <span class="math inline">\(M_j\)</span>, transitions go to <span class="math inline">\(M_{j+1}\)</span>, <span class="math inline">\(I_j\)</span>, and <span class="math inline">\(D_{j+1}\)</span>. From insert state <span class="math inline">\(I_j\)</span>, transitions go to <span class="math inline">\(M_{j+1}\)</span>, <span class="math inline">\(I_j\)</span> (self-loop), and <span class="math inline">\(D_{j+1}\)</span>. From delete state <span class="math inline">\(D_j\)</span>, transitions go to <span class="math inline">\(M_{j+1}\)</span>, <span class="math inline">\(I_{j}\)</span>, and <span class="math inline">\(D_{j+1}\)</span>. This gives nine possible transitions per column, though some are rarely used in practice.<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn14"><p><sup>14</sup>&nbsp;The full profile HMM also has begin and end states. HMMER uses a “plan 7” architecture named for the seven types of transitions in its original design. The current HMMER3 model has evolved beyond this but retains the name.</p></div></div><p>The total number of free parameters is considerable. Each of the <span class="math inline">\(L\)</span> match states has 19 free emission parameters (20 amino acid probabilities summing to 1). Each column has up to 9 transition parameters (also subject to sum-to-1 constraints). For a typical Pfam model with <span class="math inline">\(L = 200\)</span> consensus positions, this means roughly <span class="math inline">\(200 \times 19 + 200 \times 7 \approx 5{,}200\)</span> free parameters. This is far more than a PSSM, which has <span class="math inline">\(200 \times 19 = 3{,}800\)</span> parameters and cannot model insertions or deletions at all.</p>
+</section>
+</section>
+<section id="ch04-profile-hmm-sec:profile-vs-pssm" class="level2">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:profile-vs-pssm">Relationship to PSSMs</h2>
+<p>If we strip away the insert and delete states and keep only the match states with fixed transitions <span class="math inline">\(a_{M_j \to M_{j+1}} = 1\)</span>, the profile HMM reduces to a PSSM. Scoring a sequence against this reduced model gives exactly the PSSM score from <a href="#eq:pssm-score" data-reference-type="ref" data-reference="eq:pssm-score">[eq:pssm-score]</a>. The profile HMM generalizes the PSSM in two ways. First, it handles insertions and deletions probabilistically: the insert and delete states allow the model to align sequences of different lengths to the consensus without ad hoc gap penalties. Second, the Forward algorithm sums over all possible alignments of the sequence to the model, rather than committing to a single alignment. This is why profile HMMs are more sensitive than PSSMs for detecting remote homologs: two distantly related proteins might align to the family consensus in different ways, and the Forward score accounts for all of them.</p>
+</section>
+<section id="ch04-profile-hmm-sec:build-profile" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:build-profile">Building a Profile HMM from an MSA</h2>
+<p>The construction proceeds in three steps.</p>
+<section id="step-1-assign-columns-to-match-or-insert." class="level4 page-columns page-full">
+<h4 class="anchored" data-anchor-id="step-1-assign-columns-to-match-or-insert.">Step 1: Assign columns to match or insert.</h4>
+<p>Not every column of the MSA becomes a match state. Columns with more than 50% gaps are typically designated as insert columns; the rest become match columns. The number of match columns becomes <span class="math inline">\(L\)</span>, the length of the model. HMMER uses a more sophisticated heuristic based on sequence weighting and entropy, but the principle is the same.<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;A column full of gaps carries no information about the family consensus and would only add noise to the model. The 50% threshold is a common rule of thumb.</p></div></div></section>
+<section id="step-2-estimate-emission-probabilities." class="level4">
+<h4 class="anchored" data-anchor-id="step-2-estimate-emission-probabilities.">Step 2: Estimate emission probabilities.</h4>
+<p>For each match state <span class="math inline">\(M_j\)</span>, count the amino acids in the corresponding MSA column (among the non-gap characters). Apply pseudocounts or Dirichlet mixture priors exactly as in <a href="#sec:pseudocounts" data-reference-type="ref" data-reference="sec:pseudocounts">2.2</a> to obtain <span class="math inline">\(b_{M_j}(a)\)</span> for each amino acid <span class="math inline">\(a\)</span>. For insert states, emission probabilities are usually set to background frequencies <span class="math inline">\(p_a\)</span> or estimated from the residues that fall in insert columns.</p>
+</section>
+<section id="step-3-estimate-transition-probabilities." class="level4">
+<h4 class="anchored" data-anchor-id="step-3-estimate-transition-probabilities.">Step 3: Estimate transition probabilities.</h4>
+<p>Count the transitions observed in the MSA. For each sequence and each pair of adjacent model positions, determine whether the sequence passes through <span class="math inline">\(M_j \to M_{j+1}\)</span>, <span class="math inline">\(M_j \to I_j\)</span>, <span class="math inline">\(M_j \to D_{j+1}\)</span>, and so on. These counts, after adding pseudocounts, give the transition probability estimates. Sequences with many insertions at a position will contribute to <span class="math inline">\(a_{M_j \to I_j}\)</span>; sequences that skip a position will contribute to <span class="math inline">\(a_{M_j \to D_{j+1}}\)</span> or <span class="math inline">\(a_{D_j \to D_{j+1}}\)</span>.</p>
+<p>With emission and transition parameters in hand, the profile HMM is fully specified. We can use the Forward algorithm to score a new sequence against the model (evaluation), the Viterbi algorithm to find the best alignment of the sequence to the model (decoding), or Baum–Welch to iteratively refine parameters if given unaligned training sequences.</p>
+</section>
+</section>
+</section>
+<section id="ch04-profile-hmm-sec:hmmer3" class="level1 page-columns page-full">
+<h1>The HMMER3 Acceleration Pipeline</h1>
+<p><strong>A profile HMM search against a protein database</strong> requires computing the Forward probability for every sequence in the database. The Forward algorithm for a profile HMM of length <span class="math inline">\(L\)</span> on a target sequence of length <span class="math inline">\(N\)</span> runs in <span class="math inline">\(O(LN)\)</span> time. For Pfam’s 20,000 models searched against UniProt’s 250 million sequences, this is on the order of <span class="math inline">\(10^{15}\)</span> operations per model. That is too slow, even on modern hardware.</p>
+<p>HMMER3 solves this with a multi-stage filter pipeline&nbsp;<span class="citation" data-cites="eddy2011">(<a href="../../../references.html#ref-eddy2011" role="doc-biblioref">Eddy 2011</a>)</span>. The idea is to use fast, approximate filters to discard the vast majority of non-homologous sequences before running the expensive full Forward algorithm on the small fraction that survives.</p>
+<section id="ch04-profile-hmm-sec:msv" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:msv">Stage 1: The MSV Filter</h2>
+<p>The Multiple Segment Viterbi (MSV) filter is the first and fastest stage. It computes an ungapped, diagonal-only alignment score between the query profile and each target sequence. The model is stripped down to its match states only, with no insert or delete states and no transitions between non-adjacent match states. Scoring reduces to finding the highest-scoring set of ungapped segments that align subsequences of the target to contiguous blocks of match states.</p>
+<p>The critical implementation detail is SIMD vectorization.<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a> Farrar’s 2007 striped Smith–Waterman algorithm showed that dynamic programming over a scoring profile can be parallelized across multiple target residues using SIMD registers. HMMER3 adapts this approach, processing 16 target residues simultaneously on SSE hardware (or 32 on AVX). The MSV filter runs at approximately the speed of BLAST and retains only about 2% of database sequences for further analysis.</p>
+<div class="no-row-height column-margin column-container"><div id="fn16"><p><sup>16</sup>&nbsp;SIMD stands for Single Instruction, Multiple Data. Modern CPUs can perform the same operation on 16 or 32 bytes simultaneously using SSE or AVX instructions.</p></div></div></section>
+<section id="ch04-profile-hmm-sec:viterbi-filter" class="level2">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:viterbi-filter">Stage 2: The Viterbi Filter</h2>
+<p>Sequences passing the MSV filter are rescored with a full gapped Viterbi algorithm using the complete profile HMM (match, insert, and delete states). This is slower than MSV but still much cheaper than the Forward algorithm, because the Viterbi algorithm needs only the single best path rather than the sum over all paths. The Viterbi filter retains roughly 0.5% of the original database. Most of the sequences eliminated at this stage were high-scoring but non-homologous under MSV, typically because of composition bias (e.g., low-complexity regions that happen to match a few match states well).</p>
+</section>
+<section id="ch04-profile-hmm-sec:forward-filter" class="level2">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:forward-filter">Stage 3: The Forward Filter</h2>
+<p>Surviving sequences are scored with the full Forward algorithm, which computes <span class="math inline">\(P(O \mid \lambda)\)</span> summed over all possible alignments. The Forward score is more sensitive than the Viterbi score because it does not commit to a single alignment. Two distantly related proteins might each have a moderately good alignment to the model, with the Forward score accumulating probability mass from both, while the Viterbi score only reports the better of the two.</p>
+<p>The Forward probability is converted to a bit score by comparing to a null model: <span class="math display">\[\label{eq:forward-bitscore}
+  S = \log_2 \frac{P(O \mid \text{profile HMM})}{P(O \mid \text{null})}.\]</span> Statistical significance is assessed by fitting the distribution of Forward scores to an extreme value distribution, yielding E-values that account for database size. Sequences with E-values below a reporting threshold (typically <span class="math inline">\(10^{-3}\)</span> for inclusion in Pfam) are reported as hits.</p>
+</section>
+<section id="ch04-profile-hmm-sec:wing-folding" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch04-profile-hmm-sec:wing-folding">The Wing-Folding Trick</h2>
+<p>HMMER3 supports both local alignment (any subsequence of the target can match any sub-model) and “glocal” alignment (the entire model must be used, but only a subsequence of the target). The wing-folding trick implements local alignment without adding extra states to the model.</p>
+<p>In a glocal model, entry is only through <span class="math inline">\(M_1\)</span> and exit only through <span class="math inline">\(M_L\)</span>. To allow local alignment, we need entry into any <span class="math inline">\(M_j\)</span> and exit from any <span class="math inline">\(M_j\)</span>. One approach is to add explicit entry and exit transitions from special begin and end states, but this increases the number of transitions and complicates the dynamic programming. The wing-folding trick instead modifies the boundary conditions of the DP recursion to implicitly allow entry and exit at any position, folding the “wings” of the model (the unused portions before the entry point and after the exit point) into the calculation without explicitly traversing them. The result is that local alignment has exactly the same computational cost as glocal alignment.<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn17"><p><sup>17</sup>&nbsp;The name comes from a visual analogy: in the profile HMM diagram, the unused portions of the model at the beginning and end look like folded wings.</p></div></div></section>
+</section>
+<section id="ch04-profile-hmm-sec:ch4-exercises" class="level1">
+<h1>Exercises</h1>
+<ol type="1">
+<li><p><strong>PSSM calculation.</strong> Consider a three-column MSA with the following amino acid counts at each position (all other amino acids have count 0):</p>
+<p>Position 1: Ala = 8, Val = 2. Position 2: Gly = 10. Position 3: Leu = 5, Ile = 3, Val = 2.</p>
+<p>Assume uniform background frequencies <span class="math inline">\(p_a = 0.05\)</span> for all 20 amino acids. Compute the PSSM entries <span class="math inline">\(S(j, a)\)</span> using <a href="#eq:pssm-entry" data-reference-type="ref" data-reference="eq:pssm-entry">[eq:pssm-entry]</a> for each observed amino acid at each position. What is the score of the sequence Ala–Gly–Leu?</p></li>
+<li><p><strong>Effect of pseudocounts.</strong> Using the MSA from Exercise 1, recompute the PSSM entries using <a href="#eq:pseudocounts" data-reference-type="ref" data-reference="eq:pseudocounts">[eq:pseudocounts]</a> with <span class="math inline">\(\alpha_a = 1\)</span> for all amino acids (i.e., a total pseudocount of 20). How do the scores change for abundant versus unobserved amino acids? What happens if you increase the pseudocount to <span class="math inline">\(\alpha_a = 5\)</span>?</p></li>
+<li><p><strong>Forward algorithm.</strong> Using the CpG island HMM from <a href="#sec:cpg-example" data-reference-type="ref" data-reference="sec:cpg-example">3.2</a>, compute <span class="math inline">\(P(O \mid \lambda)\)</span> for <span class="math inline">\(O = A, C, G\)</span> by filling in the full forward table. Verify that <span class="math inline">\(\sum_i \alpha_3(i)\)</span> gives the total probability.</p></li>
+<li><p><strong>Viterbi vs.&nbsp;Forward.</strong> For the same model and the sequence <span class="math inline">\(O = C, G, A, T, C, G\)</span>, compute both the Viterbi path and the posterior state probabilities <span class="math inline">\(\gamma_t(i)\)</span> for each position. Are there positions where the Viterbi path assigns state <span class="math inline">\(I\)</span> but <span class="math inline">\(\gamma_t(I) &lt; 0.5\)</span>? What does this mean for the reliability of the Viterbi decoding?</p></li>
+<li><p><strong>Profile HMM construction.</strong> Given the following MSA of four sequences aligned to five columns:</p>
+<pre><code>    A C - G T
+    A C C G T
+    A C C G -
+    - C - G T</code></pre>
+<p>Apply the 50% gap rule to determine which columns become match states and which become insert states. For each match state, compute the emission probabilities using a pseudocount of <span class="math inline">\(\alpha_a = 0.25\)</span> per nucleotide (total pseudocount 1.0).</p></li>
+<li><p><strong>HMMER3 filter sensitivity.</strong> Suppose the MSV filter has a sensitivity of 99.5% (retains 99.5% of true homologs) and the Viterbi filter has a sensitivity of 99%. What is the overall sensitivity of the two-stage pre-filter? If the true homologs comprise 0.01% of the database, and the MSV filter retains 2% of all sequences while the Viterbi filter retains 25% of MSV survivors, how many sequences reach the Forward stage for a database of 100 million sequences?</p></li>
+</ol>
+</section>
+<section id="ch04-profile-hmm-sec:ch4-notes" class="level1 page-columns page-full">
+<h1>Chapter Notes</h1>
+<p>The hidden Markov model formalism was developed by Leonard Baum and colleagues at the Institute for Defense Analyses in the late 1960s, originally for classified work on signal processing. The algorithms became widely known through Rabiner’s 1989 tutorial&nbsp;<span class="citation" data-cites="rabiner1989">(<a href="../../../references.html#ref-rabiner1989" role="doc-biblioref">Rabiner 1989</a>)</span>, written for the speech recognition community, which remains one of the clearest introductions to the subject. The application to biological sequences began in the early 1990s with work by Gary Churchill on multiple alignment and by Krogh, Mian, and Haussler on gene finding. The Krogh et al.&nbsp;1994 paper on profile HMMs for protein families was a landmark that connected the statistical learning perspective with the biological problem of protein family classification.</p>
+<div id="ch04-profile-hmm-fig:interpro-domain" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch04_interpro_domain.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">The InterPro entry for the protein kinase domain (IPR000719), showing domain relationships and contributing member databases (PROSITE, Pfam, SMART).</figcaption>
+</figure>
+</div>
+<p>Eddy’s HMMER software has gone through three major versions, each representing a different approach to the speed-versus-sensitivity tradeoff&nbsp;<span class="citation" data-cites="eddy2011">(<a href="../../../references.html#ref-eddy2011" role="doc-biblioref">Eddy 2011</a>)</span>. HMMER1 (1995) implemented the profile HMM framework of Krogh et al.&nbsp;but was far slower than BLAST. HMMER2 (1998) added Viterbi-based filtering and was competitive with PSI-BLAST in sensitivity, but still roughly 100 times slower. HMMER3 (2011) introduced the MSV/Viterbi/Forward filter pipeline described in <a href="#sec:hmmer3" data-reference-type="ref" data-reference="sec:hmmer3">6</a>, achieving sensitivity equal to or greater than HMMER2 at speeds comparable to BLAST. The key technical contributions were the MSV filter, the use of SIMD vectorization following Farrar’s striped algorithm, and the wing-folding trick for efficient local alignment. Today HMMER3 is the engine behind Pfam, InterPro, and the protein annotation pipelines of most genome projects.</p>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch04_domain_search.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p>Position-specific scoring matrices predate profile HMMs. Gribskov, McLachlan, and Eisenberg introduced sequence profiles in 1987, and Henikoff and Henikoff developed the Blocks database of ungapped local alignments that was used to train substitution matrices and Dirichlet priors. PSI-BLAST&nbsp;<span class="citation" data-cites="altschul1997">(<a href="../../../references.html#ref-altschul1997" role="doc-biblioref">Altschul et al. 1997</a>)</span> made iterative profile searches widely accessible through the NCBI BLAST web server. The relationship between PSSMs and profile HMMs is discussed at length in Durbin et al.&nbsp;<span class="citation" data-cites="durbin1998">(<a href="../../../references.html#ref-durbin1998" role="doc-biblioref">Durbin et al. 1998</a>)</span>, which also provides the clearest textbook treatment of Dirichlet mixture priors for biological sequence analysis. The use of Bayesian priors for estimating amino acid frequencies from small samples is one of the most successful applications of Bayesian statistics in computational biology, and the Dirichlet mixture approach of Sjölander et al.&nbsp;(1996) remains the standard in HMMER and related tools.</p>
+<p>Multiple sequence alignment is a field unto itself, with a long and contentious history of benchmarks and competitions. The BAliBASE, PREFAB, and SABmark benchmarks have driven progress, but all are limited by the difficulty of defining “correct” alignment at low sequence identity. Thompson et al.’s CLUSTAL&nbsp;W (1994) was the most cited bioinformatics paper for many years, and T-Coffee&nbsp;<span class="citation" data-cites="notredame2000">(<a href="../../../references.html#ref-notredame2000" role="doc-biblioref">Notredame et al. 2000</a>)</span> introduced the consistency principle that influenced subsequent methods including PROBCONS, MUSCLE, and MAFFT. For very large alignments (<span class="math inline">\(&gt;10{,}000\)</span> sequences), CLUSTAL&nbsp;<span class="math inline">\(\Omega\)</span> and MAFFT are the usual choices; both use heuristic guide trees and iterative refinement to scale to the family sizes encountered in modern protein databases.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-altschul1997" class="csl-entry" role="listitem">
+Altschul, Stephen F., Thomas L. Madden, Alejandro A. Schäffer, et al. 1997. <span>“Gapped <span>BLAST</span> and <span>PSI-BLAST</span>: A New Generation of Protein Database Search Programs.”</span> <em>Nucleic Acids Research</em> 25: 3389–402. <a href="https://doi.org/10.1093/nar/25.17.3389">https://doi.org/10.1093/nar/25.17.3389</a>.
+</div>
+<div id="ref-durbin1998" class="csl-entry" role="listitem">
+Durbin, Richard, Sean R. Eddy, Anders Krogh, and Graeme Mitchison. 1998. <em>Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids</em>. Cambridge University Press.
+</div>
+<div id="ref-eddy2011" class="csl-entry" role="listitem">
+Eddy, Sean R. 2011. <span>“Accelerated Profile <span>HMM</span> Searches.”</span> <em>PLoS Computational Biology</em> 7: e1002195. <a href="https://doi.org/10.1371/journal.pcbi.1002195">https://doi.org/10.1371/journal.pcbi.1002195</a>.
+</div>
+<div id="ref-notredame2000" class="csl-entry" role="listitem">
+Notredame, Cédric, Desmond G. Higgins, and Jaap Heringa. 2000. <span>“<span>T-Coffee</span>: A Novel Method for Fast and Accurate Multiple Sequence Alignment.”</span> <em>Journal of Molecular Biology</em> 302: 205–17. <a href="https://doi.org/10.1006/jmbi.2000.4042">https://doi.org/10.1006/jmbi.2000.4042</a>.
+</div>
+<div id="ref-rabiner1989" class="csl-entry" role="listitem">
+Rabiner, Lawrence R. 1989. <span>“A Tutorial on Hidden <span>Markov</span> Models and Selected Applications in Speech Recognition.”</span> <em>Proceedings of the IEEE</em> 77: 257–86. <a href="https://doi.org/10.1109/5.18626">https://doi.org/10.1109/5.18626</a>.
+</div>
+</div>
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/muhammadhasyim\.github\.io\/structural-bio-book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="pagination-link" aria-label="Pairwise Sequence Alignment">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Pairwise Sequence Alignment</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="pagination-link" aria-label="Protein Classification">
+        <span class="nav-page-text"><span class="chapter-title">Protein Classification</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

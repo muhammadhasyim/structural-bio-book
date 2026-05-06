@@ -1,0 +1,43 @@
+/* Book-specific layout on top of the vendored Tufte Quarto extension. */
+
+/*
+ * Do NOT apply custom display:grid on main-column figures. Quarto Tufte HTML
+ * already uses page-columns + figcaption.margin-caption when
+ * fig-cap-location: margin (_quarto.yml). Extra grid rules fight that system
+ * and split wide images / margin captions onto the wrong tracks (broken
+ * “full-width” and composite screenshots).
+ */
+
+/* Margin figures (from LaTeX marginfigure → ::: {.column-margin}): stack image + caption. */
+#quarto-document-content .column-margin .quarto-figure figure.figure,
+#quarto-document-content .column-margin figure.figure {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 0 0.75rem;
+}
+
+#quarto-document-content .column-margin .quarto-figure figure.figure > p,
+#quarto-document-content .column-margin figure.figure > p {
+  margin: 0;
+}
+
+#quarto-document-content .column-margin figcaption,
+#quarto-document-content .column-margin .figure-caption {
+  margin-top: 0.35rem;
+  text-align: left;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+#quarto-document-content .column-margin img {
+  width: 100%;
+  height: auto;
+}
+
+/* When Quarto batches a margin figure with margin footnotes, add vertical gap. */
+#quarto-document-content .column-margin.column-container:has(.quarto-figure) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

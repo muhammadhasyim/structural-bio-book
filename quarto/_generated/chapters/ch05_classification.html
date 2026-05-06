@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Protein Classification – Structural Bioinformatics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" rel="next">
+<link href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" rel="prev">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../website/quarto-tufte-overrides.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html">Sequence Analysis</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch05_classification.html"><span class="chapter-title">Protein Classification</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../../">Structural Bioinformatics</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/muhammadhasyim/structural-bio-book" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Bioinformatics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Biology: Physical Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch02_data_quality.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Sequence Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Pairwise Sequence Alignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Protein Classification</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Structure Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Homology Modeling and Threading</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch08_alphafill.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Completing Predicted Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactions and Dynamics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Docking</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Dynamics Simulations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Special Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Intrinsically Disordered Proteins</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch12_drug_design.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../references.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">—</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ch05-classification-sec:scop" id="toc-ch05-classification-sec:scop" class="nav-link active" data-scroll-target="#ch05-classification-sec\:scop">The SCOP hierarchy</a></li>
+  <li><a href="#ch05-classification-sec:cath" id="toc-ch05-classification-sec:cath" class="nav-link" data-scroll-target="#ch05-classification-sec\:cath">The CATH hierarchy</a></li>
+  <li><a href="#ch05-classification-sec:structural_similarity" id="toc-ch05-classification-sec:structural_similarity" class="nav-link" data-scroll-target="#ch05-classification-sec\:structural_similarity">Measuring structural similarity</a></li>
+  <li><a href="#ch05-classification-sec:alignment_algorithms" id="toc-ch05-classification-sec:alignment_algorithms" class="nav-link" data-scroll-target="#ch05-classification-sec\:alignment_algorithms">Structure alignment algorithms</a></li>
+  <li><a href="#ch05-classification-sec:domains" id="toc-ch05-classification-sec:domains" class="nav-link" data-scroll-target="#ch05-classification-sec\:domains">Structural domains</a></li>
+  <li><a href="#ch05-classification-sec:interpro" id="toc-ch05-classification-sec:interpro" class="nav-link" data-scroll-target="#ch05-classification-sec\:interpro">Integrative classification with InterPro</a></li>
+  <li><a href="#ch05-classification-sec:alphafold_era" id="toc-ch05-classification-sec:alphafold_era" class="nav-link" data-scroll-target="#ch05-classification-sec\:alphafold_era">Classification in the AlphaFold era</a></li>
+  <li><a href="#ch05-classification-sec:fold_space" id="toc-ch05-classification-sec:fold_space" class="nav-link" data-scroll-target="#ch05-classification-sec\:fold_space">The structure of fold space</a></li>
+  <li><a href="#ch05-classification-sec:ch5_notes" id="toc-ch05-classification-sec:ch5_notes" class="nav-link" data-scroll-target="#ch05-classification-sec\:ch5_notes">Chapter notes</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html">Sequence Analysis</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch05_classification.html"><span class="chapter-title">Protein Classification</span></a></li></ol></nav><h1 class="title display-7"><span class="chapter-title">Protein Classification</span></h1></header>
+
+<header id="title-block-header">
+
+
+</header>
+
+
+<p>By the mid-1990s the Protein Data Bank held roughly ten thousand structures, and the number was climbing fast. Christine Orengo and Janet Thornton, working at University College London, faced a problem that was equal parts intellectual and logistical: how should one organize this growing collection? Proteins plainly fell into families. Globins resembled other globins; immunoglobulin domains looked like other immunoglobulin domains. But the boundaries between families were blurry, the criteria for grouping were subjective, and two experts asked to sort the same set of structures often disagreed on where to draw the lines.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;Alexei Murzin, working independently at the MRC Laboratory of Molecular Biology in Cambridge, was confronting the same question and would publish SCOP the same year Orengo published CATH.</p></div></div><p>The difficulty was not merely taxonomic. The same fold appeared again and again in proteins with no detectable sequence similarity. The TIM barrel, an eight-stranded <span class="math inline">\((\beta/\alpha)_8\)</span> cylinder, showed up in triosephosphate isomerase, in glycolate oxidase, in tryptophan synthase, in ribulose-phosphate epimerase. These proteins catalyze unrelated reactions on unrelated substrates. Either they diverged from a common ancestor so long ago that every trace of sequence relationship has been erased, or evolution independently arrived at the same structural solution multiple times. Both possibilities are plausible, and distinguishing between them remains one of the harder problems in molecular evolution. Classification had to accommodate this ambiguity without pretending to resolve it.</p>
+<p>This chapter treats two interleaved questions. First, what hierarchies have been proposed for organizing protein structures, and what principles guide them? Second, how does one measure structural similarity in the first place, so that the classification can rest on quantitative ground rather than visual impression alone?</p>
+<section id="ch05-classification-sec:scop" class="level1 page-columns page-full">
+<h1>The SCOP hierarchy</h1>
+<p><strong>Alexei Murzin and colleagues</strong> published the Structural Classification of Proteins (SCOP) database in 1995. Its organizing principle was evolutionary: structures belong together when they share a common ancestor. The classification is a strict hierarchy with four levels.</p>
+<p>At the top sit the <em>classes</em>, defined by secondary-structure composition. “All-<span class="math inline">\(\alpha\)</span>” proteins are built predominantly from <span class="math inline">\(\alpha\)</span>-helices; “all-<span class="math inline">\(\beta\)</span>” proteins from <span class="math inline">\(\beta\)</span>-sheets; “<span class="math inline">\(\alpha/\beta\)</span>” proteins alternate <span class="math inline">\(\alpha\)</span>-helices and <span class="math inline">\(\beta\)</span>-strands along the sequence, typically producing parallel <span class="math inline">\(\beta\)</span>-sheets flanked by helices; and “<span class="math inline">\(\alpha+\beta\)</span>” proteins contain both types of secondary structure in segregated regions rather than alternating them.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Class assignment is the coarsest cut and often unambiguous, though borderline cases between <span class="math inline">\(\alpha/\beta\)</span> and <span class="math inline">\(\alpha+\beta\)</span> require judgment.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;SCOP also includes smaller classes for multi-domain proteins, membrane and cell-surface proteins, and small proteins stabilized mainly by disulfides or metal ions.</p></div></div><p>Below class lies the <em>fold</em> level. Two proteins share a fold if their major secondary-structure elements are arranged with the same topology and spatial relationships. The Rossmann fold, for instance, groups all proteins containing a parallel <span class="math inline">\(\beta\)</span>-sheet of at least three strands connected by <span class="math inline">\(\alpha\)</span>-helices such that the strand order in the sheet is 321456. A shared fold does not imply shared ancestry; it may reflect physical constraints on how secondary structures pack, or convergent evolution toward a thermodynamically favorable architecture.</p>
+<p>The <em>superfamily</em> level collects proteins that probably derive from a common ancestor but have diverged so far that sequence comparison alone cannot establish the relationship. The evidence is structural: similar folds combined with similar functional features or scattered sequence motifs at catalytic sites. Assignment at this level is an evolutionary hypothesis, not a proven fact.</p>
+<p>Finally, the <em>family</em> level groups proteins with clear evolutionary relationships visible in sequence alignments, typically above 30% identity or with statistically significant sequence similarity detected by tools such as PSI-BLAST.</p>
+<p>SCOP was manually curated. Murzin and a small team inspected each new structure, decided where it belonged, and placed it in the hierarchy. This manual approach had strengths: expert knowledge could resolve ambiguities that automated methods would handle clumsily. It also had an obvious weakness. As the PDB grew from ten thousand structures to over two hundred thousand, manual curation could not keep pace. SCOP2, a later revision, introduced a graph-based representation that relaxed the strict tree hierarchy, allowing proteins to participate in multiple relationships simultaneously. But the curation bottleneck persisted.</p>
+</section>
+<section id="ch05-classification-sec:cath" class="level1 page-columns page-full">
+<h1>The CATH hierarchy</h1>
+<p><strong>Orengo and Thornton’s</strong> CATH database&nbsp;<span class="citation" data-cites="orengo1997">(<a href="../../../references.html#ref-orengo1997" role="doc-biblioref">Orengo et al. 1997</a>)</span>, published in 1997, took a different approach. Where SCOP relied almost entirely on expert judgment, CATH mixed automated structure-comparison algorithms with manual oversight. The name encodes its four-level hierarchy: Class, Architecture, Topology, and Homologous superfamily.</p>
+<p><em>Class</em> in CATH, as in SCOP, is determined by secondary-structure content. The three main classes are “mainly alpha,” “mainly beta,” and “mixed alpha and beta.” Assignment uses the fraction of residues in <span class="math inline">\(\alpha\)</span>-helices versus <span class="math inline">\(\beta\)</span>-strands, computed automatically from atomic coordinates using DSSP or similar secondary-structure assignment programs.</p>
+<p><em>Architecture</em> describes the gross spatial arrangement of secondary-structure elements, ignoring their connectivity. A four-helix bundle has a different architecture from a barrel or a sandwich. Architecture is assigned by a combination of automated comparison and visual inspection. This level has no direct analogue in SCOP; it captures shape without committing to a topological definition.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;The architecture level was partly inspired by the observation that proteins with different topologies can share the same overall shape. A <span class="math inline">\(\beta\)</span>-sandwich, for instance, can be built with many different strand connectivities.</p></div></div><p><em>Topology</em>, equivalent to fold in SCOP, considers both the arrangement and the connectivity of secondary-structure elements. Proteins share a topology if they can be superimposed with consistent chain direction through matched secondary structures. The structure comparison algorithm SSAP (Sequential Structure Alignment Program) was central to topology assignment: protein pairs scoring above a threshold in SSAP were grouped together.</p>
+<p><em>Homologous superfamily</em>, the deepest level, groups proteins that share a common evolutionary origin. Evidence comes from sequence similarity, structural similarity, and functional similarity considered jointly. The criteria are stringent: high SSAP scores combined with either sequence identity above 35% or convincing HMM-based detection of remote homology.</p>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch05_cath_wheel.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p>The difference in philosophy between SCOP and CATH is worth spelling out. SCOP privileges evolutionary reasoning; a human expert asks “did these proteins descend from a common ancestor?” and assigns accordingly. CATH privileges reproducibility and throughput; automated algorithms do most of the work, and human curation intervenes only at difficult boundaries. The two databases agree on most assignments but disagree on enough cases (roughly 20% of domain superfamilies, by various estimates) to remind us that protein classification is partly a matter of convention.</p>
+</section>
+<section id="ch05-classification-sec:structural_similarity" class="level1 page-columns page-full">
+<h1>Measuring structural similarity</h1>
+<div id="ch05-classification-fig:structural-alignment" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch05_structural_alignment.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">Structural superposition by translation and rotation.</figcaption>
+</figure>
+</div>
+<p><strong>Any classification scheme</strong> must rest on a quantitative measure of how alike two structures are. The most obvious measure is the root-mean-square deviation (RMSD) of atomic positions after optimal superposition. Given two sets of <span class="math inline">\(n\)</span> corresponding atoms with positions <span class="math inline">\(\{\bm{x}_i\}\)</span> and <span class="math inline">\(\{\bm{y}_i\}\)</span>, the optimal rotation <span class="math inline">\(\bm{R}\)</span> and translation <span class="math inline">\(\bm{t}\)</span> minimize <span class="math display">\[\label{eq:rmsd-fold-space}
+\text{RMSD} = \sqrt{\frac{1}{n}\sum_{i=1}^{n} \|\bm{R}\bm{x}_i + \bm{t}- \bm{y}_i\|^2}.\]</span> Kabsch showed in 1976 that the optimal rotation can be found in closed form from the singular value decomposition of the cross-covariance matrix of the two coordinate sets.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;The Kabsch algorithm computes the <span class="math inline">\(3\times 3\)</span> matrix <span class="math inline">\(H = \sum_i (\bm{x}_i - \bar{\bm{x}})(\bm{y}_i - \bar{\bm{y}})^\top\)</span>, takes its SVD <span class="math inline">\(H = U\Sigma V^\top\)</span>, and returns <span class="math inline">\(\bm{R}= V \mathop{\mathrm{diag}}(1,1,\det(VU^\top)) U^\top\)</span>. The determinant correction ensures a proper rotation rather than a reflection.</p></div></div><p>RMSD has two serious problems. First, it depends on the length of the alignment. Comparing a 50-residue domain to another 50-residue domain might give an RMSD of 1.5&nbsp;Å, which is excellent; comparing two 300-residue proteins might also give 1.5&nbsp;Å, which is extraordinary. The same number means different things at different lengths. Second, RMSD is sensitive to outliers. A single misaligned loop of ten residues displaced by 15&nbsp;Å&nbsp;can inflate the overall RMSD from 2&nbsp;Å&nbsp;to 4&nbsp;Å, even though the structural cores superimpose well.</p>
+<p><strong>The TM-score</strong>, introduced by Zhang and Skolnick in 2004&nbsp;<span class="citation" data-cites="zhang2005">(<a href="../../../references.html#ref-zhang2005" role="doc-biblioref">Zhang and Skolnick 2005</a>)</span>, was designed to address both problems. It is defined as <span class="math display">\[\label{eq:tmscore}
+\text{TM-score} = \frac{1}{L}\sum_{i=1}^{L_{\text{ali}}}
+  \frac{1}{1 + \left(\dfrac{d_i}{d_0(L)}\right)^2},\]</span> where <span class="math inline">\(L\)</span> is the length of the target protein, <span class="math inline">\(L_{\text{ali}}\)</span> is the number of aligned residues, <span class="math inline">\(d_i\)</span> is the distance between the <span class="math inline">\(i\)</span>-th pair of aligned residues after superposition, and <span class="math display">\[\label{eq:d0}
+d_0(L) = 1.24\,\sqrt[3]{L - 15} - 1.8\]</span> is a length-dependent distance scale.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> The Lorentzian form <span class="math inline">\(1/(1+(d_i/d_0)^2)\)</span> gives full weight to well-aligned residue pairs (those with <span class="math inline">\(d_i \ll d_0\)</span>) and negligible weight to pairs far apart. This makes TM-score insensitive to local structural deviations in poorly aligned regions, directly solving the outlier problem of RMSD.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;The constants 1.24, 15, and 1.8 were chosen empirically so that the average TM-score of two randomly related proteins of any length is approximately 0.17.</p></div></div><p>TM-score lies in the interval <span class="math inline">\((0, 1]\)</span>, and because <span class="math inline">\(d_0\)</span> grows with <span class="math inline">\(L\)</span>, the score is length-independent: a pair of 80-residue proteins and a pair of 400-residue proteins with the same global fold will receive similar TM-scores. Empirically, TM-score <span class="math inline">\(&gt; 0.5\)</span> indicates that two proteins share the same fold with high confidence. Below 0.3, proteins are almost certainly unrelated. The region between 0.3 and 0.5 is ambiguous, which is appropriate: fold space does not have sharp boundaries.</p>
+</section>
+<section id="ch05-classification-sec:alignment_algorithms" class="level1 page-columns page-full">
+<h1>Structure alignment algorithms</h1>
+<p><strong>Computing TM-score requires</strong> a structural alignment: a correspondence between residues in two proteins, together with the superposition that minimizes the distances between matched pairs. Finding the optimal alignment is computationally hard in general (it is an instance of the maximum-weight matching problem in three dimensions), so practical methods use heuristic strategies.</p>
+<p>TM-align&nbsp;<span class="citation" data-cites="zhang2005">(<a href="../../../references.html#ref-zhang2005" role="doc-biblioref">Zhang and Skolnick 2005</a>)</span> works by iterating between two steps. Given a current alignment, it computes the optimal superposition by the Kabsch algorithm restricted to aligned residue pairs. Given a current superposition, it computes a new alignment by dynamic programming, using a scoring function derived from the TM-score formula. The procedure alternates until convergence, typically in three to five iterations. Multiple initial alignments seeded from secondary-structure matching or gapless threading ensure that the algorithm does not get stuck in a poor local optimum. TM-align runs in time roughly proportional to <span class="math inline">\(L^2\)</span> and finishes in seconds even for large proteins.</p>
+<p><strong>SSAP</strong> (Sequential Structure Alignment Program), developed by Christine Orengo and colleagues for use in CATH, takes a different approach. Rather than comparing atomic coordinates directly, SSAP represents each residue by a vector of intramolecular distances to all other residues in the protein. Two proteins are compared by aligning these distance vectors using double dynamic programming: a first pass aligns individual residue environments, and a second pass assembles these local matches into a globally consistent alignment. SSAP scores range from 0 to 100; scores above 80 indicate the same fold, and scores above 70 suggest structural similarity worth investigating.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;SSAP is one of the oldest structure-comparison methods still in active use. Its double-dynamic-programming approach predates distance-matrix methods like Dali and coordinate-based methods like TM-align.</p></div></div><p><strong>Dali</strong>, developed by Liisa Holm in the early 1990s, compares proteins by their intramolecular distance matrices. Each protein is reduced to an <span class="math inline">\(n \times n\)</span> matrix <span class="math inline">\(D\)</span> where <span class="math inline">\(D_{ij}\)</span> is the distance between the <span class="math inline">\(C_\alpha\)</span> atoms of residues <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>. Two proteins are compared by finding the alignment that maximizes the similarity between submatrices of their respective distance matrices. The similarity is measured by a score that emphasizes contacts (short distances) and downweights long-range pairs. Dali uses a Monte Carlo optimization to search the space of possible alignments, making it slower than TM-align but sometimes more sensitive for detecting remote structural similarities. The FSSP database (Fold classification based on Structure-Structure alignment of Proteins) was built entirely from all-against-all Dali comparisons of the PDB.</p>
+<p>Each of these algorithms has a regime where it performs best. TM-align is fast and gives a clean, interpretable score; it is the current standard for large-scale comparisons and benchmarking. SSAP captures local structural detail well and remains integral to the CATH pipeline. Dali excels at detecting distant relationships where the overall fold is similar but local deviations are large. In practice, large classification projects use multiple methods and reconcile disagreements manually or by majority vote.</p>
+</section>
+<section id="ch05-classification-sec:domains" class="level1 page-columns page-full">
+<h1>Structural domains</h1>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../figures/ch05_multidomain_protein.png" class="img-fluid figure-img"></p>
+<figcaption>A multi-domain protein with four domains shown in distinct colors.</figcaption>
+</figure>
+</div>
+</div></div><p><strong>Most proteins longer</strong> than about 200 residues fold into two or more distinct structural domains. A domain is a compact, semi-independent region of the polypeptide chain that folds into a stable three-dimensional structure and often functions as an evolutionary unit, appearing in different combinations across different proteins. Domain boundaries rarely split secondary-structure elements; they usually fall in loops connecting elements that contact each other within the domain but not across domains.</p>
+<p>Classification operates at the domain level, not the chain level. A protein with three domains may have each domain assigned to a different fold in SCOP or topology in CATH. This is sensible from both structural and evolutionary perspectives: gene duplication, fusion, and recombination shuffle domains more frequently than they create entirely new folds. But it means that any classification pipeline must begin by parsing multi-domain proteins into their constituent domains, and this parsing step is itself nontrivial.</p>
+<p>Manual domain assignment (as in early SCOP) uses visual inspection and expert knowledge of protein families. Automated methods attack the problem computationally. PDP (Protein Domain Parser) identifies domains by analyzing the contact map: it looks for clusters of residues that are in close spatial contact with each other but not with residues in other clusters. The algorithm recursively splits the chain at the boundary that minimizes inter-domain contacts. SWORD (Swift and Optimized Recognition of Domains) uses a similar principle but incorporates secondary-structure information and is optimized for speed on the scale of the entire PDB.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;Domain boundaries predicted by automated methods agree with expert assignments roughly 80–85% of the time. The remaining cases tend to be discontinuous domains, where the chain leaves one domain, contributes a segment to another, and returns.</p></div></div><p><strong>Gene3D extends</strong> domain classification to the genome scale. Starting from CATH superfamily assignments for experimentally determined structures, Gene3D builds hidden Markov models for each superfamily and scans genomic sequences against these models. A match implies that the query sequence will fold into a structure assignable to that CATH superfamily. The result is a mapping from every gene in hundreds of sequenced genomes to its predicted domain architecture. This mapping connects structural classification (defined on 3D coordinates) to sequence annotation (defined on amino acid strings), creating a bridge between the two worlds.</p>
+</section>
+<section id="ch05-classification-sec:interpro" class="level1">
+<h1>Integrative classification with InterPro</h1>
+<p><strong>No single classification</strong> system captures all aspects of protein function and evolution. Pfam provides sequence-based family definitions using profile HMMs trained on multiple sequence alignments. Gene3D provides structure-based superfamily assignments projected onto genomes. SUPERFAMILY does something similar using SCOP superfamilies as the reference. PROSITE defines short sequence patterns and profiles that identify functional sites, active-site residues, and binding motifs. Each database sees the protein universe from a different angle, and each misses relationships that others capture.</p>
+<p>InterPro integrates these resources into a unified classification. For each protein, InterPro collects the annotations assigned by Pfam, Gene3D, SUPERFAMILY, PROSITE, PANTHER, CDD, and a dozen other member databases, resolves overlaps and conflicts, and produces a consensus domain annotation. A protein annotated as “Rossmann fold, NAD-binding superfamily” by Gene3D and matched to the “short-chain dehydrogenase” family by Pfam receives a merged InterPro entry that records both relationships and links them. The system is updated with each UniProt release, ensuring that newly sequenced proteins receive classification within weeks of deposition.</p>
+<p>The value of integration is not just convenience. Different member databases use different algorithmic approaches and different evolutionary hypotheses. When they agree, confidence is high. When they disagree, the disagreement flags a protein that deserves closer inspection. InterPro makes these agreements and disagreements explicit, which is more honest than presenting any single classification as definitive.</p>
+</section>
+<section id="ch05-classification-sec:alphafold_era" class="level1 page-columns page-full">
+<h1>Classification in the AlphaFold era</h1>
+<p><strong>The AlphaFold Protein Structure Database</strong>, released in 2021 and expanded in 2022, contains predicted structures for over 200 million protein sequences. This changed the classification problem qualitatively. When the PDB held two hundred thousand experimental structures, classification was already challenging but computationally manageable. With two hundred million predicted structures, even fast algorithms like TM-align become expensive if applied naively in all-against-all mode.</p>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch05_ted_pipeline.jpeg" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p>The Encyclopedia of Domains (TED), developed by the Orengo group at UCL, addresses this challenge. TED takes AlphaFold-predicted structures, parses them into domains using automated boundary-detection methods, and assigns each domain to a CATH superfamily by structure comparison. Domains that cannot be matched to any known superfamily are clustered among themselves to identify potentially novel folds. The project found that the vast majority of AlphaFold-predicted domains belong to known CATH superfamilies, but several thousand clusters represent structural topologies not observed in the experimental PDB. Whether these are genuinely novel folds or artifacts of prediction errors is an open question that requires experimental validation.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;Preliminary analysis of TED clusters suggests that many “novel” folds come from dark proteomes: organisms or protein families that have received little experimental attention. Some of these predictions have since been confirmed by cryo-EM structures.</p></div></div><p>The availability of predicted structures also forces a rethinking of what classification means. SCOP and CATH were built on experimental structures, where the coordinates are known to a resolution of 1–3&nbsp;Å&nbsp;and domain boundaries can be validated against electron density or diffraction data. AlphaFold predictions come with per-residue confidence scores (pLDDT), and low-confidence regions may correspond to disorder rather than a defined fold. A classification system that ingests predicted structures must account for confidence, treating high-pLDDT domains differently from low-pLDDT segments that may not adopt a stable tertiary structure at all.</p>
+</section>
+<section id="ch05-classification-sec:fold_space" class="level1 page-columns page-full">
+<h1>The structure of fold space</h1>
+<p><strong>Is the space of protein folds</strong> continuous or discrete? The question has no clean answer, and the answer depends on the resolution at which one looks. At the level of SCOP folds or CATH topologies, the number of distinct folds observed in nature appears to be limited: roughly 1,500 in SCOP, roughly 1,400 topologies in CATH, with the rate of discovery of genuinely new folds slowing each year. This suggests that evolution has explored a finite (though large) set of structural solutions, constrained by the physics of chain packing and the kinetics of folding.</p>
+<p>But between any two folds, one can often find intermediate structures that blur the boundary. The <span class="math inline">\(\beta\)</span>-barrel family, for instance, includes barrels with 6, 8, 10, 12, 14, and 16 strands, with varying shear numbers and strand tilts. Is a 16-stranded barrel the “same fold” as an 8-stranded barrel? SCOP says no; the topology is different. But the barrels form a continuum parameterized by strand number and shear, and any threshold for “same” versus “different” is arbitrary.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;Kolodny and colleagues showed in 2006 that if one embeds SCOP domains in a high-dimensional space using pairwise structural-similarity scores, the resulting cloud of points does not form well-separated clusters. Fold space looks more like a continuous manifold with regions of higher density than like a set of discrete islands.</p></div></div><p>This observation does not invalidate classification. Maps are useful even when the territory is continuous. But it should temper any expectation that there exists a single “correct” classification of protein structures. SCOP, CATH, and other systems are different maps of the same territory, drawn with different projections and for different purposes.</p>
+</section>
+<section id="ch05-classification-sec:ch5_notes" class="level1">
+<h1>Chapter notes</h1>
+<p>The SCOP database was described by Murzin, Brenner, Hubbard, and Chothia in 1995. The most commonly cited version is SCOP 1.75, the last release curated in the original framework. SCOP2, which adopts a directed acyclic graph rather than a tree, was described by Andreeva et al.&nbsp;in 2014 and is maintained at <code>scop.berkeley.edu</code>. CATH was introduced by Orengo et al.&nbsp;in 1997&nbsp;<span class="citation" data-cites="orengo1997">(<a href="../../../references.html#ref-orengo1997" role="doc-biblioref">Orengo et al. 1997</a>)</span> and has been updated continuously; the current version (CATH-Gene3D 4.3) classifies over 500,000 domains. Both databases are freely available and regularly used as gold standards for benchmarking structure-comparison methods.</p>
+<p>The TM-score and TM-align algorithm were introduced together by Zhang and Skolnick&nbsp;<span class="citation" data-cites="zhang2005">(<a href="../../../references.html#ref-zhang2005" role="doc-biblioref">Zhang and Skolnick 2005</a>)</span>. The 0.5 threshold for fold similarity was validated empirically against SCOP classifications by Xu and Zhang in 2010, who showed that TM-score discriminates same-fold from different-fold pairs with an accuracy exceeding 95%. A later analysis by Murzin noted cases where TM-score disagrees with SCOP assignments, particularly for long proteins with multiple domains; these cases highlight the dependence of all similarity metrics on the choice of which residues to include in the comparison.</p>
+<p>The Kabsch algorithm for optimal superposition was published in 1976 and remains the standard method. Equivalent formulations using quaternions (by Horn, 1987) or eigenvalue decomposition (by Diamond, 1988) exist; all produce identical results and differ only in implementation details. For the singular cases where the SVD solution is ambiguous (when the cross-covariance matrix is degenerate), the determinant correction shown in the sidenote ensures a proper rotation.</p>
+<p>Dali was introduced by Holm and Sander in 1993. The original FSSP database is no longer actively maintained, but the Dali server continues to provide on-the-fly structure comparisons and is widely used for finding structural neighbors of a newly determined structure. SSAP was first described by Taylor and Orengo in 1989 and refined in subsequent papers; its integration into the CATH pipeline is described in the 1997 CATH paper.</p>
+<p>InterPro, first described by Mulder et al.&nbsp;in 2003, is maintained by the European Bioinformatics Institute and updated with each UniProt release. As of 2024, it integrates 14 member databases and provides annotations for over 47 million distinct protein sequences.</p>
+<p>The Encyclopedia of Domains project was described by Sherborne et al.&nbsp;in 2024. Its finding that AlphaFold predictions contain thousands of potentially novel folds has stimulated experimental work aimed at validating these predictions, with early results from cryo-EM confirming several previously unobserved topologies. The question of how classification should handle predicted structures with varying confidence remains an active area of methodological development.</p>
+<p>For a broader perspective on the geometry of fold space, see the work of Kolodny, Koehl, and Levitt (2005), who mapped SCOP domains into a continuous high-dimensional space and found evidence against a purely discrete view of folds. Taylor (2007) offered a different perspective, arguing that fold space has a fractal character: self-similar at multiple scales but not truly continuous. Whether one finds protein folds to be discrete or continuous depends, in the end, on the similarity threshold one chooses, which is another way of saying that the answer depends on the question being asked.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-orengo1997" class="csl-entry" role="listitem">
+Orengo, Christine A., Alex D. Michie, Susan Jones, David T. Jones, Mark B. Swindells, and Janet M. Thornton. 1997. <span>“<span>CATH</span>: A Hierarchic Classification of Protein Domain Structures.”</span> <em>Structure</em> 5: 1093–108. <a href="https://doi.org/10.1016/S0969-2126(97)00260-8">https://doi.org/10.1016/S0969-2126(97)00260-8</a>.
+</div>
+<div id="ref-zhang2005" class="csl-entry" role="listitem">
+Zhang, Yang, and Jeffrey Skolnick. 2005. <span>“<span class="nocase">TM-align</span>: A Protein Structure Alignment Algorithm Based on the <span>TM</span>-Score.”</span> <em>Nucleic Acids Research</em> 33: 2302–9. <a href="https://doi.org/10.1093/nar/gki524">https://doi.org/10.1093/nar/gki524</a>.
+</div>
+</div>
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/muhammadhasyim\.github\.io\/structural-bio-book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="pagination-link" aria-label="Sequence Profiles and Hidden Markov Models">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="pagination-link" aria-label="Homology Modeling and Threading">
+        <span class="nav-page-text"><span class="chapter-title">Homology Modeling and Threading</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

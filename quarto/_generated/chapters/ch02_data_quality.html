@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Structural Data: Formats, Databases, and Quality – Structural Bioinformatics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" rel="next">
+<link href="../../../quarto/_generated/chapters/ch01_foundations.html" rel="prev">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-756730e217de03ca1538b6329123f7d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../../website/quarto-tufte-overrides.css">
+</head>
+
+<body class="nav-sidebar floating slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch01_foundations.html">Foundations</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch02_data_quality.html"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../../">Structural Bioinformatics</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/muhammadhasyim/structural-bio-book" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Bioinformatics</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Structural Biology: Physical Principles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch02_data_quality.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Sequence Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Pairwise Sequence Alignment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch04_profile_hmm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Sequence Profiles and Hidden Markov Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch05_classification.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Protein Classification</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Structure Prediction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch06_homology_modeling.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Homology Modeling and Threading</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch07_alphafold.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">AlphaFold 2 and 3: Architecture and Mathematics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch08_alphafill.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Completing Predicted Structures</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactions and Dynamics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch09_docking.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Docking</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch10_molecular_dynamics.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Molecular Dynamics Simulations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Special Topics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch11_disorder.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Intrinsically Disordered Proteins</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../quarto/_generated/chapters/ch12_drug_design.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Chemical Biology and Structure-Based Drug Design</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../../references.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">—</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#ch02-data-quality-sec:coord-formats" id="toc-ch02-data-quality-sec:coord-formats" class="nav-link active" data-scroll-target="#ch02-data-quality-sec\:coord-formats">Coordinate formats</a>
+  <ul class="collapse">
+  <li><a href="#ch02-data-quality-sec:pdb-format" id="toc-ch02-data-quality-sec:pdb-format" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:pdb-format">The PDB format</a></li>
+  <li><a href="#ch02-data-quality-sec:mmcif-format" id="toc-ch02-data-quality-sec:mmcif-format" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:mmcif-format">The mmCIF format</a></li>
+  <li><a href="#ch02-data-quality-sec:bfactors" id="toc-ch02-data-quality-sec:bfactors" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:bfactors">B-factors and occupancy</a></li>
+  </ul></li>
+  <li><a href="#ch02-data-quality-sec:databases" id="toc-ch02-data-quality-sec:databases" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:databases">Databases</a></li>
+  <li><a href="#ch02-data-quality-sec:validation" id="toc-ch02-data-quality-sec:validation" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:validation">Validation of crystallographic structures</a>
+  <ul class="collapse">
+  <li><a href="#ch02-data-quality-sec:resolution" id="toc-ch02-data-quality-sec:resolution" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:resolution">Resolution</a></li>
+  <li><a href="#ch02-data-quality-sec:rfactor" id="toc-ch02-data-quality-sec:rfactor" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:rfactor">The R-factor</a></li>
+  <li><a href="#ch02-data-quality-sec:rfree" id="toc-ch02-data-quality-sec:rfree" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:rfree">R-free and overfitting</a></li>
+  <li><a href="#ch02-data-quality-sec:geometric-validation" id="toc-ch02-data-quality-sec:geometric-validation" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:geometric-validation">Geometric validation</a></li>
+  <li><a href="#ch02-data-quality-sec:molprobity" id="toc-ch02-data-quality-sec:molprobity" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:molprobity">MolProbity</a></li>
+  <li><a href="#ch02-data-quality-sec:rscc" id="toc-ch02-data-quality-sec:rscc" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:rscc">Real-space correlation</a></li>
+  </ul></li>
+  <li><a href="#ch02-data-quality-sec:pdb-redo" id="toc-ch02-data-quality-sec:pdb-redo" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:pdb-redo">PDB-REDO: automated re-refinement</a></li>
+  <li><a href="#ch02-data-quality-sec:checklist" id="toc-ch02-data-quality-sec:checklist" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:checklist">A practical validation checklist</a></li>
+  <li><a href="#ch02-data-quality-sec:ch02-notes" id="toc-ch02-data-quality-sec:ch02-notes" class="nav-link" data-scroll-target="#ch02-data-quality-sec\:ch02-notes">Chapter notes</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch01_foundations.html">Foundations</a></li><li class="breadcrumb-item"><a href="../../../quarto/_generated/chapters/ch02_data_quality.html"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></a></li></ol></nav><h1 class="title display-7"><span class="chapter-title">Structural Data: Formats, Databases, and Quality</span></h1></header>
+
+<header id="title-block-header">
+
+
+</header>
+
+
+<p>In October 1971, Walter Hamilton and his colleagues at Brookhaven National Laboratory established the Protein Data Bank with seven structures.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Hamilton and his colleagues reasoned that if crystallographers deposited their atomic coordinates in a central archive, others could reuse them without repeating years of diffraction experiments. Hamilton died just two years later, but the archive he founded grew at a pace no one anticipated. By 1980 it held 75 structures. By 2000, roughly 13,000. As of early 2024, the Protein Data Bank contains over 210,000 experimentally determined macromolecular structures, and the AlphaFold Protein Structure Database adds another 200 million predicted models on top of that.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;The original seven included myoglobin, hemoglobin, cytochrome&nbsp;b5, alpha-chymotrypsin, lysozyme, carboxypeptidase&nbsp;A, and subtilisin BPN’.</p></div><div id="fn2"><p><sup>2</sup>&nbsp;Kleywegt (2000) documented systematic errors in older PDB entries and their downstream effects on homology modeling, ligand docking, and force-field parameterization.</p></div></div><p>But quantity brought quality challenges that the founders could not have foreseen. Early depositions often lacked the experimental data behind the coordinates. Some structures were refined against insufficient data with too many free parameters. Others contained errors in amino acid identity, stereochemistry, or chain tracing that went undetected for years and then propagated silently through hundreds of computational studies that treated PDB coordinates as ground truth. A 2004 study found that roughly 20% of side-chain placements in structures solved before 1990 were incorrect by modern validation standards.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> The situation improved with mandatory validation, but the lesson remains relevant: every coordinate file carries assumptions, limitations, and potential errors that a downstream user must understand.</p>
+<p>This chapter covers the practical foundations of working with structural data. We begin with the file formats used to encode atomic coordinates, move to the databases that store and distribute them, and then spend the bulk of the chapter on the validation metrics that distinguish a reliable structure from a questionable one. We close with PDB-REDO, an automated re-refinement pipeline that has improved thousands of older depositions using modern protocols.</p>
+<section id="ch02-data-quality-sec:coord-formats" class="level1 page-columns page-full">
+<h1>Coordinate formats</h1>
+<p><strong>A macromolecular structure</strong> is, at bottom, a list of atoms with three-dimensional coordinates. The file formats that encode this list have shaped how the field thinks about structural data, and their quirks have introduced persistent headaches.</p>
+<section id="ch02-data-quality-sec:pdb-format" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:pdb-format">The PDB format</h2>
+<p>The original PDB format dates to the era of punch cards. Each line is exactly 80 characters wide, and each column has a fixed meaning. An <code>ATOM</code> record, which describes a single atom in a standard residue, packs the atom name, residue name, chain identifier, residue sequence number, Cartesian coordinates <span class="math inline">\((x, y, z)\)</span> in Ångströms, occupancy, and temperature factor (B-factor) into those 80 columns:<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;The <code>HETATM</code> record uses the same column layout but denotes atoms in non-standard residues such as ligands, metal ions, and modified amino acids.</p></div></div><pre><code>ATOM      1  N   ALA A   1      27.360  24.447   2.614  1.00 23.05
+ATOM      2  CA  ALA A   1      26.426  25.514   2.229  1.00 19.82
+ATOM      3  C   ALA A   1      26.996  26.920   2.307  1.00 17.56</code></pre>
+<p>Columns 31–54 hold the <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(z\)</span> coordinates, each in a field 8.3 characters wide, giving a precision of 0.001&nbsp;Å. Columns 55–60 store the occupancy (a number between 0 and 1), and columns 61–66 hold the B-factor in Å<span class="math inline">\(^2\)</span>.</p>
+<p>The format served the community for decades, but it was designed for small, single-chain proteins. The chain identifier field is a single character, limiting the format to 62 chains (A–Z, a–z, 0–9) in a single file. The residue sequence number field is five digits wide, capping it at 99,999. The atom serial number field allows at most 99,999 atoms. These limits became untenable as structural biology moved toward large macromolecular machines.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;The ribosome structure 4V9D, for instance, contains over 400,000 atoms across more than 80 chains. It cannot be represented in a single PDB-format file without workarounds.</p></div></div></section>
+<section id="ch02-data-quality-sec:mmcif-format" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:mmcif-format">The mmCIF format</h2>
+<p><strong>The macromolecular Crystallographic Information File</strong> (mmCIF) replaced the PDB format as the master format of the Protein Data Bank in 2014.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> Where the PDB format relies on column positions, mmCIF uses a dictionary-based approach: each data item has a name drawn from a controlled vocabulary, and values are associated with those names explicitly. A fragment of mmCIF for the same atoms looks like this:</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;The PDB announced in 2014 that mmCIF would become the standard archive format. PDB-format files are still distributed for backward compatibility but are no longer generated for structures that exceed PDB-format limits.</p></div></div><pre><code>loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_seq_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+ATOM 1 N N ALA A 1 27.360 24.447 2.614 1.00 23.05
+ATOM 2 C CA ALA A 1 26.426 25.514 2.229 1.00 19.82
+ATOM 3 C C ALA A 1 26.996 26.920 2.307 1.00 17.56</code></pre>
+<p>The format is more verbose, but it escapes all the column-width limitations of the PDB format. Chain identifiers can be arbitrary strings, atom counts are unbounded, and the dictionary enforces a controlled vocabulary that makes automated parsing far less error-prone. Equally important, mmCIF can encode metadata that the PDB format simply cannot represent: details of multi-step refinement protocols, experimental conditions, and links between asymmetric-unit contents and biological assemblies.</p>
+</section>
+<section id="ch02-data-quality-sec:bfactors" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:bfactors">B-factors and occupancy</h2>
+<p><strong>Two quantities in every coordinate file</strong> deserve special attention because they are frequently misunderstood.</p>
+<p>The <em>B-factor</em> (also called the temperature factor, displacement parameter, or Debye–Waller factor) quantifies how much an atom’s position varies around its mean location. Under the assumption of isotropic, harmonic displacement, the B-factor relates to the mean-square displacement <span class="math inline">\(\langle u^2 \rangle\)</span> by <span class="math display">\[\label{eq:bfactor-isotropic}
+  B = 8\pi^2 \langle u^2 \rangle.\]</span> A B-factor of 20&nbsp;Å<span class="math inline">\(^2\)</span> corresponds to a root-mean-square displacement of about 0.50&nbsp;Å, while a B-factor of 80&nbsp;Å<span class="math inline">\(^2\)</span> corresponds to roughly 1.01&nbsp;Å.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> The physical picture is that atoms in well-ordered regions of a crystal (buried hydrophobic cores, for instance) have low B-factors (often 10–20&nbsp;Å<span class="math inline">\(^2\)</span>), while surface loops and terminal residues can reach 60–100&nbsp;Å<span class="math inline">\(^2\)</span> or higher.</p>
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;Using <a href="#eq:bfactor-isotropic" data-reference-type="ref" data-reference="eq:bfactor-isotropic">[eq:bfactor-isotropic]</a>: <span class="math inline">\(\sqrt{\langle u^2 \rangle} = \sqrt{B / (8\pi^2)}\)</span>. For <span class="math inline">\(B = 20\)</span>, this gives <span class="math inline">\(\sqrt{20/78.96} \approx 0.50\)</span>&nbsp;Å.</p></div></div><p>But B-factors are not purely physical. In crystallographic refinement, the B-factor absorbs anything that smears electron density: genuine thermal motion, static disorder across unit cells, partial occupancy of a site, errors in the model, and even deficiencies in the data (radiation damage, absorption effects, ice rings). A high B-factor is a warning sign, not a diagnosis. It says “this atom’s position is uncertain,” without specifying why.</p>
+<p><strong>Occupancy</strong> records the fraction of unit cells in which an atom actually occupies the modeled position. For most atoms in a well-ordered crystal, the occupancy is 1.0. But if a side chain adopts two distinct conformations (rotamer&nbsp;A in 60% of unit cells and rotamer&nbsp;B in 40%), the crystallographer models both conformations and assigns occupancies of 0.60 and 0.40 respectively. These are recorded as “alternate conformations” (altlocs A and B in PDB nomenclature).</p>
+<p>Many software tools ignore alternate conformations by default, reading only the first conformer or the one with the higher occupancy. This is often acceptable for backbone analysis, but it can cause serious errors in binding-site studies: a ligand interaction that depends on a minor rotamer will be invisible if only the major conformer is read. Careful users always check the occupancy column before trusting coordinate-derived measurements.</p>
+</section>
+</section>
+<section id="ch02-data-quality-sec:databases" class="level1 page-columns page-full">
+<h1>Databases</h1>
+<p><strong>The Protein Data Bank</strong> is operated by the Worldwide Protein Data Bank consortium (wwPDB), whose four member organizations each run a regional portal: RCSB PDB in the United States, PDBe in Europe, PDBj in Japan, and BMRB for NMR data.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> Deposition is mandatory for structures reported in peer-reviewed publications, and since 2008, experimental structure-factor amplitudes (or NMR restraints, or cryo-EM maps) must be deposited alongside the coordinates. This policy was the single largest driver of improved validation in the archive: without experimental data, independent revalidation is impossible.</p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;The wwPDB was formalized in 2003 to ensure a single, consistent archive regardless of where a structure is deposited. All four sites serve the same underlying data, but their search interfaces, analysis tools, and API designs differ.</p></div></div><p>Each PDB entry is assigned a four-character accession code (e.g., 1CRN for crambin, 6LU7 for the SARS-CoV-2 main protease). The entry contains the atomic coordinates, metadata about the experiment (resolution, space group, refinement software, data-collection wavelength), and links to the deposited experimental data. Starting in 2024, the PDB began transitioning to extended accession codes to accommodate the growing archive.</p>
+<p><strong>The Electron Microscopy Data Bank</strong> (EMDB) stores three-dimensional reconstructions from cryo-electron microscopy. Unlike X-ray crystallography, where the deposited experimental observables are structure-factor amplitudes, cryo-EM deposits consist of density maps, three-dimensional grids of electrostatic potential values. When an atomic model is built into a cryo-EM map, the model goes to the PDB and the map goes to the EMDB, cross-referenced by accession codes. The rapid growth of cryo-EM since the “resolution revolution” of 2013–2014<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> has made EMDB one of the fastest-growing structural archives. As of 2024 it holds over 40,000 map entries.</p>
+<div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;The development of direct electron detectors and improved image-processing algorithms, recognized by the 2017 Nobel Prize in Chemistry to Dubochet, Frank, and Henderson, pushed single-particle cryo-EM to near-atomic resolution for the first time.</p></div></div><p><strong>The AlphaFold Protein Structure Database,</strong> launched in 2021 by DeepMind and the European Bioinformatics Institute, represents a different category of structural data entirely. Its entries are not experimentally determined; they are predictions from the AlphaFold2 neural network, trained on the PDB and co-evolutionary sequence data. The database contains predicted structures for over 200&nbsp;million proteins, covering nearly every known protein sequence in UniProt.</p>
+<p>This scale is staggering, but predicted structures carry their own set of quality considerations. AlphaFold provides a per-residue confidence metric called the predicted local distance difference test (pLDDT), ranging from 0 to 100. Residues with pLDDT above 90 are generally well-predicted; between 70 and 90, the backbone is usually reliable but side-chain positions should be treated with caution; below 50, the prediction is essentially unreliable and often corresponds to disordered regions that lack a single defined structure in the first place.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;The AlphaFold team explicitly warns against interpreting low-pLDDT regions as structural. These regions frequently correspond to intrinsically disordered segments, linkers, and signal peptides that are flexible in solution.</p></div></div><p>The coexistence of experimental and predicted structural databases creates a new challenge for the field. A researcher querying for a protein’s structure may find an AlphaFold prediction, a 2.5&nbsp;Å crystal structure, and a 3.8&nbsp;Å cryo-EM map. Knowing how to evaluate the reliability of each, and when to prefer one over another, requires the validation framework we develop in the next two sections.</p>
+</section>
+<section id="ch02-data-quality-sec:validation" class="level1 page-columns page-full">
+<h1>Validation of crystallographic structures</h1>
+<p><strong>Every crystallographic model</strong> is the result of an optimization procedure: the refinement program adjusts atomic positions, B-factors, and sometimes occupancies to minimize the disagreement between the diffraction pattern calculated from the model and the diffraction pattern actually measured. Validation asks whether the result of that optimization is physically reasonable and supported by the experimental data, or whether the refinement program has been given too much freedom and has produced a model that fits the data by overfitting noise.</p>
+<section id="ch02-data-quality-sec:resolution" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:resolution">Resolution</h2>
+<p>Before discussing agreement metrics, recall what resolution means. In X-ray crystallography, resolution is the smallest interplanar spacing <span class="math inline">\(d_{\min}\)</span> for which diffraction data were collected. Higher-resolution data (smaller <span class="math inline">\(d_{\min}\)</span>) contain more information about atomic positions. At 3.0&nbsp;Å resolution, the overall fold and secondary-structure elements are visible but individual atoms are not resolved. At 2.0&nbsp;Å, most side chains can be placed confidently. At 1.0&nbsp;Å or better, individual atoms are resolved and hydrogen atoms begin to appear in the electron-density maps.<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;Roughly speaking, the number of independent observations in a diffraction data set scales as <span class="math inline">\(d_{\min}^{-3}\)</span>, so halving the resolution increases the data-to-parameter ratio eightfold.</p></div></div><p>Resolution is not a measure of model quality. It is a property of the crystal and the diffraction experiment. A 2.0&nbsp;Å structure can be poorly refined, and a 3.0&nbsp;Å structure can be carefully and correctly built. But resolution sets a ceiling on the level of detail that the data can support.</p>
+</section>
+<section id="ch02-data-quality-sec:rfactor" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:rfactor">The R-factor</h2>
+<p>The oldest and most widely reported measure of model-data agreement is the crystallographic R-factor: <span class="math display">\[\label{eq:rfactor-refinement}
+  R = \frac{\displaystyle\sum_{hkl} \bigl|\, |F_{\mathrm{obs}}(hkl)| - |F_{\mathrm{calc}}(hkl)|\, \bigr|}
+           {\displaystyle\sum_{hkl} |F_{\mathrm{obs}}(hkl)|},\]</span> where <span class="math inline">\(F_{\mathrm{obs}}\)</span> and <span class="math inline">\(F_{\mathrm{calc}}\)</span> are the observed and calculated structure-factor amplitudes and the sums run over all measured reflections <span class="math inline">\((hkl)\)</span>.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;Structure factors are the Fourier components of the electron density. Each reflection <span class="math inline">\((hkl)\)</span> corresponds to a specific spatial frequency, and its amplitude <span class="math inline">\(|F(hkl)|\)</span> and phase <span class="math inline">\(\phi(hkl)\)</span> together determine the contribution of that frequency to the map. Phases are lost in the diffraction experiment (the famous “phase problem”) and must be recovered by experimental or computational methods.</p></div></div><p>An R-factor of 0.0 would mean perfect agreement between model and data. A random arrangement of atoms gives an R-factor around 0.59. For a well-refined protein structure at moderate resolution, R-factors typically fall between 0.15 and 0.25.</p>
+<p>The problem with <span class="math inline">\(R\)</span> as a sole quality indicator is that it always decreases when you add more parameters to the model. Every additional atom, every refined B-factor, every alternate conformation reduces <span class="math inline">\(R\)</span>, whether or not the added complexity is justified by the data. A sufficiently parameterized model will fit noise as well as signal, driving <span class="math inline">\(R\)</span> toward zero while producing a physically nonsensical structure.</p>
+</section>
+<section id="ch02-data-quality-sec:rfree" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:rfree">R-free and overfitting</h2>
+<p><strong>Axel Brünger introduced <span class="math inline">\(R_{\mathrm{free}}\)</span></strong> in 1992 to address exactly this problem.<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> The idea borrows from cross-validation in statistics. Before refinement begins, the crystallographer sets aside a randomly chosen subset of reflections, typically 5% of the total, as a “test set.” These reflections are never used during refinement. <span class="math inline">\(R_{\mathrm{free}}\)</span> is computed using <a href="#eq:rfactor-refinement" data-reference-type="ref" data-reference="eq:rfactor-refinement">[eq:rfactor-refinement]</a> but summed only over the test-set reflections: <span class="math display">\[\label{eq:rfree}
+  R_{\mathrm{free}} = \frac{\displaystyle\sum_{hkl \in \mathcal{T}}
+    \bigl|\, |F_{\mathrm{obs}}(hkl)| - |F_{\mathrm{calc}}(hkl)|\, \bigr|}
+           {\displaystyle\sum_{hkl \in \mathcal{T}} |F_{\mathrm{obs}}(hkl)|},\]</span> where <span class="math inline">\(\mathcal{T}\)</span> is the test set. The complementary quantity, <span class="math inline">\(R_{\mathrm{work}}\)</span>, uses the remaining reflections (the “working set”).</p>
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;Brünger (1992), “Free R value: a novel statistical quantity for assessing the accuracy of crystal structures.” <em>Nature</em>, 355, 472–475. The paper has been cited over 15,000 times and changed standard practice in the field within a few years of its publication.</p></div></div><p>If a refinement step genuinely improves the model, both <span class="math inline">\(R_{\mathrm{work}}\)</span> and <span class="math inline">\(R_{\mathrm{free}}\)</span> decrease. If the step overfits noise, <span class="math inline">\(R_{\mathrm{work}}\)</span> decreases but <span class="math inline">\(R_{\mathrm{free}}\)</span> stays flat or increases. The gap between <span class="math inline">\(R_{\mathrm{work}}\)</span> and <span class="math inline">\(R_{\mathrm{free}}\)</span> is therefore a direct measure of overfitting. For a well-refined structure, this gap is typically 2–5 percentage points. A gap exceeding 7–8 points signals a problem.</p>
+<p>The introduction of <span class="math inline">\(R_{\mathrm{free}}\)</span> had immediate practical consequences. Several highly cited structures that had been refined to suspiciously low R-factors were shown to have <span class="math inline">\(R_{\mathrm{free}}\)</span> values no better than random models, revealing that the low <span class="math inline">\(R\)</span> had been achieved by fitting noise rather than capturing real structural features. Deposition of <span class="math inline">\(R_{\mathrm{free}}\)</span> test-set flags became standard practice, and journals began requiring both <span class="math inline">\(R_{\mathrm{work}}\)</span> and <span class="math inline">\(R_{\mathrm{free}}\)</span> in structure reports.</p>
+</section>
+<section id="ch02-data-quality-sec:geometric-validation" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:geometric-validation">Geometric validation</h2>
+<p><strong>Agreement with the diffraction data is necessary but not sufficient.</strong> A model could fit the data well while containing bond lengths, bond angles, or torsion angles that are physically impossible. Geometric validation checks whether the model’s internal geometry is consistent with what we know from high-resolution small-molecule crystallography and quantum-chemical calculations.</p>
+<div id="ch02-data-quality-fig:electron-density" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch02_electron_density.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">Electron density with difference maps: positive (green) and negative (red) peaks reveal model errors. Left: original; right: corrected.</figcaption>
+</figure>
+</div>
+<p>The most famous geometric check is the <em>Ramachandran plot</em>, introduced by G.&nbsp;N.&nbsp;Ramachandran and colleagues in 1963.<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> Each non-glycine, non-proline residue in a protein has two backbone dihedral angles: <span class="math inline">\(\phi\)</span> (the torsion around the N–C<span class="math inline">\(^\alpha\)</span> bond) and <span class="math inline">\(\psi\)</span> (the torsion around the C<span class="math inline">\(^\alpha\)</span>–C bond). Steric clashes between backbone atoms restrict the (<span class="math inline">\(\phi\)</span>, <span class="math inline">\(\psi\)</span>) combinations that are physically accessible. Ramachandran and his coworkers computed these allowed regions from hard-sphere contact distances and found that most of the (<span class="math inline">\(\phi\)</span>, <span class="math inline">\(\psi\)</span>) plane is sterically forbidden.</p>
+<div class="no-row-height column-margin column-container"><div id="fn13"><p><sup>13</sup>&nbsp;Ramachandran, Ramakrishnan, and Sasisekharan (1963), “Stereochemistry of polypeptide chain configurations.” <em>J.&nbsp;Mol.&nbsp;Biol.</em>, 7, 95–99. The plot predates most of the structures it is now used to validate.</p></div></div><div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch02_ramachandran_validation.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p>When the plot is drawn using the observed <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\psi\)</span> values from a refined structure, the percentage of residues that fall outside the allowed regions (the Ramachandran outlier percentage) is a direct measure of model quality. A well-refined structure at reasonable resolution should have fewer than 0.5% outliers. An outlier percentage above 2% in a modern refinement is cause for concern: either the structure contains genuine strain (rare, and should be discussed in the publication) or the model is wrong at those positions.<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn14"><p><sup>14</sup>&nbsp;Glycine, with no side chain, has a much broader allowed region. Proline, constrained by its pyrrolidine ring, is restricted to a narrow region near <span class="math inline">\(\phi \approx -63°\)</span>. Both are excluded from the standard outlier count and evaluated separately.</p></div></div></section>
+<section id="ch02-data-quality-sec:molprobity" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:molprobity">MolProbity</h2>
+<div class="figure* page-columns page-full">
+<div class="quarto-figure quarto-figure-center page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch02_validation_zscore.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">image</figcaption>
+</figure>
+</div>
+</div>
+<p><strong>MolProbity</strong>, developed by the Richardson laboratory at Duke University, combines several geometric checks into a single validation suite. Its key metrics include:</p>
+<p>The <em>clashscore</em>, defined as the number of serious steric overlaps per 1,000 atoms, where a serious overlap is defined as two non-bonded atoms whose van der Waals shells interpenetrate by more than 0.4&nbsp;Å. After adding hydrogen atoms to the model (since most crystal structures do not include them), MolProbity computes all pairwise atomic distances and flags those that are too short. A clashscore below 10 is considered good; below 5 is excellent. Older structures refined without modern steric restraints sometimes have clashscores above 40.</p>
+<p><em>Rotamer outliers</em> are side chains whose <span class="math inline">\(\chi\)</span> torsion angles do not match any of the known preferred conformations (rotamers) observed in high-quality structures. The rotamer libraries used by MolProbity are derived from structures at 1.0&nbsp;Å resolution or better, where the electron density is clear enough to determine side-chain conformations unambiguously. A well-refined structure should have fewer than 1% rotamer outliers.</p>
+<p><em>C<span class="math inline">\(\beta\)</span> deviations</em> flag residues where the position of the C<span class="math inline">\(\beta\)</span> atom deviates from its ideal position (calculated from the backbone geometry) by more than 0.25&nbsp;Å. A large C<span class="math inline">\(\beta\)</span> deviation usually indicates an error in backbone or side-chain placement, or occasionally a genuine backbone distortion.</p>
+<p>MolProbity rolls these metrics into a single numerical score calibrated against PDB-wide percentiles, making it easy to see at a glance whether a structure’s geometry is better or worse than average for its resolution range. Journals now routinely require a MolProbity validation report as part of the structure deposition process.</p>
+</section>
+<section id="ch02-data-quality-sec:rscc" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="ch02-data-quality-sec:rscc">Real-space correlation</h2>
+<p><strong>Global metrics like <span class="math inline">\(R_{\mathrm{free}}\)</span></strong> tell you about the model as a whole, but they cannot identify which parts of the model are well-determined and which are not. A structure with <span class="math inline">\(R_{\mathrm{free}}\)</span> of 0.22 might have 90% of its residues modeled correctly and 10% that are essentially guesses fitted into weak or ambiguous density. For many applications (drug design, mutation analysis, molecular dynamics), it is the local reliability that matters.</p>
+<p>The <em>real-space correlation coefficient</em> (RSCC) addresses this need. For each residue (or ligand, or other model fragment), RSCC measures the correlation between two electron-density values: the density calculated from the full model and the density observed from the experimental data.<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> It ranges from <span class="math inline">\(-1\)</span> to <span class="math inline">\(+1\)</span>, with values above 0.9 indicating excellent agreement and values below 0.7 indicating poor agreement. An RSCC below 0.7 for a residue in a 2.0&nbsp;Å structure is a strong signal that the modeled conformation does not match what the crystal actually contains.</p>
+<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;More precisely, RSCC is computed over the grid points in the vicinity of the residue, comparing the <span class="math inline">\(2F_{\mathrm{obs}} - F_{\mathrm{calc}}\)</span> map (which shows the experimentally supported density) with the <span class="math inline">\(F_{\mathrm{calc}}\)</span> map (which shows what the model predicts).</p></div></div><p>The wwPDB validation pipeline computes RSCC for every residue in every deposited structure and includes the results in the validation report. Users who plan to rely on a specific region of a structure (a binding site, an active-site residue, a loop near a mutation site) should check the RSCC values for those residues before drawing conclusions.</p>
+</section>
+</section>
+<section id="ch02-data-quality-sec:pdb-redo" class="level1 page-columns page-full">
+<h1>PDB-REDO: automated re-refinement</h1>
+<p><strong>If validation metrics can identify problems,</strong> the natural next question is whether those problems can be fixed automatically. The PDB-REDO project, developed by Robbie Joosten, Gert Vriend, and colleagues at the Netherlands Cancer Institute and Radboud University, answers this question with a qualified yes.<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn16"><p><sup>16</sup>&nbsp;Joosten <em>et al.</em> (2012), “PDB_REDO: automated re-refinement of X-ray structure models in the PDB.” <em>J.&nbsp;Appl.&nbsp;Crystallogr.</em>, 45, 231–235.</p></div></div><p>PDB-REDO takes an existing PDB entry (the deposited coordinates and the deposited structure-factor data) and puts them through a modern, fully automated refinement pipeline.</p>
+<div id="ch02-data-quality-fig:pdbredo-correction" class="quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="figure page-columns page-full">
+<p><img src="../../../figures/ch02_pdbredo_correction.png" class="img-fluid figure-img"></p>
+<figcaption class="margin-caption">PDB-REDO in action: a Lys<span class="math inline">\(\to\)</span>Arg correction with a sulfate ion placed into previously unmodeled density. (A)&nbsp;Original model; (B)&nbsp;re-refined model.</figcaption>
+</figure>
+</div>
+<p>The pipeline uses the latest version of REFMAC5 for maximum-likelihood refinement, applies current geometric restraint libraries, rebuilds side chains where the electron density supports different rotamers, adds or removes alternate conformations, optimizes B-factor model complexity (deciding whether each atom needs an isotropic B-factor, a TLS group contribution, or both), and flips peptides and side chains where the density is ambiguous.<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn17"><p><sup>17</sup>&nbsp;Peptide flips (180° rotations of the peptide plane) and side-chain flips (e.g., swapping the N and O atoms of asparagine or the N<span class="math inline">\(\varepsilon\)</span><!-- -->2 and O<span class="math inline">\(\varepsilon\)</span><!-- -->1 atoms of glutamine) are common errors in crystal structures because these atom pairs have similar electron density at moderate resolution.</p></div></div><p><strong>The central tension in re-refinement</strong> is between geometric targets and electron-density fit. Geometric restraints penalize deviations from ideal bond lengths, bond angles, and torsion angles. Experimental data restraints penalize deviations between calculated and observed structure factors. If the restraint weights are set too heavily toward geometry, the model will have textbook-perfect bond lengths but may not fit the density; set too heavily toward data, and the model will follow every noise feature in the map at the expense of physically reasonable geometry. PDB-REDO optimizes this balance by systematically varying restraint weights and selecting the combination that minimizes <span class="math inline">\(R_{\mathrm{free}}\)</span> while keeping geometric outliers within acceptable ranges.</p>
+<p>The results have been substantial. Across the PDB archive, PDB-REDO improves <span class="math inline">\(R_{\mathrm{free}}\)</span> for roughly 75% of the structures it re-refines. Many structures from the 1990s and early 2000s, refined with software that is now two or three generations old, show improvements of 5 percentage points or more in <span class="math inline">\(R_{\mathrm{free}}\)</span>, along with large reductions in Ramachandran outliers and clashscores. A ligand modeled in a strained conformation because the original refinement software lacked proper restraints can be corrected. A loop built into weak density and left with B-factors above 100&nbsp;Å<span class="math inline">\(^2\)</span> can sometimes be retraced into better density that the original crystallographer missed.</p>
+<p><strong>PDB-REDO also introduces a useful distinction</strong> between model completeness and model accuracy. A model is complete when it accounts for every feature visible in the electron density: all residues in the sequence, all ordered waters, all ligand atoms, all alternate conformations. A model is accurate when the atoms that are present are placed correctly. These goals can conflict. An overzealous crystallographer might model residues into noise to achieve completeness, producing an apparently full model with poor local accuracy. Conversely, a cautious crystallographer might omit uncertain residues, producing an incomplete but accurate model. PDB-REDO attempts to optimize both simultaneously, removing atoms that are not supported by density and refining the positions of those that remain.</p>
+<p>The practical lesson for users of structural data is that a PDB entry is not the final word. It is a snapshot of the model as it existed when the depositor finished working on it. That depositor may have used outdated software, applied suboptimal restraint weights, or simply run out of time. The PDB-REDO entry for the same structure often represents a better model of the same experimental data, and any serious downstream analysis should at least check whether a PDB-REDO version exists.</p>
+</section>
+<section id="ch02-data-quality-sec:checklist" class="level1 page-columns page-full">
+<h1>A practical validation checklist</h1>
+<p><strong>The metrics described above</strong> can be overwhelming in isolation. In practice, evaluating a crystal structure for downstream use requires checking several quantities together and interpreting them in the context of the resolution and the specific region of interest.</p>
+<p>The resolution sets expectations. At 1.5&nbsp;Å, one should expect <span class="math inline">\(R_{\mathrm{free}}\)</span> below 0.22, fewer than 0.2% Ramachandran outliers, and a clashscore below 5. At 3.0&nbsp;Å, <span class="math inline">\(R_{\mathrm{free}}\)</span> around 0.28 is typical, a few percent Ramachandran outliers may be tolerable if they are in poorly ordered loops, and clashscores will be higher because hydrogen atoms are less well-positioned. The wwPDB validation report, available for every entry, shows how each metric compares to other structures at the same resolution. This percentile-based comparison is often more informative than the raw numbers.</p>
+<p>For local quality, the RSCC and B-factor profiles should be examined for the region of interest. A binding-site residue with RSCC above 0.9 and B-factors comparable to the surrounding protein is well-determined. The same residue with RSCC below 0.7 and B-factors twice the average should be treated as tentative. When alternate conformations are present, the relative occupancies of each conformer matter: a minor conformer at 15% occupancy in a 2.5&nbsp;Å structure is barely constrained by the data and should not be over-interpreted.</p>
+<p>For structures from the AlphaFold database, the pLDDT score replaces crystallographic metrics. Residues with pLDDT above 90 are generally comparable in accuracy to experimental structures at 1.5–2.0&nbsp;Å resolution.<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> Residues between 70 and 90 have reliable backbone geometry but uncertain side-chain placement. Below 50, the predicted coordinates carry little information.</p>
+<div class="no-row-height column-margin column-container"><div id="fn18"><p><sup>18</sup>&nbsp;Comparison between AlphaFold predictions and experimental structures in CASP14 showed that residues with pLDDT <span class="math inline">\(&gt; 90\)</span> had a median C<span class="math inline">\(\alpha\)</span> error of 0.6&nbsp;Å, comparable to coordinate uncertainty in typical crystal structures at moderate resolution.</p></div></div></section>
+<section id="ch02-data-quality-sec:ch02-notes" class="level1">
+<h1>Chapter notes</h1>
+<p>The history of the PDB has been recounted by Helen Berman, its long-time director, in several retrospectives; Berman <em>et al.</em> (2000, <em>Nucleic Acids Research</em>) provides a good overview of the archive’s evolution. The original seven structures deposited in 1971 are documented in the PDB’s own historical records and in Hamilton’s correspondence, archived at Brookhaven.</p>
+<p>The PDB format specification is described in the “PDB File Format Contents Guide,” version 3.30 (2011), available from the wwPDB. The mmCIF format and its underlying data dictionary are maintained by the International Union of Crystallography and are documented in Hall and McMahon (2005, <em>International Tables for Crystallography</em>, Vol.&nbsp;G). For a practical guide to parsing both formats, the Biopython project’s <code>Bio.PDB</code> module (Hamelryck and Manderick, 2003) and the GEMMI library (Wojdyr, 2022) are widely used.</p>
+<p>B-factors and their physical interpretation are discussed in Willis and Pryor, <em>Thermal Vibrations in Crystallography</em> (Cambridge University Press, 1975). The problem of B-factor interpretation in macromolecular crystallography, including the conflation of thermal motion, static disorder, model error, and data pathologies, is treated in Rupp (2010), <em>Biomolecular Crystallography</em> (Garland Science), Chapter&nbsp;12.</p>
+<p>Brünger’s 1992 paper introducing <span class="math inline">\(R_{\mathrm{free}}\)</span> is essential reading. The history of its adoption and resistance to it in some quarters is recounted in the Proceedings of the CCP4 Study Weekend (1993). Tickle <em>et al.</em> (1998, <em>Acta Crystallogr.&nbsp;D</em>) provide a careful statistical analysis of <span class="math inline">\(R\)</span>-factor expectations as a function of resolution and data-to-parameter ratio.</p>
+<p>The Ramachandran plot’s original formulation assumed hard-sphere radii. Modern versions use empirical distributions from high-resolution structures; the updated allowed regions used by MolProbity are described in Lovell <em>et al.</em> (2003, <em>Proteins</em>). MolProbity itself is described in Williams <em>et al.</em> (2018, <em>Protein Science</em>). The clashscore metric was introduced by Word <em>et al.</em> (1999, <em>J.&nbsp;Mol.&nbsp;Biol.</em>).</p>
+<p>PDB-REDO is described in Joosten <em>et al.</em> (2012, <em>J.&nbsp;Appl.&nbsp;Crystallogr.</em>) and its databank of re-refined entries is available at <code>https://pdb-redo.eu</code>. A large-scale analysis of how re-refinement improves older structures is presented in Joosten <em>et al.</em> (2009, <em>J.&nbsp;Appl.&nbsp;Crystallogr.</em>), which examines the PDB-wide impact of optimizing restraint weights and B-factor parameterization.</p>
+<p>The AlphaFold Protein Structure Database is described in Varadi <em>et al.</em> (2022, <em>Nucleic Acids Research</em>). For guidance on appropriate use of AlphaFold models, see the best-practices document maintained by the AlphaFold team and the community discussion in Terwilliger <em>et al.</em> (2024, <em>Nature Methods</em>), which examines when predicted structures complement or substitute for experimental ones.</p>
+<p>For the reader interested in hands-on validation, the wwPDB validation pipeline is described in Gore <em>et al.</em> (2017, <em>Structure</em>). The validation reports it produces are available for every PDB entry on the RCSB website and provide a concise, standardized summary of the metrics discussed in this chapter.</p>
+
+
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/muhammadhasyim\.github\.io\/structural-bio-book\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../../../quarto/_generated/chapters/ch01_foundations.html" class="pagination-link" aria-label="Structural Biology: Physical Principles">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Structural Biology: Physical Principles</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../../quarto/_generated/chapters/ch03_pairwise_alignment.html" class="pagination-link" aria-label="Pairwise Sequence Alignment">
+        <span class="nav-page-text"><span class="chapter-title">Pairwise Sequence Alignment</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
