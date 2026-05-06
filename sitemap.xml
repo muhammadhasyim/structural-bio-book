@@ -2,58 +2,58 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://muhammadhasyim.github.io/structural-bio-book/index.html</loc>
-    <lastmod>2026-05-06T03:51:03.253Z</lastmod>
+    <lastmod>2026-05-06T04:01:55.934Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch01_foundations.html</loc>
-    <lastmod>2026-05-06T03:51:15.079Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch01_foundations.html</loc>
+    <lastmod>2026-05-06T04:02:10.343Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch02_data_quality.html</loc>
-    <lastmod>2026-05-06T03:51:15.163Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch02_data_quality.html</loc>
+    <lastmod>2026-05-06T04:02:10.438Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch03_pairwise_alignment.html</loc>
-    <lastmod>2026-05-06T03:51:15.246Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch03_pairwise_alignment.html</loc>
+    <lastmod>2026-05-06T04:02:10.531Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch04_profile_hmm.html</loc>
-    <lastmod>2026-05-06T03:51:15.350Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch04_profile_hmm.html</loc>
+    <lastmod>2026-05-06T04:02:10.646Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch05_classification.html</loc>
-    <lastmod>2026-05-06T03:51:15.423Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch05_classification.html</loc>
+    <lastmod>2026-05-06T04:02:10.720Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch06_homology_modeling.html</loc>
-    <lastmod>2026-05-06T03:51:15.506Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch06_homology_modeling.html</loc>
+    <lastmod>2026-05-06T04:02:10.803Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch07_alphafold.html</loc>
-    <lastmod>2026-05-06T03:51:15.641Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch07_alphafold.html</loc>
+    <lastmod>2026-05-06T04:02:10.959Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch08_alphafill.html</loc>
-    <lastmod>2026-05-06T03:51:15.715Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch08_alphafill.html</loc>
+    <lastmod>2026-05-06T04:02:11.033Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch09_docking.html</loc>
-    <lastmod>2026-05-06T03:51:15.798Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch09_docking.html</loc>
+    <lastmod>2026-05-06T04:02:11.117Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch10_molecular_dynamics.html</loc>
-    <lastmod>2026-05-06T03:51:15.892Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch10_molecular_dynamics.html</loc>
+    <lastmod>2026-05-06T04:02:11.222Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch11_disorder.html</loc>
-    <lastmod>2026-05-06T03:51:15.965Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch11_disorder.html</loc>
+    <lastmod>2026-05-06T04:02:11.306Z</lastmod>
   </url>
   <url>
-    <loc>https://muhammadhasyim.github.io/structural-bio-book/quarto/_generated/chapters/ch12_drug_design.html</loc>
-    <lastmod>2026-05-06T03:51:16.069Z</lastmod>
+    <loc>https://muhammadhasyim.github.io/structural-bio-book/ch12_drug_design.html</loc>
+    <lastmod>2026-05-06T04:02:11.420Z</lastmod>
   </url>
   <url>
     <loc>https://muhammadhasyim.github.io/structural-bio-book/references.html</loc>
-    <lastmod>2026-05-06T03:51:03.400Z</lastmod>
+    <lastmod>2026-05-06T04:01:56.076Z</lastmod>
   </url>
 </urlset>

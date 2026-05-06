@@ -6,7 +6,34 @@
  * fig-cap-location: margin (_quarto.yml). Extra grid rules fight that system
  * and split wide images / margin captions onto the wrong tracks (broken
  * “full-width” and composite screenshots).
+ *
+ * LaTeX figure* is full-width in the PDF; in HTML we keep figures inside the
+ * body text track (see quarto_gen: chapter .qmd at book root, no column-screen-inset wrapper).
  */
+
+/* Body figures: cap width to the main column (wide PNGs + Tufte classes). */
+#quarto-document-content .quarto-figure figure.figure,
+#quarto-document-content .quarto-figure figure {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#quarto-document-content .quarto-figure figure > p,
+#quarto-document-content .quarto-figure figure > a {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#quarto-document-content .quarto-figure img.figure-img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+#quarto-document-content .quarto-figure img.column-screen-inset,
+#quarto-document-content .quarto-figure p.page-columns.page-full {
+  max-width: 100% !important;
+}
 
 /* Margin figures (from LaTeX marginfigure → ::: {.column-margin}): stack image + caption. */
 #quarto-document-content .column-margin .quarto-figure figure.figure,
