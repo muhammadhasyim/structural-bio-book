@@ -7,7 +7,15 @@
 \date{}
 
 \begin{document}
-\maketitle
+% Full-bleed cover (artwork includes title); replaces default \maketitle.
+\begin{titlepage}
+  \thispagestyle{empty}%
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[inner sep=0pt, anchor=center] at (current page.center) {%
+      \includegraphics[width=\paperwidth, height=\paperheight, keepaspectratio]{cover.png}};
+  \end{tikzpicture}%
+\end{titlepage}%
+\clearpage
 \tableofcontents
 
 \part{Foundations}

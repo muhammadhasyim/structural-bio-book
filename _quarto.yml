@@ -6,6 +6,7 @@ project:
   post-render:
     - python3 website/html_fig_img_alt.py
   resources:
+    - cover.png
     - figures/**
     # GitHub Pages runs Jekyll on gh-pages by default; paths with leading underscores can be
     # mishandled. This file disables Jekyll so the full Quarto output (including search data) is published.
@@ -14,6 +15,7 @@ project:
 book:
   title: "Structural Bioinformatics"
   author: ""
+  cover-image: cover.png
   site-url: https://muhammadhasyim.github.io/structural-bio-book/
   repo-url: https://github.com/muhammadhasyim/structural-bio-book
   page-navigation: true
