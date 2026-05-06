@@ -7,6 +7,7 @@ project:
     - python3 website/html_fig_img_alt.py
   resources:
     - cover.png
+    - website/fonts/**
     - figures/**
     # GitHub Pages runs Jekyll on gh-pages by default; paths with leading underscores can be
     # mishandled. This file disables Jekyll so the full Quarto output (including search data) is published.
@@ -51,3 +52,5 @@ format:
   html:
     fig-cap-location: margin
     css: website/quarto-tufte-overrides.css
+    include-in-header:
+      - file: website/mathjax-config.html

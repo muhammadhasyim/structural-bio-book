@@ -151,9 +151,44 @@ def rewrite_marginfigure_blocks(md: str) -> str:
     return MARGINFIG_BLOCK.sub(repl, md)
 
 
+def rewrite_pandoc_equation_refs(md: str) -> str:
+    r"""
+    Pandoc writes equation references as markdown links, e.g.
+    ``[\[eq:foo\]\](#eq:foo){reference-type="eqref" reference="eq:foo"}``,
+    which never reach MathJax. Rewrite to inline math ``$\\eqref{eq:foo}$`` / ``$\\ref{eq:foo}$``.
+    """
+
+    def repl_eqref(m: re.Match[str]) -> str:
+        gid = m.group(1)
+        return f"$\\eqref{{{gid}}}$"
+
+    def repl_ref(m: re.Match[str]) -> str:
+        gid = m.group(1)
+        return f"$\\ref{{{gid}}}$"
+
+    md = re.sub(
+        r'\[\\\[(eq:[^\]]+)\\\]\]\(#[^)]+\)\{'
+        r'(?:[^}]*reference-type="eqref"[^}]*reference="\1"|'
+        r'[^}]*reference="\1"[^}]*reference-type="eqref")'
+        r'[^}]*\}',
+        repl_eqref,
+        md,
+    )
+    md = re.sub(
+        r'\[\\\[(eq:[^\]]+)\\\]\]\(#[^)]+\)\{'
+        r'(?:[^}]*reference-type="ref"[^}]*reference="\1"|'
+        r'[^}]*reference="\1"[^}]*reference-type="ref")'
+        r'[^}]*\}',
+        repl_ref,
+        md,
+    )
+    return md
+
+
 def postprocess_chapter_markdown(md: str) -> str:
     md = adjust_markdown_paths_for_generated_chapter(md)
     md = rewrite_marginfigure_blocks(md)
+    md = rewrite_pandoc_equation_refs(md)
     return md
 
 

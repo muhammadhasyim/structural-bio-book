@@ -4,7 +4,7 @@
 By the mid-1990s the Protein Data Bank held roughly ten thousand structures, and
 the number was climbing fast. Christine Orengo and Janet Thornton, working at
 University College London, faced a problem that was equal parts intellectual and
-logistical: how should one organize this growing collection? Proteins plainly fell
+logistical: how should one organize this growing collection~\cite{orengo1997}? Proteins plainly fell
 into families. Globins resembled other globins; immunoglobulin domains looked like
 other immunoglobulin domains. But the boundaries between families were blurry, the
 criteria for grouping were subjective, and two experts asked to sort the same set
@@ -35,7 +35,7 @@ classification can rest on quantitative ground rather than visual impression alo
 \label{sec:scop}
 
 \newthought{Alexei Murzin and colleagues} published the Structural Classification
-of Proteins (SCOP) database in 1995. Its organizing principle was evolutionary:
+of Proteins (SCOP) database in 1995~\cite{murzin1995}. Its organizing principle was evolutionary:
 structures belong together when they share a common ancestor. The classification is
 a strict hierarchy with four levels.
 
@@ -77,7 +77,7 @@ would handle clumsily. It also had an obvious weakness. As the PDB grew from ten
 thousand structures to over two hundred thousand, manual curation could not keep
 pace. SCOP2, a later revision, introduced a graph-based representation that
 relaxed the strict tree hierarchy, allowing proteins to participate in multiple
-relationships simultaneously. But the curation bottleneck persisted.
+relationships simultaneously~\cite{andreeva2014}. But the curation bottleneck persisted.
 
 
 \section{The CATH hierarchy}
@@ -92,7 +92,7 @@ Topology, and Homologous superfamily.
 \emph{Class} in CATH, as in SCOP, is determined by secondary-structure content.
 The three main classes are ``mainly alpha,'' ``mainly beta,'' and ``mixed alpha
 and beta.'' Assignment uses the fraction of residues in $\alpha$-helices versus
-$\beta$-strands, computed automatically from atomic coordinates using DSSP or
+$\beta$-strands, computed automatically from atomic coordinates using DSSP~\cite{kabsch1983} or
 similar secondary-structure assignment programs.
 
 \emph{Architecture} describes the gross spatial arrangement of secondary-structure
@@ -110,7 +110,7 @@ the connectivity of secondary-structure elements. Proteins share a topology if
 they can be superimposed with consistent chain direction through matched secondary
 structures. The structure comparison algorithm SSAP (Sequential Structure
 Alignment Program) was central to topology assignment: protein pairs scoring above
-a threshold in SSAP were grouped together.
+a threshold in SSAP were grouped together~\cite{taylor1990}.
 
 \emph{Homologous superfamily}, the deepest level, groups proteins that share a
 common evolutionary origin. Evidence comes from sequence similarity, structural
@@ -129,8 +129,8 @@ privileges evolutionary reasoning; a human expert asks ``did these proteins
 descend from a common ancestor?'' and assigns accordingly. CATH privileges
 reproducibility and throughput; automated algorithms do most of the work, and
 human curation intervenes only at difficult boundaries. The two databases agree on
-most assignments but disagree on enough cases (roughly 20\% of domain
-superfamilies, by various estimates) to remind us that protein classification is
+most assignments but disagree on enough cases---a non-negligible fraction of domain
+superfamilies~\cite{sillitoe2021}---to remind us that protein classification is
 partly a matter of convention.
 
 
@@ -154,7 +154,7 @@ optimal rotation $\mR$ and translation $\vt$ minimize
 \end{equation}
 Kabsch showed in 1976 that the optimal rotation can be found in closed form from
 the singular value decomposition of the cross-covariance matrix of the two
-coordinate sets.\sidenote{The Kabsch algorithm computes the $3\times 3$ matrix
+coordinate sets~\cite{kabsch1976}.\sidenote{The Kabsch algorithm computes the $3\times 3$ matrix
 $H = \sum_i (\vx_i - \bar{\vx})(\bm{y}_i - \bar{\bm{y}})^\top$, takes its SVD
 $H = U\Sigma V^\top$, and returns $\mR = V \diag(1,1,\det(VU^\top)) U^\top$.
 The determinant correction ensures a proper rotation rather than a
@@ -231,7 +231,7 @@ structure-comparison methods still in active use. Its double-dynamic-programming
 approach predates distance-matrix methods like Dali and coordinate-based methods
 like TM-align.}
 
-\newthought{Dali}, developed by Liisa Holm in the early 1990s, compares proteins
+\newthought{Dali}, developed by Liisa Holm in the early 1990s~\cite{holm1993}, compares proteinscompares proteins
 by their intramolecular distance matrices. Each protein is reduced to an
 $n \times n$ matrix $D$ where $D_{ij}$ is the distance between the $C_\alpha$
 atoms of residues $i$ and $j$. Two proteins are compared by finding the alignment
@@ -280,17 +280,17 @@ constituent domains, and this parsing step is itself nontrivial.
 Manual domain assignment (as in early SCOP) uses visual inspection and expert
 knowledge of protein families. Automated methods attack the problem
 computationally. PDP (Protein Domain Parser) identifies domains by analyzing the
-contact map: it looks for clusters of residues that are in close spatial contact
+contact map~\cite{alexandrov2003}: it looks for clusters of residues that are in close spatial contact
 with each other but not with residues in other clusters. The algorithm recursively
 splits the chain at the boundary that minimizes inter-domain contacts. SWORD
 (Swift and Optimized Recognition of Domains) uses a similar principle but
 incorporates secondary-structure information and is optimized for speed on the
-scale of the entire PDB.\sidenote{Domain boundaries predicted by automated methods
+scale of the entire PDB~\cite{postic2017}.\sidenote{Domain boundaries predicted by automated methods
 agree with expert assignments roughly 80--85\% of the time. The remaining cases
 tend to be discontinuous domains, where the chain leaves one domain, contributes a
 segment to another, and returns.}
 
-\newthought{Gene3D extends} domain classification to the genome scale. Starting
+\newthought{Gene3D extends} domain classification to the genome scale~\cite{lees2012gene3d}. Starting
 from CATH superfamily assignments for experimentally determined structures,
 Gene3D builds hidden Markov models for each superfamily and scans genomic
 sequences against these models. A match implies that the query sequence will fold
@@ -313,7 +313,7 @@ short sequence patterns and profiles that identify functional sites, active-site
 residues, and binding motifs. Each database sees the protein universe from a
 different angle, and each misses relationships that others capture.
 
-InterPro integrates these resources into a unified classification. For each
+InterPro integrates these resources into a unified classification~\cite{blum2021}. For each
 protein, InterPro collects the annotations assigned by Pfam, Gene3D,
 SUPERFAMILY, PROSITE, PANTHER, CDD, and a dozen other member databases, resolves
 overlaps and conflicts, and produces a consensus domain annotation. A protein
@@ -349,7 +349,7 @@ naively in all-against-all mode.
 \end{figure*}
 
 The Encyclopedia of Domains (TED), developed by the Orengo group at UCL, addresses
-this challenge. TED takes AlphaFold-predicted structures, parses them into domains
+this challenge~\cite{lau2024ted}. TED takes AlphaFold-predicted structures, parses them into domains
 using automated boundary-detection methods, and assigns each domain to a CATH
 superfamily by structure comparison. Domains that cannot be matched to any known
 superfamily are clustered among themselves to identify potentially novel folds. The
@@ -391,9 +391,9 @@ the boundary. The $\beta$-barrel family, for instance, includes barrels with 6, 
 16-stranded barrel the ``same fold'' as an 8-stranded barrel? SCOP says no; the
 topology is different. But the barrels form a continuum parameterized by strand
 number and shear, and any threshold for ``same'' versus ``different'' is
-arbitrary.\sidenote{Kolodny and colleagues showed in 2006 that if one embeds SCOP
+arbitrary.\sidenote{Kolodny and colleagues showed that if one embeds SCOP
 domains in a high-dimensional space using pairwise structural-similarity scores,
-the resulting cloud of points does not form well-separated clusters. Fold space
+the resulting cloud of points does not form well-separated clusters~\cite{kolodny2005}. Fold space
 looks more like a continuous manifold with regions of higher density than like a
 set of discrete islands.}
 
@@ -407,11 +407,10 @@ projections and for different purposes.
 \section{Chapter notes}
 \label{sec:ch5_notes}
 
-The SCOP database was described by Murzin, Brenner, Hubbard, and Chothia in 1995.
+The SCOP database was described by Murzin, Brenner, Hubbard, and Chothia in 1995~\cite{murzin1995}.
 The most commonly cited version is SCOP 1.75, the last release curated in the
 original framework. SCOP2, which adopts a directed acyclic graph rather than a
-tree, was described by Andreeva et al.\ in 2014 and is maintained at
-\texttt{scop.berkeley.edu}. CATH was introduced by Orengo et al.\ in
+tree, was described by Andreeva et al.\ \cite{andreeva2014}. CATH was introduced by Orengo et al.\ in
 1997~\cite{orengo1997} and has been updated continuously; the current version
 (CATH-Gene3D 4.3) classifies over 500,000 domains. Both databases are freely
 available and regularly used as gold standards for benchmarking structure-comparison
@@ -419,33 +418,33 @@ methods.
 
 The TM-score and TM-align algorithm were introduced together by Zhang and
 Skolnick~\cite{zhang2005}. The 0.5 threshold for fold similarity was validated
-empirically against SCOP classifications by Xu and Zhang in 2010, who showed that
+empirically against SCOP classifications by Xu and Zhang~\cite{xu2010tm}, who showed that
 TM-score discriminates same-fold from different-fold pairs with an accuracy
 exceeding 95\%. A later analysis by Murzin noted cases where TM-score disagrees
 with SCOP assignments, particularly for long proteins with multiple domains; these
 cases highlight the dependence of all similarity metrics on the choice of which
 residues to include in the comparison.
 
-The Kabsch algorithm for optimal superposition was published in 1976 and remains
-the standard method. Equivalent formulations using quaternions (by Horn, 1987) or
+The Kabsch algorithm for optimal superposition was published in 1976~\cite{kabsch1976} and remains
+the standard method. Equivalent formulations using quaternions~\cite{horn1987} or
 eigenvalue decomposition (by Diamond, 1988) exist; all produce identical results
 and differ only in implementation details. For the singular cases where the SVD
 solution is ambiguous (when the cross-covariance matrix is degenerate), the
 determinant correction shown in the sidenote ensures a proper rotation.
 
-Dali was introduced by Holm and Sander in 1993. The original FSSP database is no
+Dali was introduced by Holm and Sander~\cite{holm1993}. The original FSSP database is no
 longer actively maintained, but the Dali server continues to provide on-the-fly
 structure comparisons and is widely used for finding structural neighbors of a
-newly determined structure. SSAP was first described by Taylor and Orengo in 1989
+newly determined structure. SSAP was first described by Taylor and Orengo~\cite{taylor1990}
 and refined in subsequent papers; its integration into the CATH pipeline is
 described in the 1997 CATH paper.
 
-InterPro, first described by Mulder et al.\ in 2003, is maintained by the European
+InterPro, first described by Mulder et al.~\cite{mulder2003} and surveyed in recent releases~\cite{blum2021}, is maintained by the European
 Bioinformatics Institute and updated with each UniProt release. As of 2024, it
 integrates 14 member databases and provides annotations for over 47 million
 distinct protein sequences.
 
-The Encyclopedia of Domains project was described by Sherborne et al.\ in 2024.
+The Encyclopedia of Domains (TED) is described by Lau et al.~\cite{lau2024ted}.
 Its finding that AlphaFold predictions contain thousands of potentially novel
 folds has stimulated experimental work aimed at validating these predictions, with
 early results from cryo-EM confirming several previously unobserved topologies.
@@ -453,7 +452,7 @@ The question of how classification should handle predicted structures with varyi
 confidence remains an active area of methodological development.
 
 For a broader perspective on the geometry of fold space, see the work of Kolodny,
-Koehl, and Levitt (2005), who mapped SCOP domains into a continuous
+Koehl, and Levitt~\cite{kolodny2005}, who mapped SCOP domains into a continuous
 high-dimensional space and found evidence against a purely discrete view of folds.
 Taylor (2007) offered a different perspective, arguing that fold space has a
 fractal character: self-similar at multiple scales but not truly continuous.

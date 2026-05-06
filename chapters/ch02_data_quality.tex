@@ -2,7 +2,7 @@
 \label{ch:data-quality}
 
 In October 1971, Walter Hamilton and his colleagues at Brookhaven National Laboratory
-established the Protein Data Bank with seven structures.\sidenote{The original seven
+established the Protein Data Bank with seven structures~\cite{bernstein1977,berman2000}.\sidenote{The original seven
 included myoglobin, hemoglobin, cytochrome~b5, alpha-chymotrypsin, lysozyme,
 carboxypeptidase~A, and subtilisin BPN'.}
 Hamilton and his colleagues reasoned that if crystallographers deposited their atomic coordinates
@@ -10,8 +10,8 @@ in a central archive, others could reuse them without repeating years of diffrac
 experiments. Hamilton died just two years later, but the archive he founded grew
 at a pace no one anticipated. By 1980 it held 75 structures. By 2000, roughly
 13{,}000. As of early 2024, the Protein Data Bank contains over 210{,}000
-experimentally determined macromolecular structures, and the AlphaFold Protein
-Structure Database adds another 200 million predicted models on top of that.
+experimentally determined macromolecular structures~\cite{burley2023}, and the AlphaFold Protein
+Structure Database adds another 200 million predicted models on top of that~\cite{varadi2022,tunyasuvunakool2021}.
 
 But quantity brought quality challenges that the founders could not have foreseen.
 Early depositions often lacked the experimental data behind the coordinates. Some
@@ -19,12 +19,11 @@ structures were refined against insufficient data with too many free parameters.
 Others contained errors in amino acid identity, stereochemistry, or chain
 tracing that went undetected for years and then propagated silently through
 hundreds of computational studies that treated PDB coordinates as ground truth.
-A 2004 study found that roughly 20\% of side-chain placements in structures
-solved before 1990 were incorrect by modern validation standards.\sidenote{%
-Kleywegt (2000) documented systematic errors in older PDB entries and their
-downstream effects on homology modeling, ligand docking, and force-field
-parameterization.}
-The situation improved with mandatory validation, but the lesson remains
+Validation surveys have found stereochemistry and side-chain geometry errors in many
+older archive entries~\cite{hooft1996}, and large-scale re-refinement benchmarks
+show that modern protocols can improve both data fit and geometry for a majority
+of deposited models~\cite{joosten2009}.
+The situation improved with mandatory validation~\cite{gore2017}, but the lesson remains
 relevant: every coordinate file carries assumptions, limitations, and potential
 errors that a downstream user must understand.
 
@@ -33,7 +32,7 @@ We begin with the file formats used to encode atomic coordinates, move to the
 databases that store and distribute them, and then spend the bulk of the chapter
 on the validation metrics that distinguish a reliable structure from a
 questionable one. We close with PDB-REDO, an automated re-refinement pipeline
-that has improved thousands of older depositions using modern protocols.
+that has improved thousands of older depositions using modern protocols~\cite{joosten2012actad,joosten2009}.
 
 
 %% ========================================================================
@@ -48,7 +47,9 @@ introduced persistent headaches.
 \subsection{The PDB format}
 \label{sec:pdb-format}
 
-The original PDB format dates to the era of punch cards. Each line is
+The original PDB format dates to the era of punch cards, with the modern
+layout documented in historical and contemporary PDB archive
+descriptions~\cite{bernstein1977,berman2000}. Each line is
 exactly 80 characters wide, and each column has a fixed meaning. An
 \texttt{ATOM} record, which describes a single atom in a standard residue,
 packs the atom name, residue name, chain identifier, residue sequence number,
@@ -83,14 +84,15 @@ in a single PDB-format file without workarounds.}
 
 \newthought{The macromolecular Crystallographic Information File} (mmCIF)
 replaced the PDB format as the master format of the Protein Data Bank in
-2014.\sidenote{The PDB announced in 2014 that mmCIF would become the
+2014 as part of the unified OneDep deposition system~\cite{young2017}.\sidenote{The PDB announced in 2014 that mmCIF would become the
 standard archive format. PDB-format files are still distributed for
 backward compatibility but are no longer generated for structures that
 exceed PDB-format limits.}
 Where the PDB format relies on column positions, mmCIF uses a
 dictionary-based approach: each data item has a name drawn from a
 controlled vocabulary, and values are associated with those names
-explicitly. A fragment of mmCIF for the same atoms looks like this:
+explicitly. A fragment of mmCIF for the same atoms looks like this (see also the
+mmCIF data dictionary~\cite{hall2005}):
 
 \begin{verbatim}
 loop_
@@ -180,12 +182,12 @@ Data Bank consortium (wwPDB), whose four member organizations each run a
 regional portal: RCSB PDB in the United States, PDBe in Europe, PDBj in
 Japan, and BMRB for NMR data.\sidenote{The wwPDB was formalized in 2003
 to ensure a single, consistent archive regardless of where a structure
-is deposited. All four sites serve the same underlying data, but their
+is deposited~\cite{wwpdb2003}. All four sites serve the same underlying data, but their
 search interfaces, analysis tools, and API designs differ.}
 Deposition is mandatory for structures reported in peer-reviewed
 publications, and since 2008, experimental structure-factor amplitudes
 (or NMR restraints, or cryo-EM maps) must be deposited alongside the
-coordinates. This policy was the single largest driver of improved
+coordinates~\cite{wlodawer2008}. This policy was the single largest driver of improved
 validation in the archive: without experimental data, independent
 revalidation is impossible.
 
@@ -206,19 +208,19 @@ electrostatic potential values. When an atomic model is built
 into a cryo-EM map, the model goes to the PDB and the map goes
 to the EMDB, cross-referenced by accession codes. The rapid
 growth of cryo-EM since the ``resolution revolution'' of
-2013--2014\sidenote{The development of direct electron detectors
+2013--2014~\cite{kuhlbrandt2014}\sidenote{The development of direct electron detectors
 and improved image-processing algorithms, recognized by the 2017
 Nobel Prize in Chemistry to Dubochet, Frank, and Henderson,
 pushed single-particle cryo-EM to near-atomic resolution for
 the first time.}
-has made EMDB one of the fastest-growing structural archives.
+has made EMDB one of the fastest-growing structural archives~\cite{lawson2011}.
 As of 2024 it holds over 40{,}000 map entries.
 
 \newthought{The AlphaFold Protein Structure Database,} launched in
-2021 by DeepMind and the European Bioinformatics Institute, represents
+2021 by DeepMind and the European Bioinformatics Institute~\cite{varadi2022}, represents
 a different category of structural data entirely. Its entries are not
 experimentally determined; they are predictions from the AlphaFold2
-neural network, trained on the PDB and co-evolutionary sequence data.
+neural network~\cite{jumper2021}, trained on the PDB and co-evolutionary sequence data.
 The database contains predicted structures for over 200~million
 proteins, covering nearly every known protein sequence in UniProt.
 
@@ -231,7 +233,7 @@ but side-chain positions should be treated with caution; below 50,
 the prediction is essentially unreliable and often corresponds to
 disordered regions that lack a single defined structure in the first
 place.\sidenote{The AlphaFold team explicitly warns against
-interpreting low-pLDDT regions as structural. These regions frequently
+interpreting low-pLDDT regions as structural~\cite{jumper2021}. These regions frequently
 correspond to intrinsically disordered segments, linkers, and signal
 peptides that are flexible in solution.}
 
@@ -317,7 +319,7 @@ structure.
 \label{sec:rfree}
 
 \newthought{Axel Br\"unger introduced $R_{\mathrm{free}}$} in 1992 to
-address exactly this problem.\sidenote{Br\"unger (1992), ``Free R value:
+address exactly this problem~\cite{brunger1992}.\sidenote{Br\"unger (1992), ``Free R value:
 a novel statistical quantity for assessing the accuracy of crystal
 structures.'' \textit{Nature}, 355, 472--475. The paper has been cited
 over 15{,}000 times and changed standard practice in the field within
@@ -372,7 +374,7 @@ crystallography and quantum-chemical calculations.
 \end{figure}
 
 The most famous geometric check is the \emph{Ramachandran plot},
-introduced by G.~N.~Ramachandran and colleagues in 1963.\sidenote{%
+introduced by G.~N.~Ramachandran and colleagues in 1963~\cite{ramachandran1963}.\sidenote{%
 Ramachandran, Ramakrishnan, and Sasisekharan (1963), ``Stereochemistry
 of polypeptide chain configurations.'' \textit{J.\ Mol.\ Biol.}, 7,
 95--99. The plot predates most of the structures it is now used to
@@ -384,7 +386,8 @@ clashes between backbone atoms restrict the ($\phi$, $\psi$)
 combinations that are physically accessible. Ramachandran and his
 coworkers computed these allowed regions from hard-sphere
 contact distances and found that most of the ($\phi$, $\psi$)
-plane is sterically forbidden.
+plane is sterically forbidden. Contemporary validation contours are typically
+derived from high-resolution empirical distributions~\cite{lovell2003}.
 
 \begin{figure*}
   \includegraphics[width=\linewidth]{figures/ch02_ramachandran_validation.png}
@@ -416,7 +419,7 @@ separately.}
 \end{figure*}
 
 \newthought{MolProbity}, developed by the Richardson laboratory at
-Duke University, combines several geometric checks into a single
+Duke University~\cite{chen2010,williams2018}, combines several geometric checks into a single
 validation suite. Its key metrics include:
 
 The \emph{clashscore}, defined as the number of serious steric
@@ -427,7 +430,7 @@ most crystal structures do not include them), MolProbity computes
 all pairwise atomic distances and flags those that are too short. A
 clashscore below 10 is considered good; below 5 is excellent. Older
 structures refined without modern steric restraints sometimes have
-clashscores above 40.
+clashscores above 40~\cite{word1999}.
 
 \emph{Rotamer outliers} are side chains whose $\chi$ torsion angles
 do not match any of the known preferred conformations (rotamers)
@@ -475,7 +478,7 @@ agreement and values below 0.7 indicating poor agreement. An RSCC below
 modeled conformation does not match what the crystal actually contains.
 
 The wwPDB validation pipeline computes RSCC for every residue in every
-deposited structure and includes the results in the validation report.
+deposited structure and includes the results in the validation report~\cite{gore2017}.
 Users who plan to rely on a specific region of a structure (a binding
 site, an active-site residue, a loop near a mutation site) should
 check the RSCC values for those residues before drawing conclusions.
@@ -489,9 +492,9 @@ check the RSCC values for those residues before drawing conclusions.
 next question is whether those problems can be fixed automatically.
 The PDB-REDO project, developed by Robbie Joosten, Gert Vriend, and
 colleagues at the Netherlands Cancer Institute and Radboud University,
-answers this question with a qualified yes.\sidenote{Joosten \textit{et al.}
-(2012), ``PDB\_REDO: automated re-refinement of X-ray structure models
-in the PDB.'' \textit{J.\ Appl.\ Crystallogr.}, 45, 231--235.}
+answers this question with a qualified yes~\cite{joosten2012actad,joosten2009}.\sidenote{Joosten \textit{et al.}
+(2012), ``PDB\_REDO: constructive validation, more than just looking for errors.''
+\textit{Acta Cryst.} D\textbf{68}, 484--496.}
 
 PDB-REDO takes an existing PDB entry (the deposited coordinates and
 the deposited structure-factor data) and puts them through a modern,
@@ -581,7 +584,7 @@ if they are in poorly ordered loops, and clashscores will be higher
 because hydrogen atoms are less well-positioned. The wwPDB validation
 report, available for every entry, shows how each metric compares to
 other structures at the same resolution. This percentile-based
-comparison is often more informative than the raw numbers.
+comparison is often more informative than the raw numbers~\cite{gore2017}.
 
 For local quality, the RSCC and B-factor profiles should be examined
 for the region of interest. A binding-site residue with RSCC above
@@ -595,7 +598,7 @@ is barely constrained by the data and should not be over-interpreted.
 For structures from the AlphaFold database, the pLDDT score replaces
 crystallographic metrics. Residues with pLDDT above 90 are generally
 comparable in accuracy to experimental structures at 1.5--2.0~{\AA}
-resolution.\sidenote{Comparison between AlphaFold predictions and
+resolution~\cite{senior2020}.\sidenote{Comparison between AlphaFold predictions and
 experimental structures in CASP14 showed that residues with pLDDT
 $> 90$ had a median C$\alpha$ error of 0.6~{\AA}, comparable to
 coordinate uncertainty in typical crystal structures at moderate

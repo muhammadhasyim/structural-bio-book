@@ -18,7 +18,9 @@ contributes:
         linkcolor: Maroon
         backgroundcolor: FloralWhite
         sidebarbackgroundcolor: FloralWhite
-        mainfont: "heuristica"
+        mainfont: "TeX Gyre Pagella, Palatino, Palatino Linotype, Book Antiqua, URW Palladio L, Georgia, serif"
+        sansfont: "Helvetica Neue, Helvetica, Arial, sans-serif"
+        monofont: "ui-monospace, Menlo, Consolas, monospace"
         toc-location: left
         toc-title: "Contents"
         default-image-extension: svg

@@ -22,7 +22,7 @@ This chapter develops those principles.  We begin with the chemical structure of
 
 A protein is a linear polymer of amino acids joined by peptide bonds.  Each amino acid contributes three backbone atoms, nitrogen, $\alpha$-carbon (C$_\alpha$), and carbonyl carbon (C$'$), plus a side chain (R group) attached to C$_\alpha$.  The peptide bond itself is formed by a condensation reaction between the amino group of one residue and the carboxyl group of the next, releasing water.
 
-\newthought{The peptide bond is planar.}  Linus Pauling recognized in the 1930s that resonance between the C$'$=O and C$'$--N bonds gives the peptide linkage partial double-bond character.\sidenote{The C$'$--N bond length in a peptide is about 1.33~\AA, intermediate between a single bond (1.47~\AA) and a double bond (1.25~\AA).  This partial double-bond character restricts rotation.}  The six atoms of the peptide unit (C$_\alpha^{(i)}$, C$'$, O, N, H, C$_\alpha^{(i+1)}$) lie approximately in a plane, and the dihedral angle $\omega$ about the C$'$--N bond is locked near $180^\circ$ (\textit{trans}) for most residues.  The \textit{cis} configuration ($\omega \approx 0^\circ$) occurs occasionally before proline, where the five-membered pyrrolidine ring reduces the energy difference between the two isomers.
+\newthought{The peptide bond is planar.}  Linus Pauling recognized in the 1930s that resonance between the C$'$=O and C$'$--N bonds gives the peptide linkage partial double-bond character~\cite{pauling1960}.\sidenote{The C$'$--N bond length in a peptide is about 1.33~\AA, intermediate between a single bond (1.47~\AA) and a double bond (1.25~\AA).  This partial double-bond character restricts rotation.}  The six atoms of the peptide unit (C$_\alpha^{(i)}$, C$'$, O, N, H, C$_\alpha^{(i+1)}$) lie approximately in a plane, and the dihedral angle $\omega$ about the C$'$--N bond is locked near $180^\circ$ (\textit{trans}) for most residues.  The \textit{cis} configuration ($\omega \approx 0^\circ$) occurs occasionally before proline, where the five-membered pyrrolidine ring reduces the energy difference between the two isomers.
 
 The backbone conformation of each residue is therefore specified by just two dihedral angles: $\phi$ (phi), the rotation about the N--C$_\alpha$ bond, and $\psi$ (psi), the rotation about the C$_\alpha$--C$'$ bond.  Together with the fixed $\omega$, these angles define the path of the backbone through space.  We write the sequence of backbone angles for a chain of $n$ residues as $\{(\phi_1, \psi_1), (\phi_2, \psi_2), \ldots, (\phi_n, \psi_n)\}$.  A protein's three-dimensional structure is, at the most reductive level, a list of these angle pairs together with the side-chain dihedral angles $\chi$.
 
@@ -42,14 +42,14 @@ In 1963, G.~N.~Ramachandran, C.~Ramakrishnan, and V.~Sasisekharan computed which
 
 Glycine, with only a hydrogen atom as its side chain, has a far larger region of allowed $(\phi, \psi)$ space than any other amino acid.  Proline, at the other extreme, is the most restricted: its cyclic side chain fixes $\phi$ near $-63^\circ$.
 
-The Ramachandran plot remains one of the most useful diagnostics in structural biology.  When we build or refine a protein model, plotting all residues' $(\phi, \psi)$ angles immediately reveals errors: residues in forbidden regions are almost certainly misfit.  Current structure-validation tools report the percentage of residues falling in ``favored,'' ``allowed,'' and ``outlier'' regions of the plot.  A well-refined crystal structure typically has more than 98\% of its non-glycine, non-proline residues in favored regions.\sidenote{Glycine and proline are evaluated against their own Ramachandran distributions, since their allowed regions differ from those of the general case.}
+The Ramachandran plot remains one of the most useful diagnostics in structural biology.  When we build or refine a protein model, plotting all residues' $(\phi, \psi)$ angles immediately reveals errors: residues in forbidden regions are almost certainly misfit.  Current structure-validation tools report the percentage of residues falling in ``favored,'' ``allowed,'' and ``outlier'' regions of the plot.  A well-refined crystal structure typically has more than 98\% of its non-glycine, non-proline residues in favored regions~\cite{lovell2003}.\sidenote{Glycine and proline are evaluated against their own Ramachandran distributions, since their allowed regions differ from those of the general case.}
 
 
 %% ===================================================================
 \section{Structural Hierarchy}
 \label{sec:hierarchy}
 
-Linderstrom-Lang introduced, in 1952, the classification of protein structure into primary, secondary, tertiary, and quaternary levels.  This hierarchy remains the standard vocabulary of the field, though we now understand that the boundaries between levels are not always sharp.
+Linderstrom-Lang introduced, in 1952, the classification of protein structure into primary, secondary, tertiary, and quaternary levels~\cite{linderstrom2lang1952}.  This hierarchy remains the standard vocabulary of the field, though we now understand that the boundaries between levels are not always sharp.
 
 \begin{figure*}
   \includegraphics[width=\linewidth]{figures/ch01_protein_hierarchy.png}
@@ -60,7 +60,7 @@ Linderstrom-Lang introduced, in 1952, the classification of protein structure in
 \subsection{Primary Structure}
 \label{sec:primary}
 
-The primary structure of a protein is its amino acid sequence, read from the N-terminus to the C-terminus.  Twenty standard amino acids appear in proteins translated by the ribosome, each specified by one or more codons in the genetic code.  The sequence determines everything: given the laws of physics and the cellular environment, the sequence of a protein specifies its three-dimensional structure and, therefore, its function.  This is the central dogma of structural biology, and it drove the field for decades, first as an article of faith and now as a computational reality with structure prediction methods like AlphaFold.
+The primary structure of a protein is its amino acid sequence, read from the N-terminus to the C-terminus.  Twenty standard amino acids appear in proteins translated by the ribosome, each specified by one or more codons in the genetic code.  The sequence determines everything: given the laws of physics and the cellular environment, the sequence of a protein specifies its three-dimensional structure and, therefore, its function.  This is the central dogma of structural biology, and it drove the field for decades, first as an article of faith and now as a computational reality with structure prediction methods like AlphaFold~\cite{jumper2021}.
 
 The primary structure also encodes the geometry of the chain.  Bond lengths and angles along the backbone are nearly constant across all residues (C$_\alpha$--C$'$ $\approx$ 1.52~\AA, C$'$--N $\approx$ 1.33~\AA, N--C$_\alpha$ $\approx$ 1.47~\AA, bond angles near $110^\circ$--$123^\circ$).  The conformational freedom therefore resides almost entirely in the torsion angles $\phi$, $\psi$, and the side-chain $\chi$ angles.
 
@@ -86,7 +86,7 @@ Secondary structure refers to local, regular patterns of backbone hydrogen bondi
 
 Tertiary structure describes the complete three-dimensional arrangement of all atoms in a single polypeptide chain.  The packing of secondary structure elements against one another, the burial of hydrophobic side chains in the protein interior, and the formation of disulfide bonds all contribute to tertiary structure.
 
-\newthought{The hydrophobic core} is the defining feature of globular protein architecture.  Nonpolar side chains (leucine, isoleucine, valine, phenylalanine, tryptophan) are buried in the interior, away from water.  Polar and charged side chains are found predominantly on the surface, where they can interact with solvent.  This segregation is not absolute; occasional buried polar groups serve functional roles, as in enzyme active sites and proton channels.  But the statistical pattern is overwhelming.  Kendrew saw it in myoglobin; it holds across the entire Protein Data Bank.
+\newthought{The hydrophobic core} is the defining feature of globular protein architecture.  Nonpolar side chains (leucine, isoleucine, valine, phenylalanine, tryptophan) are buried in the interior, away from water.  Polar and charged side chains are found predominantly on the surface, where they can interact with solvent.  This segregation is not absolute; occasional buried polar groups serve functional roles, as in enzyme active sites and proton channels.  But the statistical pattern is overwhelming.  Kendrew saw it in myoglobin; it holds across the entire Protein Data Bank~\cite{burley2023}.
 
 Many proteins are organized into domains, independently folding units of 50--300 residues connected by short linker segments.  A domain has its own hydrophobic core and its own complement of secondary structure.  Multi-domain proteins can combine different biochemical functions within a single polypeptide chain by arranging domains in series.
 
@@ -116,7 +116,7 @@ The geometry of an optimal hydrogen bond has the donor, hydrogen, and acceptor n
 \subsection{The Hydrophobic Effect}
 \label{sec:hydrophobic}
 
-The hydrophobic effect is the dominant driving force for protein folding.  When a nonpolar solute is transferred from a nonpolar environment into water, the free energy change is positive (unfavorable), even though the enthalpy change can be slightly negative (favorable, due to van~der~Waals contacts with water molecules).  The explanation lies in entropy.
+The hydrophobic effect is the dominant driving force for protein folding~\cite{kauzmann1959,dill1990}.  When a nonpolar solute is transferred from a nonpolar environment into water, the free energy change is positive (unfavorable), even though the enthalpy change can be slightly negative (favorable, due to van~der~Waals contacts with water molecules).  The explanation lies in entropy.
 
 \newthought{Water molecules adjacent to a nonpolar surface} cannot form their full complement of hydrogen bonds in every direction.  They compensate by adopting more ordered arrangements, reducing the number of accessible microstates.  The resulting entropy penalty drives the thermodynamics of the process.  We can write the free energy of transfer as
 \begin{equation}
@@ -151,18 +151,18 @@ Charged amino acid side chains, including Asp, Glu (negative at physiological pH
 \subsection{Levinthal's Paradox and the Folding Funnel}
 \label{sec:levinthal}
 
-In 1969, Cyrus Levinthal posed a thought experiment that crystallized the protein folding problem.  Consider a protein of 100 residues.  If each backbone bond can adopt just three conformations, the total number of possible backbone configurations is $3^{198} \approx 10^{94}$.\sidenote{The factor of 198 arises because there are two backbone torsion angles ($\phi$, $\psi$) per residue, giving $100 \times 2 = 200$ angles, minus two for the terminal residues.  The exact accounting varies by convention, but the conclusion is the same.}  Even if the protein could sample conformations at a rate of $10^{13}$ per second (a generous estimate based on bond vibration frequencies), it would require $10^{94}/10^{13} = 10^{81}$ seconds to explore all possibilities.  The age of the universe is about $4 \times 10^{17}$ seconds.  A random search is out of the question.
+In 1969, Cyrus Levinthal posed a thought experiment that crystallized the protein folding problem~\cite{levinthal1969}.  Consider a protein of 100 residues.  If each backbone bond can adopt just three conformations, the total number of possible backbone configurations is $3^{198} \approx 10^{94}$.\sidenote{The factor of 198 arises because there are two backbone torsion angles ($\phi$, $\psi$) per residue, giving $100 \times 2 = 200$ angles, minus two for the terminal residues.  The exact accounting varies by convention, but the conclusion is the same.}  Even if the protein could sample conformations at a rate of $10^{13}$ per second (a generous estimate based on bond vibration frequencies), it would require $10^{94}/10^{13} = 10^{81}$ seconds to explore all possibilities.  The age of the universe is about $4 \times 10^{17}$ seconds.  A random search is out of the question.
 
 Yet proteins fold.  Small proteins fold in microseconds to milliseconds; even large proteins typically reach their native state in seconds to minutes.  The resolution to Levinthal's paradox is that folding is not a random search.  Proteins fold along pathways that progressively decrease the free energy, guided by the same forces we have just described.
 
-\newthought{The energy landscape picture}, developed by Dill, Chan, Wolynes, Onuchic, and others in the 1990s, reframes folding as diffusion on a high-dimensional free energy surface.\sidenote{See Dill and Chan, ``From Levinthal to pathways to funnels,'' \textit{Nature Structural Biology} \textbf{4}, 10--19 (1997).  The funnel picture draws on ideas from the statistical mechanics of disordered systems.}  For a foldable protein, this surface has the shape of a funnel: many high-energy unfolded states at the rim, a single (or few) low-energy native state(s) at the bottom, and a general downhill bias throughout.  Local traps and kinetic barriers may slow the process and produce folding intermediates, but the overall funnel shape ensures that the native state is kinetically accessible.
+\newthought{The energy landscape picture}, developed by Dill, Chan, Wolynes, Onuchic, and others in the 1990s, reframes folding as diffusion on a high-dimensional free energy surface~\cite{dill1997}.\sidenote{See Dill and Chan, ``From Levinthal to pathways to funnels,'' \textit{Nature Structural Biology} \textbf{4}, 10--19 (1997).  The funnel picture draws on ideas from the statistical mechanics of disordered systems.}  For a foldable protein, this surface has the shape of a funnel: many high-energy unfolded states at the rim, a single (or few) low-energy native state(s) at the bottom, and a general downhill bias throughout.  Local traps and kinetic barriers may slow the process and produce folding intermediates, but the overall funnel shape ensures that the native state is kinetically accessible.
 
 We can write the free energy of a conformation as
 \begin{equation}
   G(\text{conformation}) = H(\text{conformation}) - TS(\text{conformation}),
   \label{eq:folding-free-energy}
 \end{equation}
-where the enthalpy $H$ accounts for all intramolecular interactions and protein--solvent interactions, and $S$ includes both conformational entropy of the chain and the entropy of the surrounding solvent (especially the water molecules released from hydrophobic surfaces upon folding).  The native state sits at the global minimum of $G$ under physiological conditions.  This is the thermodynamic hypothesis, first articulated by Christian Anfinsen on the basis of his refolding experiments with ribonuclease~A.
+where the enthalpy $H$ accounts for all intramolecular interactions and protein--solvent interactions, and $S$ includes both conformational entropy of the chain and the entropy of the surrounding solvent (especially the water molecules released from hydrophobic surfaces upon folding).  The native state sits at the global minimum of $G$ under physiological conditions.  This is the thermodynamic hypothesis, first articulated by Christian Anfinsen on the basis of his refolding experiments with ribonuclease~A~\cite{anfinsen1973}.
 
 The funnel picture does not require a single folding pathway.  Different molecules in an ensemble may descend the funnel by different routes, and the concept of ``the'' folding pathway is in many cases an oversimplification.  What matters is that the landscape is globally funneled, so that the vast majority of starting configurations are connected to the native state by downhill (or at most mildly uphill) paths.
 
@@ -171,7 +171,7 @@ The funnel picture does not require a single folding pathway.  Different molecul
 \section{Experimental Methods of Structure Determination}
 \label{sec:experiments}
 
-Structural bioinformatics depends on experimental structures.  The Protein Data Bank (PDB) contains more than 200{,}000 experimentally determined structures, and virtually every computational method in this book, from homology modeling to machine learning, is trained on, validated against, or benchmarked using these data.  Three experimental techniques account for the vast majority of deposited structures: X-ray crystallography, nuclear magnetic resonance (NMR) spectroscopy, and cryo-electron microscopy (cryo-EM).
+Structural bioinformatics depends on experimental structures.  The Protein Data Bank (PDB) contains more than 200{,}000 experimentally determined structures~\cite{burley2023}, and virtually every computational method in this book, from homology modeling to machine learning, is trained on, validated against, or benchmarked using these data.  Three experimental techniques account for the vast majority of deposited structures: X-ray crystallography, nuclear magnetic resonance (NMR) spectroscopy, and cryo-electron microscopy (cryo-EM).
 
 \subsection{X-ray Crystallography}
 \label{sec:xray}
@@ -219,13 +219,13 @@ The agreement between the atomic model and the observed data is quantified by th
            {\sum_{h,k,l} |F_{\text{obs}}|},
   \label{eq:rfactor-xray-intro}
 \end{equation}
-where $F_{\text{obs}}$ and $F_{\text{calc}}$ are the observed and calculated structure factor amplitudes.  A well-refined protein structure has $R \approx 0.15$--$0.20$.  The free $R$-factor ($R_{\text{free}}$), calculated from a random subset of reflections excluded from refinement, guards against overfitting; a gap larger than about 0.05 between $R$ and $R_{\text{free}}$ suggests problems with the model.\sidenote{The concept of $R_{\text{free}}$ was introduced by Axel Br\"unger in 1992.  It is the crystallographic analog of cross-validation in machine learning.}
+where $F_{\text{obs}}$ and $F_{\text{calc}}$ are the observed and calculated structure factor amplitudes.  A well-refined protein structure has $R \approx 0.15$--$0.20$.  The free $R$-factor ($R_{\text{free}}$), calculated from a random subset of reflections excluded from refinement, guards against overfitting; a gap larger than about 0.05 between $R$ and $R_{\text{free}}$ suggests problems with the model.\sidenote{The concept of $R_{\text{free}}$ was introduced by Axel Br\"unger in 1992~\cite{brunger1992}.  It is the crystallographic analog of cross-validation in machine learning.}
 
 
 \subsection{NMR Spectroscopy}
 \label{sec:nmr}
 
-Nuclear magnetic resonance spectroscopy determines protein structures in solution, avoiding the need for crystals.  The method exploits the magnetic properties of atomic nuclei with nonzero spin, principally $^1$H, $^{13}$C, and $^{15}$N in protein applications.  In a strong magnetic field, these nuclei absorb radiofrequency radiation at frequencies that depend on their chemical environment.
+Nuclear magnetic resonance spectroscopy determines protein structures in solution, avoiding the need for crystals~\cite{wuthrich1986}.  The method exploits the magnetic properties of atomic nuclei with nonzero spin, principally $^1$H, $^{13}$C, and $^{15}$N in protein applications.  In a strong magnetic field, these nuclei absorb radiofrequency radiation at frequencies that depend on their chemical environment.
 
 \newthought{The chemical shift} of a nucleus, defined as the difference between its resonance frequency and that of a reference compound and measured in parts per million (ppm), reflects the local electronic environment.  A backbone amide $^1$H in an $\alpha$-helix resonates at a different frequency than one in a $\beta$-strand, because the secondary structure alters the local magnetic shielding.  Chemical shift assignments, matching each peak in the spectrum to a specific atom in the protein, are the first step in NMR structure determination.
 
@@ -236,7 +236,7 @@ Dihedral angle restraints come from scalar ($J$) coupling constants.  The three-
   ^3J(\phi) = A\cos^2\phi + B\cos\phi + C,
   \label{eq:karplus}
 \end{equation}
-where $A$, $B$, and $C$ are empirically determined parameters (approximately 6.51, $-1.76$, and 1.60~Hz for backbone $^3J_{\text{HN-H}\alpha}$).  Measured $J$-couplings thus constrain the backbone conformation.
+where $A$, $B$, and $C$ are empirically determined parameters (approximately 6.51, $-1.76$, and 1.60~Hz for backbone $^3J_{\text{HN-H}\alpha}$)~\cite{karplus1959}.  Measured $J$-couplings thus constrain the backbone conformation.
 
 \newthought{Structure determination from NMR data} is a constraint satisfaction problem.  Given a set of distance restraints (from NOEs), dihedral angle restraints (from $J$-couplings and chemical shifts), and hydrogen bond restraints (from hydrogen-deuterium exchange experiments), we seek a three-dimensional structure that satisfies all constraints simultaneously.  The standard approach uses simulated annealing or distance geometry: generate many random starting structures, then energy-minimize each one under the restraint forces plus a physical force field, retaining only those structures that satisfy all experimental constraints.
 
@@ -246,7 +246,7 @@ The result is an ensemble of 10--30 structures, all consistent with the data, ra
 \subsection{Cryo-Electron Microscopy}
 \label{sec:cryoem}
 
-Cryo-electron microscopy images individual macromolecular complexes embedded in a thin layer of vitreous (amorphous) ice.  The method does not require crystals and can handle assemblies too large or too heterogeneous for crystallography.  Since about 2013, advances in direct electron detectors and computational image processing have pushed cryo-EM resolution into the range of 2--4~\AA{} for favorable specimens, earning the method a share of the 2017 Nobel Prize in Chemistry.
+Cryo-electron microscopy images individual macromolecular complexes embedded in a thin layer of vitreous (amorphous) ice.  The method does not require crystals and can handle assemblies too large or too heterogeneous for crystallography.  Since about 2013, advances in direct electron detectors and computational image processing have pushed cryo-EM resolution into the range of 2--4~\AA{} for favorable specimens~\cite{kuhlbrandt2014,nogales2016}, earning the method a share of the 2017 Nobel Prize in Chemistry.
 
 \begin{figure*}
   \includegraphics[width=\linewidth]{figures/ch01_cryoem_revolution.png}
@@ -271,14 +271,13 @@ The resolution of a cryo-EM map is assessed by the Fourier shell correlation (FS
                        {\sqrt{\sum_{s_i} |F_1(s_i)|^2 \;\sum_{s_i} |F_2(s_i)|^2}},
   \label{eq:fsc}
 \end{equation}
-where $F_1$ and $F_2$ are the Fourier transforms of the two half-maps and the sums run over all voxels in a thin spherical shell at spatial frequency $s$.  The resolution is reported as the spatial frequency at which the FSC drops to 0.143, a threshold derived from the signal-to-noise ratio needed for reliable phase information.\sidenote{The FSC = 0.143 criterion, proposed by Rosenthal and Henderson (2003), corresponds to the spatial frequency at which the signal is half the noise in a single reconstruction.  Other thresholds (0.5, 0.3) are occasionally used; the choice of threshold can shift the reported resolution by 0.5--1.0~\AA.}
+where $F_1$ and $F_2$ are the Fourier transforms of the two half-maps and the sums run over all voxels in a thin spherical shell at spatial frequency $s$.  The resolution is reported as the spatial frequency at which the FSC drops to 0.143, a threshold derived from the signal-to-noise ratio needed for reliable phase information~\cite{rosenthal2003}.\sidenote{The FSC = 0.143 criterion, proposed by Rosenthal and Henderson (2003), corresponds to the spatial frequency at which the signal is half the noise in a single reconstruction.  Other thresholds (0.5, 0.3) are occasionally used; the choice of threshold can shift the reported resolution by 0.5--1.0~\AA.}
 
 \newthought{The resolution revolution} in cryo-EM was driven primarily by hardware.  Direct electron detectors, which register individual electrons rather than converting them to photons first, dramatically improved the detective quantum efficiency (DQE).  Equally important was the development of movie-mode data collection: instead of recording a single exposure, the detector captures a rapid series of frames.  Individual frames can be aligned to correct for beam-induced specimen motion, reducing blurring and improving the effective resolution.  These advances, combined with faster computers and better algorithms for particle alignment, have made cryo-EM competitive with crystallography for many targets and superior for large, flexible, or heterogeneous complexes.
 
 
 %% ===================================================================
 \section*{Chapter Notes}
-\addcontentsline{toc}{section}{Chapter Notes}
 \label{sec:ch01-notes}
 
 The history of protein crystallography is told vividly in Judson's \textit{The Eighth Day of Creation} (1979) and in Perutz's own essays collected in \textit{I Wish I'd Made You Angry Earlier} (1998).  Kendrew's 6~\AA{} myoglobin map appeared as Kendrew et al., ``A three-dimensional model of the myoglobin molecule obtained by X-ray analysis,'' \textit{Nature} \textbf{181}, 662--666 (1958); the 2~\AA{} refinement followed in Kendrew et al., \textit{Nature} \textbf{185}, 422--427 (1960).  Perutz's hemoglobin structure at 5.5~\AA{} was reported in Perutz et al., \textit{Nature} \textbf{185}, 416--422 (1960).

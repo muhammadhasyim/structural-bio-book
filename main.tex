@@ -7,12 +7,15 @@
 \date{}
 
 \begin{document}
-% Full-bleed cover (artwork includes title); replaces default \maketitle.
+% Full-page cover (artwork includes title); replaces default \maketitle.
+% Clip to the physical page so anti-aliasing or rounding cannot spill past the edge;
+% scale is capped slightly below \paperheight to avoid a hairline overrun in some viewers.
 \begin{titlepage}
   \thispagestyle{empty}%
   \begin{tikzpicture}[remember picture, overlay]
+    \clip (current page.south west) rectangle (current page.north east);
     \node[inner sep=0pt, anchor=center] at (current page.center) {%
-      \includegraphics[width=\paperwidth, height=\paperheight, keepaspectratio]{cover.png}};
+      \includegraphics[width=\paperwidth, height=0.995\paperheight, keepaspectratio]{cover.png}};
   \end{tikzpicture}%
 \end{titlepage}%
 \clearpage

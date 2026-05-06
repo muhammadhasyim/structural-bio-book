@@ -1,7 +1,34 @@
 % tufte-tweaks.tex -- minor overrides for tufte-book class
 \newcounter{sidenote}
-\let\oldchapter\chapter
-\renewcommand{\chapter}[1]{\oldchapter{#1}\setcounter{sidenote}{0}}
+% Reset the margin sidenote counter at the start of each chapter.
+% Do NOT redefine \chapter with a one-argument macro: \chapter*{...} would pass ``*''
+% as the title and create bogus ``*'' lines in the .toc (see main.toc).
+\RequirePackage{etoolbox}
+\makeatletter
+\apptocmd{\@chapter}{\setcounter{sidenote}{0}}{}{\PackageWarning{tufte-tweaks}{Could not patch \@chapter}}%
+\apptocmd{\@schapter}{\setcounter{sidenote}{0}}{}{\PackageWarning{tufte-tweaks}{Could not patch \@schapter}}%
+\makeatother
 
 % Slightly tighter spacing in margin notes
 \renewcommand{\sidenote}[1]{\marginnote{\footnotesize #1}}
+
+% Tufte's default TOC uses \vspace{1.5\baselineskip} before each part/chapter entry,
+% which reads as large gaps between chapter names. Tighten while keeping the same fonts.
+\makeatletter
+\@ifundefined{titlecontents}{}{%
+  \titlecontents{part}%
+    [0em]%
+    {\vspace{0.5\baselineskip}\begin{fullwidth}\LARGE\rmfamily\itshape}%
+    {\contentslabel{2em}}%
+    {}%
+    {\rmfamily\upshape\qquad\thecontentspage}%
+    [\end{fullwidth}]%
+  \titlecontents{chapter}%
+    [0em]%
+    {\vspace{0.35\baselineskip}\begin{fullwidth}\LARGE\rmfamily\itshape}%
+    {\hspace*{0em}\contentslabel{2em}}%
+    {\hspace*{0em}}%
+    {\rmfamily\upshape\qquad\thecontentspage}%
+    [\end{fullwidth}]%
+}
+\makeatother

@@ -104,7 +104,7 @@ Typical implementations use grid spacings of 1.0--1.5~\AA\ and grid dimensions o
 A single FFT correlation on a $128^3$ grid takes a fraction of a second on modern hardware.
 Multiplied by 70,000 rotations, the full rigid-body search completes in hours on a single processor, or minutes with GPU acceleration.
 
-Programs that implement this approach include FTDock, ZDOCK, and ClusPro.
+Programs that implement this approach include FTDock~\cite{gabb1997}, ZDOCK~\cite{chen2003zdock}, and ClusPro~\cite{kozakov2017cluspro}.
 They differ in how they augment the shape complementarity grid with electrostatic and desolvation terms (see \cref{sec:scoring-functions}), but the computational engine is the same.
 
 \section{Scoring Functions}
@@ -193,7 +193,7 @@ S = \sum_{k=1}^{K} w_k \cdot f_k
 \end{equation}
 where $f_k$ are the descriptors and $w_k$ are learned weights.
 More recent approaches use random forests, gradient-boosted trees, or graph neural networks to capture nonlinear relationships between descriptors and binding quality.
-The CAPRI experiment, which blindly evaluates docking predictions, has shown that the best rescoring methods increasingly rely on machine learning.
+The CAPRI experiment~\cite{janin2003capri}, which blindly evaluates docking predictions, has shown that the best rescoring methods increasingly rely on machine learning.
 
 \section{Hotspot Residues and the Interface Energetics}
 \label{sec:hotspots}
@@ -214,7 +214,7 @@ It was concentrated in a compact cluster at the center.\sidenote{The concentrati
 
 \newthought{The ``O-ring'' hypothesis} emerged from these data.
 The hotspot residues sit at the center of the interface, surrounded by a ring of energetically less important residues.
-Bogan and Thorn proposed that this ring serves to exclude bulk solvent from the hotspot, creating a low-dielectric environment that amplifies electrostatic and van der Waals contacts at the center.
+Bogan and Thorn proposed that this ring serves to exclude bulk solvent from the hotspot, creating a low-dielectric environment that amplifies electrostatic and van der Waals contacts at the center~\cite{bogan1998}.
 If water could penetrate to the hotspot, the contacts there would be screened and weakened.
 
 Subsequent large-scale analyses confirmed that hotspot residues are enriched in tryptophan, arginine, and tyrosine.
@@ -386,7 +386,7 @@ Many unrelated complexes share similar binding geometries.
 Subtilisin binds multiple structurally different inhibitors using a conserved interface geometry.
 Serine proteases recognize serpins through recurring structural motifs.
 
-The PRISM algorithm exploits this observation.
+The PRISM algorithm exploits this observation~\cite{tuncbag2011}.
 Tuncbag, Keskin, and Gursoy proposed that known complex interfaces can serve as structural templates.
 The procedure works as follows.
 
@@ -408,7 +408,7 @@ As structural databases grow, this limitation diminishes.
 \label{sec:docking-quality}
 
 \newthought{How do we know if a docking prediction is correct?}
-The Critical Assessment of PRedicted Interactions (CAPRI) experiment provides standardized quality metrics based on three quantities.
+The Critical Assessment of PRedicted Interactions (CAPRI) experiment~\cite{janin2003capri} provides standardized quality metrics based on three quantities.
 
 Ligand RMSD (L-RMSD) is computed after superimposing the receptor in the predicted and experimental complexes, then measuring the RMSD of the ligand backbone atoms.
 
@@ -450,7 +450,7 @@ Soft docking reduces the Lennard-Jones repulsion (by using a softer potential or
 
 Ensemble docking takes a different tack.  Instead of docking a single structure, we dock an ensemble of conformations for each protein, drawn from NMR ensembles, MD simulations, or normal-mode perturbations.  Each member captures a different conformation that the protein might adopt.  The computational cost multiplies by the ensemble size, but the approach can capture large conformational changes without explicitly sampling them during docking.
 
-On-the-fly flexibility rebuilds side chains or even backbone segments during the docking search itself.  RosettaDock couples a low-resolution rigid-body search with Monte Carlo side-chain repacking and backbone minimization, allowing the protein to adjust its conformation in response to the docking partner at each step.
+On-the-fly flexibility rebuilds side chains or even backbone segments during the docking search itself.  RosettaDock couples a low-resolution rigid-body search with Monte Carlo side-chain repacking and backbone minimization, allowing the protein to adjust its conformation in response to the docking partner at each step~\cite{gray2003}.
 
 \section{From Pairwise Docking to Integrative Modeling}
 \label{sec:integrative}
@@ -460,7 +460,7 @@ The ribosome has over 50 protein subunits.
 The nuclear pore complex contains roughly 30 distinct proteins in multiple copies, totaling over 500 chains.
 Predicting the structures of such assemblies requires going beyond pairwise docking.
 
-Integrative modeling, as implemented in programs like IMP (Integrative Modeling Platform), combines diverse experimental data with computational sampling.
+Integrative modeling, as implemented in programs like IMP (Integrative Modeling Platform)~\cite{russel2012}, combines diverse experimental data with computational sampling.
 Cryo-EM maps provide overall shape at intermediate resolution.
 Cross-linking mass spectrometry constrains distances between specific residue pairs.
 Small-angle X-ray scattering provides information about overall dimensions.
@@ -477,9 +477,9 @@ Integrative modeling extends it to arbitrarily large assemblies.
 The FFT approach to rigid-body docking was introduced by Katchalski-Katzir et al.\ in 1992~\cite{katchalskikatzir1992}.
 The paper is a model of clarity: the key insight (correlation equals convolution, convolution is cheap via FFT) is explained in two pages.
 Many subsequent programs built on this foundation.
-ZDOCK (Chen, Li, and Weng, 2003) added electrostatics and desolvation to the grid.
-ClusPro (Kozakov et al., 2017) automated the entire pipeline including clustering and energy minimization.
-PIPER (Kozakov et al., 2006) extended the FFT approach to pairwise potentials.
+ZDOCK (Chen, Li, and Weng, 2003)~\cite{chen2003zdock} added electrostatics and desolvation to the grid.
+ClusPro (Kozakov et al., 2017)~\cite{kozakov2017cluspro} automated the entire pipeline including clustering and energy minimization.
+PIPER (Kozakov et al., 2006)~\cite{kozakov2006piper} extended the FFT approach to pairwise potentials.
 
 HADDOCK was published in 2003~\cite{dominguez2003} and has been updated continuously since.
 HADDOCK 2.2~\cite{vanzundert2016} introduced a web server that made information-driven docking accessible to non-experts.
@@ -490,11 +490,11 @@ The alanine scanning work by Clackson and Wells~\cite{clackson1995} remains one 
 The ASEdb (Alanine Scanning Energetics database) and later the SKEMPI database compiled thousands of such measurements, enabling the training of computational hotspot predictors.
 The Robetta alanine scanning server and FoldX provide fast computational approximations of $\Delta\Delta G$ upon mutation.
 
-Knowledge-based scoring functions trace their intellectual lineage to Sippl's (1990) work on statistical potentials for single proteins.
+Knowledge-based scoring functions trace their intellectual lineage to Sippl's (1990) work on statistical potentials for single proteins~\cite{sippl1990}.
 Their application to protein--protein scoring was developed independently by several groups in the early 2000s.
-The DFIRE potential (Zhou and Zhou, 2002) and SOAP (Dong et al., 2013) are widely used.
+The DFIRE potential (Zhou and Zhou, 2002)~\cite{zhou2002dfire} exemplifies the knowledge-based approach now widely used in docking rescoring.
 
-The CAPRI experiment (Critical Assessment of PRedicted Interactions) has run since 2001, providing blind benchmarks for the docking community.
+The CAPRI experiment (Critical Assessment of PRedicted Interactions) has run since 2001~\cite{janin2003capri}, providing blind benchmarks for the docking community.
 CAPRI results consistently show that methods combining experimental data with computational docking outperform purely computational approaches.
 This observation validates the information-driven philosophy that HADDOCK pioneered.
 
@@ -504,7 +504,7 @@ Interface databases such as PIFACE and SCOPPI catalog recurring interface archit
 
 The convergence of deep learning with docking is reshaping the field.
 AlphaFold-Multimer~\cite{evans2022} directly predicts complex structures without an explicit docking step, by co-folding multiple chains.
-EquiDock and DiffDock use SE(3)-equivariant neural networks and diffusion models, respectively, to generate docked poses.
+EquiDock and DiffDock use SE(3)-equivariant neural networks and diffusion models, respectively, to generate docked poses~\cite{ganea2022,corso2023}.
 Whether these learned methods will fully replace physics-based and information-driven docking remains an open question.
 Their accuracy on well-represented complex types is impressive, but their behavior on unusual interfaces or in the presence of sparse experimental data is less established.
 The information-driven philosophy, which treats experimental evidence as a first-class citizen in the modeling process, will likely remain relevant regardless of the sampling engine underneath.

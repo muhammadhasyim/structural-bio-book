@@ -1,5 +1,70 @@
 /* Book-specific layout on top of the vendored Tufte Quarto extension. */
 
+/* Match pdfLaTeX Tufte book body text: Palatino class via TeX Gyre Pagella (same as TeX Live). */
+@font-face {
+  font-family: "TeX Gyre Pagella";
+  src: url("fonts/texgyrepagella-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TeX Gyre Pagella";
+  src: url("fonts/texgyrepagella-italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TeX Gyre Pagella";
+  src: url("fonts/texgyrepagella-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TeX Gyre Pagella";
+  src: url("fonts/texgyrepagella-bolditalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+body,
+.quarto-content,
+article,
+main,
+#quarto-document-content,
+p,
+li,
+dd,
+dt,
+blockquote,
+figcaption,
+.navbar,
+.dropdown-menu,
+.font-family-base {
+  font-family: "TeX Gyre Pagella", Palatino, "Palatino Linotype", "Book Antiqua",
+    "URW Palladio L", Georgia, serif !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.title,
+.navbar-brand,
+.sidebar-title,
+.sidebar,
+.header-section-number,
+.quarto-secondary-nav-title,
+.quarto-title,
+.chapter-title {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
 /*
  * Do NOT apply custom display:grid on main-column figures. Quarto Tufte HTML
  * already uses page-columns + figcaption.margin-caption when
